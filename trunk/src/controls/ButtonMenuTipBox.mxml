@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:controls="*"
+		   height="100" width="40"  alpha="0.8"
+		   buttonMode="true" useHandCursor="true"
+		   borderStyle="solid" borderThickness="0" cornerRadius="5" 
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		   mouseOver="onMouseOver()" mouseOut="onMouseOut()" xmlns:controls1="controls.*" 
+		   >
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			private var isMouseOver:Boolean;
+			
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+				
+			}
+			[Bindable]
+			public var direct:int = 0;
+			
+			[Bindable]
+			public var pos:int = 0; //0:文字在线右侧， 1:文字在先左侧, 2:文字在先上方 ， 3：文字在线下方
+			
+			[Bindable]
+			public var lineLen:int = 0;  //线长
+			
+			[Bindable]
+			public var startPoint:Point = new Point();
+			
+			[Bindable]
+			public var toolTipLabel:String = "";
+			
+			private function getPoints():Array
+			{
+				/*
+				if(direct == -1) return [{x:12,y:0},{x:12,y:50}];
+				return 	[{x:12,y:0},{x:162,y:0}]; 
+				*/
+				
+				
+				//横放
+				if(direct == 0){
+					return [startPoint,{x:(startPoint.x + lineLen),y:startPoint.y}];
+				}
+				else{
+					return [startPoint,{x:startPoint.x,y:(startPoint.y+lineLen)}];
+				}
+			}
+			
+			public function getLabelX():int{
+				//横放
+				if(direct == 0){
+					if(pos == 0) {
+						return lineLen;
+					}
+					else if(pos == 1){
+						return 0;
+					}
+				}
+				//竖放
+				else{
+					return 0;
+				}
+				return 0;
+			}
+			
+			public function getLabelY():int{
+				//横放
+				if(direct == 0){
+					if(pos == 0) return 10;
+					else if(pos == 1) return -5;
+				}
+				//竖放
+				else{
+					//文字在竖线上方
+					if(pos == 2){
+						return 0;
+					}
+						//文字在竖线下方
+					else if(pos == 3){
+						return lineLen+10;
+					}
+				}
+				return 0;
+			}
+		]]>
+	</mx:Script>
+	<controls1:LineComponet x="2" y="20"
+						  points="{getPoints()}"
+						  color="0xFFFFFF" />
+	<mx:Label fontSize="14" id="tooltip" height="40" width="250" text="{toolTipLabel}" x="{getLabelX()}" y="{getLabelY()}">
+		
+	</mx:Label>
+</mx:Canvas>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Image xmlns:mx="http://www.adobe.com/2006/mxml"
+		  xmlns:player="org.bytearray.gif.player.*" 
+		  source="{url}"
+		  init="onInit()"
+		  complete="imageLoaded(event)"
+		  >
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			public var url:String; 
+			
+			private function onInit():void
+			{
+				
+				this.addEventListener(Event.ADDED_TO_STAGE, function():void
+				{
+					gifPlayer.play();
+				});
+				
+				this.addEventListener(Event.REMOVED_FROM_STAGE, function():void
+				{
+					gifPlayer.stop();
+				});
+			}
+			
+			private function filterGifUrl(url:String):String
+			{
+				if(!url) return null;
+				else
+				{
+					return url.toLowerCase().indexOf(".gif") > 0 ? url : null;
+				}
+			}
+			
+			private function onGifUpdate():void
+			{
+				source = gifPlayer;
+			}
+			
+			protected function imageLoaded(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				dispatchEvent(new Event("imageLoaded"));
+			}
+			
+		]]>
+	</mx:Script>
+	<player:GIFPlayer id="gifPlayer" width="1" height="1"
+					  source="{filterGifUrl(url)}"
+					  visible="false" change="onGifUpdate()"/>
+</mx:Image>

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		  mouseDown="{onMouseDown(event)}" 
+		  width="{formInfo.width}" 
+		  height="{formInfo.height}"
+		  x="{formInfo.x}"
+		  y="{formInfo.y}"
+		  mouseOver="onMouseOver(event)"
+		  mouseOut="onMouseOut(event)" 
+		  creationComplete="{onInit();}"
+	  	  
+		  borderStyle="solid" borderThickness="0" cornerRadius="2"  backgroundColor="0xffffff"
+		  >
+	<mx:Script>
+		<![CDATA[
+
+			import common.FormFieldInfo;
+			import common.FormInfo;
+			import common.RpcRequest;
+			
+			import mx.containers.FormItem;
+			import mx.containers.HBox;
+			import mx.containers.VBox;
+			import mx.controls.Alert;
+			import mx.controls.Button;
+			import mx.controls.CheckBox;
+			import mx.controls.ComboBox;
+			import mx.controls.Label;
+			import mx.controls.RadioButton;
+			import mx.controls.RadioButtonGroup;
+			import mx.controls.TextInput;
+			import mx.events.ResizeEvent;
+			import mx.utils.StringUtil;
+			
+			import utils.ContentHelper;
+			
+			[Bindable]
+			public var formInfo:FormInfo;
+			
+			[Bindable]
+			public var mouseOver:Boolean = false;
+			
+			/**
+			 * 控件的集合
+			 */
+			private var _controls:Array = [];
+		
+			private function onInit():void
+			{
+				//trace("FormBox OnInit....");
+				if(formInfo.backgroundColor != ""){
+					this.setStyle("backgroundColor",formInfo.backgroundColor);
+				}
+				for each(var field:FormFieldInfo in formInfo.formFieldInfos){
+					var item:FormItem = new FormItem();
+					item.label =field.label;
+					
+					item.setStyle("fontSize","14");
+					item.setStyle("paddingTop","15");
+					item.setStyle("paddingBottom","15");
+					form.addChild(item);
+					
+					//防止文字被截断
+					item.itemLabel.truncateToFit=false;
+					
+					item.setStyle("labelWidth",formInfo.labelWidth);
+				
+					if(field.type == "textbox"){
+						var text:TextInput = new TextInput();
+						text.width = field.width == 0 ? (form.width-200-item.itemLabel.width):field.width;
+						text.text = field.prevalue;
+						text.height = field.height == 0 ? 40:field.height;
+						item.addChild(text);
+						
+						var objtext:Object  = {
+							type:field.type,
+							name:field.name,
+							value:text,
+							prevalue:field.prevalue
+						};
+						
+						_controls.push(objtext);
+						
+					}
+					else if(field.type == "combobox"){
+						var combo:ComboBox = new ComboBox();
+						var dt:Array = field.datasource.split(",");
+						combo.dataProvider = dt;
+						combo.width = field.width == 0 ? (form.width-200-item.itemLabel.width):field.width;
+						combo.height = field.height == 0 ? 40:field.height;
+						combo.text = field.prevalue;
+						item.addChild(combo);
+						
+						var objcombo:Object  = {
+							type:field.type,
+							name:field.name,
+							value:combo,
+							prevalue:field.prevalue
+						};
+						
+						_controls.push(objcombo);
+					}
+					else if(field.type == "checkbox"){
+						var check:CheckBox = new CheckBox();
+						//check.width = field.width == 0 ? (form.width-260-item.itemLabel.width):field.width;
+						//check.height = field.height == 0 ? 40:field.height;
+						check.label = field.label;
+						check.selected = (String(field.prevalue) == "true");
+						item.label = "";
+						item.addChild(check);
+
+						//item.setStyle("backgroundColor","0xff0000");
+						
+						var objcheck:Object  = {
+							type:field.type,
+							name:field.name,
+							value:check,
+							prevalue:check.selected
+						};
+						
+						_controls.push(objcheck);
+						
+					}
+					else if(field.type == "radiobutton"){
+						var rg:RadioButtonGroup = new RadioButtonGroup();
+						var rbs:Array = field.datasource.split(",");
+						var hb:VBox = new VBox();
+						hb.setStyle("fontSize","16");
+						//hb.setStyle("backgroundColor","0xff0000");
+						var idx:int = 0;
+						item.addChild(hb);
+								
+						for each(var r:String in rbs){
+							//var rb:RadioButton = new RadioButton();
+							//rb.label =r;
+							//rb.group = rg;
+							
+							var rb:FormRadio = new FormRadio();
+							rb.width = 200;
+							rb.height = 30;
+							rb.text = r;
+							
+							hb.addChild(rb);
+							rb.rb.group = rg;
+							
+							//rb.setStyle("fontWeight","normal");
+							if(idx.toString() == field.prevalue) rb.rb.selected = true;
+							idx++;
+						}
+						//trace("numRadioButtons=" + rg.numRadioButtons);
+
+						var objrg:Object  = {
+							type:field.type,
+							name:field.name,
+							value:rg,
+							prevalue:field.prevalue
+						};
+						
+						_controls.push(objrg);
+						
+						
+					}
+					
+					
+				}
+				var fi:FormItem = new FormItem();
+				//fi.width = form.width-50;
+				fi.setStyle("fontSize","14");
+				//fi.setStyle("paddingTop","15");
+				//fi.setStyle("paddingBottom","15");
+				form.addChild(fi);
+				fi.itemLabel.truncateToFit=false;
+				var hboxButton:HBox = new HBox();
+				hboxButton.percentWidth = 100;
+				
+				fi.addChild(hboxButton);
+				
+				var submit:FormButton = new FormButton();
+				submit.width = 180;
+				submit.height = 30;
+				submit.text = l.i.s('Submit');
+				hboxButton.addChild(submit);
+				
+								
+				submit.addEventListener(MouseEvent.CLICK, onSubmit);
+
+				var reset:FormButton = new FormButton();
+				reset.text = l.i.s('Reset');
+				reset.width = 180;
+				reset.height = 30;
+				//reset.width = 120;
+				//reset.height = 40;
+				//reset.setStyle("fontSize","14");
+				//reset.setStyle("fontWeight","normal");
+				
+				reset.addEventListener(MouseEvent.CLICK, onReset);
+				
+				hboxButton.addChild(submit);
+				hboxButton.addChild(reset);
+				
+				//var lbSubmit:Label = new Label();
+				//lbSubmit.text = "xxxxxxxxxxx";
+				//hboxButton.addChild(lbSubmit);
+				
+			}
+			
+			private function onReset(e:*):void
+			{
+				for each(var obj:Object in _controls){
+					if(obj.type == "textbox"){
+						TextInput(obj.value).text = String(obj.prevalue);
+					}
+					else if(obj.type == "combobox"){
+						ComboBox(obj.value).text = String(obj.prevalue);
+					}
+					else if(obj.type == "checkbox"){
+						CheckBox(obj.value).selected = Boolean(obj.prevalue);
+					}
+					else if(obj.type == "radiobutton"){
+						for (var i:int = 0; i < RadioButtonGroup(obj.value).numRadioButtons; i++){
+							
+							if( i == int(obj.prevalue)){
+								RadioButtonGroup(obj.value).getRadioButtonAt(i).selected = true;
+								break;
+							}
+							
+						}
+						
+					}
+
+				}
+			}
+			
+			private function onSubmit(e:MouseEvent):void
+			{
+				var postObj:Object = {};
+				
+				for each(var obj:Object in _controls){
+					if(obj.type == "textbox"){
+						postObj[obj.name] = StringUtil.trim(TextInput(obj.value).text);
+					}
+					else if(obj.type == "combobox"){
+						postObj[obj.name] = ComboBox(obj.value).selectedItem;
+					}
+					else if(obj.type == "checkbox"){
+						postObj[obj.name] = CheckBox(obj.value).selected;
+					}
+					else if(obj.type == "radiobutton"){
+						for (var i:int = 0; i < RadioButtonGroup(obj.value).numRadioButtons; i++){
+							if (RadioButtonGroup(obj.value).getRadioButtonAt(i).selected ){
+								postObj[obj.name] = i;
+								break;
+							}
+						}
+						//postObj[obj.name] =RadioButtonGroup(obj.value).numRadioButtons;
+					}
+					
+					trace(postObj[obj.name]);
+					submitByService(postObj,submitCallback);
+				}
+			}
+			
+			private function submitCallback(obj:Object):void
+			{
+				if(obj.toString().length < 2)
+				{
+					//提交成功
+					
+					//Alert.show();
+
+				}
+				else
+				{
+					//提交失败
+
+				}	
+			}
+			
+			/**
+			 * 提交表单
+			 */
+			private function submitByService(postData:Object,callback:Function=null):void
+			{
+				var url:String = StringUtil.trim(formInfo.url) ;
+				if(url != ""){
+					new RpcRequest(url,postData,callback);
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void
+			{
+				mouseOver = true;
+			}
+			
+			private function onMouseOut(event:MouseEvent):void
+			{
+				mouseOver = false;
+			}
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				
+				event.stopPropagation();
+			}
+			
+			
+			
+
+			protected function onResize(event:ResizeEvent):void
+			{
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Form id="form"  
+			 width="{formInfo.width}" 
+			 height="{formInfo.height}" 
+			
+			 />
+
+</mx:Canvas>

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="150" height="30" creationComplete="update()"
+		   buttonMode="true" useHandCursor="true"
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off"
+		   toolTip="{content}"
+		   mouseOver="onMouseOver()"
+		   mouseOut="onMouseOut()"
+		   >
+	<mx:Script>
+		<![CDATA[
+			import utils.Helper;
+			import mx.controls.Image;
+			
+			import qs.controls.FlexBook;
+			
+			public var page:int = 0;
+			
+			public var pageIndex:int = 0;
+			
+			public var markObj:Object = null;
+			
+			public var offsetY:int = 80;
+			
+			public var rawWidth:Number;
+			public var rawHeight:Number;
+			public var rawX:Number;
+			public var rawY:Number;
+			
+			public var book:FlexBook;
+			
+			public var fontSize:Number = 14;
+			
+			[Bindable]
+			public var bgColor:uint = 0;
+			
+			[Bindable]
+			public var content:String = "";
+			
+			private var _isLeft:Boolean;
+
+			public function get isLeft():Boolean
+			{
+				return _isLeft;
+			}
+
+			public function set isLeft(value:Boolean):void
+			{
+				_isLeft = value;
+			}
+			
+			public function update():void
+			{
+				var size:Number = fontSize * book.getRealScale();
+				updateImage(size);
+				this.invalidateDisplayList();
+			}
+			
+			public function adjust():void
+			{
+				if(this.book == null) return;
+				
+				var s:Number = book.getRealScale();
+				var root:Point = book.localToGlobal(new Point(this.rawX,this.rawY));
+				var ww:Number = this.rawWidth * s;
+				var hh:Number = this.rawHeight * s;
+				if(	Math.abs(ww - this.width) > 0.1 
+					|| Math.abs(hh - this.height) > 0.1)
+				{
+					this.width = ww;
+					this.height = hh;
+					this.update();
+				}
+				
+				this.x = root.x;
+				this.y = root.y;
+			}
+			
+			private function updateImage(fontSize:Number):void
+			{
+				if(img == null) return;
+				
+				var color32:uint = this.bgColor;
+				var alpha32:int = color32 >> 24;
+				var red32:int = color32 >> 16 & 0xff;
+				var green32:int = color32 >> 8 & 0xff;
+				var blue32:int = color32 & 0xff;
+				var avgColor:int = ( red32 + green32 +  blue32 ) / 3;
+				var color:uint = avgColor < 128 ? 0xFFFFFF : 0x000000;
+				
+				var s:Sprite = new Sprite();
+				var tf:TextField = new TextField();
+				tf.autoSize = TextFieldAutoSize.LEFT;
+				tf.text = " " + content + " ";
+				var fm:TextFormat = new TextFormat("Tahoma",fontSize);
+				fm.color = color;
+				
+				tf.setTextFormat(fm);
+				s.addChild(tf);
+				var bmpData:BitmapData = new BitmapData(s.width,s.height,true,0xFFFFFF);
+				bmpData.draw(s);
+				var bmp:Bitmap = new Bitmap(bmpData,flash.display.PixelSnapping.ALWAYS,false);
+				
+				img.source = bmp;
+				img.width = bmpData.width;
+				img.height = bmp.height;
+				img.x = (this.width - img.width) / 2;
+				img.y = (this.height - img.height) / 2;
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number,
+														  unscaledHeight:Number):void
+			{
+				var g:Graphics = this.graphics;
+				g.clear();
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				var corner:Number = Math.min(width,height)/3;
+				var hh:Number = width;
+				var ww:Number = height;
+				
+				var g:Graphics = this.graphics;
+				g.beginFill(bgColor);
+				g.drawRoundRect(0,0,hh,ww,corner,corner);
+				g.endFill();
+				g.beginFill(bgColor);
+				g.drawRect(0,corner,hh,ww - corner);
+				g.endFill();
+				var m:Matrix = new Matrix();
+				m.createGradientBox(hh,ww,Math.PI / 2,0,3);
+				g.beginGradientFill(GradientType.LINEAR, [0,0], [0,0.6], [0,255], m);
+				g.drawRect(0, 0, hh, ww);
+				g.endFill();
+			}
+			
+			private var oldIndex:int = 0;
+			
+			private function onMouseOver():void
+			{
+				oldIndex = this.parent.getChildIndex(this);
+				
+				this.alpha = 1;
+				
+				for(var i:int = 0; i<this.parent.numChildren; i++)
+				{
+					var item:BookMark = this.parent.getChildAt(i) as BookMark;
+					if(item != null && item != this && item.isLeft == this.isLeft)
+					{
+						item.alpha = 0.05;
+					}
+				}
+				
+				Helper.bringTop(this);
+			}
+			
+			private function onMouseOut():void
+			{
+				this.alpha = 1;
+				for(var i:int = 0; i<this.parent.numChildren; i++)
+				{
+					var item:BookMark = this.parent.getChildAt(i) as BookMark;
+					if(item != null && item != this)
+					{
+						item.alpha = 1;
+					}
+				}
+				RunTime.mainPage.updateBookMarks();
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Image id="img" mouseChildren="false" />
+</mx:Canvas>

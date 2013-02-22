@@ -1,0 +1,3651 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application xmlns="http://www.adobe.com/2006/mxml"
+			 xmlns:l="*"
+			 xmlns:controls="qs.controls.*"
+			 xmlns:containers="qs.containers.*"
+			 xmlns:effects="qs.effects.*"
+			 xmlns:itemRenderers="fcat.view.itemRenderers.*"
+			 xmlns:common="common.*"
+			 xmlns:fbc="controls.*"
+			 
+			 width="100%" height="100%" minWidth="500" minHeight="300"
+			 applicationComplete="onApplicationComplete()" backgroundColor="0x454545"
+			 backgroundGradientAlphas="0,0" creationComplete="initApp()"
+			 horizontalScrollPolicy="off" implements="IMainApp" layout="absolute"
+			 preloader="SwfPreloader" verticalScrollPolicy="off">
+	<Style source="default.css"/>
+	<Script>
+		<![CDATA[
+			import common.*;
+			import common.events.BookEvent;
+			import common.events.ThumbChangeEvent;
+			
+			import controls.*;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.Spacer;
+			import mx.core.UITextField;
+			import mx.effects.Resize;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			import mx.utils.StringUtil;
+			import mx.validators.ValidationResult;
+			
+			import utils.FluentTimer;
+			import utils.Helper;
+			import utils.MouseStateHelper;
+			import utils.PageNumHelper;
+			
+			private var bookAspectRatio: Number;
+			private var bookAspectRatioNoStack: Number;
+			
+			public var runtime: RunTime = RunTime.instance;
+			
+			private var mouseListener:SModeBookMouseListener;
+			private var stageMouseListener:SModeStageMouseListener;
+			private var isBookResizeOk:Boolean = false;
+			
+			public var defaultPage:int = 1;
+			
+			public var prefetch:Prefetch = new Prefetch();
+			
+			[Bindable]
+			public var mainAdUrl:String = "";
+			
+			[Bindable]
+			public var mainAdHref:String = "";
+			
+			[Bindable]
+			public var defaultZoomScale:Number = 3;
+			
+			public var showToc:Boolean = false;
+			
+			[Bindable]
+			public static var autoHideOnFullScreen:Boolean = true;
+			
+			[Bindable]
+			public var showBottommenuBackground:Boolean = false;
+			
+			public var menus:Array = [];
+			public var menuLinks:Array = [];
+			
+			public var pageWidth:int;
+			public var pageHeight:int;
+			
+			[Bindable]
+			public var audio:AudioManager = new AudioManager();
+			
+			[Bindable]
+			public var bookConfig: XML;
+			
+			[Bindable]
+			public var soundConfig:XML = null;
+			
+			[Bindable]
+			public var logoRdUrl:String = "";
+			
+			[Bindable]
+			public var logoRdHref:String = "";
+			
+			[Bindable]
+			public var pdfUrl:String = "";
+			
+			private function jsCallBack(szPage:String):void{
+				gotoPage(parseInt(szPage));
+			}
+			
+			private function onApplicationComplete():void
+			{
+				ExternalInterface.addCallback("gotoPage",jsCallBack);
+				
+				stage.focus = this;
+				stage.addEventListener(KeyboardEvent.KEY_DOWN,onKeyDown);
+				var pageParsed:Boolean = false;
+				var queryString:String = "";
+				stage.frameRate = 60;
+				try
+				{
+					if(ExternalInterface.available)
+					{
+						queryString = ExternalInterface.call("function getURL(){return window.location.search;}");
+						
+						if(queryString && queryString.length > 1)
+						{
+							queryString = queryString.slice(1);
+							
+							var pairs:Array = queryString.split("&");   
+							for(var i:uint=0; i < pairs.length; i++) {   
+								var pos:int = pairs[i].indexOf("=");   
+								if(pos != -1) {   
+									var argname:String = pairs[i].substring(0, pos);   
+									var value:String = pairs[i].substring(pos+1);
+									if(argname == "page")
+									{
+										this.defaultPage = int(value);
+										pageParsed = true;
+										break;
+									}
+									else if(argname == "toc"){
+										this.showToc = (int(value)==1);
+									}
+								}   
+							}   
+						}
+					}
+				}
+				catch(e:*)
+				{
+				}
+				
+				try
+				{
+					if(pageParsed == false)
+					{
+						if(this.url.indexOf("?") > 0)
+						{
+							queryString = this.url.substr(this.url.indexOf("?")+1);
+							var pairs:Array = queryString.split("&");   
+							for(var i:uint=0; i < pairs.length; i++) {   
+								var pos:int = pairs[i].indexOf("=");   
+								if(pos != -1) {   
+									var argname:String = pairs[i].substring(0, pos);   
+									var value:String = pairs[i].substring(pos+1);
+									if(argname == "page")
+									{
+										this.defaultPage = int(value);
+										pageParsed = true;
+										break;
+									}
+									else if(argname == "toc"){
+										this.showToc = (int(value)==1);
+									}
+								}
+							}   
+						}
+					}
+				}
+				catch(e:*)
+				{
+				}
+				
+				if(this.defaultPage < 1) this.defaultPage = 1;
+			}
+			
+			public function deleteHighlight(record:HighlightRecord):void
+			{
+				var newList:Array = [];
+				for each(var item:HighlightRecord in RunTime.highlightRecords)
+				{
+					if(item == record)
+					{
+						item.remove();
+					}
+					else
+					{
+						newList.push(item);
+					}
+				}
+				record.deleteMe();
+				RunTime.highlightRecords = newList;
+			}
+			
+			public function addHighlight(record:HighlightRecord):void
+			{
+				if(record == null) return;
+				RunTime.highlightRecords.push(record);
+				RunTime.highlightRecords = RunTime.highlightRecords.concat(record);
+				record.save();
+			}
+			
+			public function deleteNote(record:NoteRecord):void
+			{
+				if(record == null) return;
+				
+				var newList:Array = [];
+				for each(var item:NoteRecord in RunTime.noteRecords)
+				{
+					if(item == record)
+					{
+						item.remove();
+					}
+					else
+					{
+						newList.push(item);
+					}
+				}
+				RunTime.noteRecords = newList;
+				record.deleteMe();
+			}
+			
+			private function closeNoteDetails():void
+			{
+				for each(var item:NoteRecord in RunTime.noteRecords)
+				{
+					item.detailVisible = false;
+				}
+			}
+			
+			private var licCfm:LicenseInfo;
+			
+			private var pwd:String = "pwd";
+			
+			private var pwdDefault:String = "Pwd-Empty"; 
+			
+			private var pwdCfm:PasswordConfirm;
+			
+			public function updateProloadInfo():void
+			{
+				this.preloadInfo.progValue = (RunTime.cfgFileLoadedCount * 100) / RunTime.cfgFileCount;
+				if(RunTime.cfgFileLoadedCount >= RunTime.cfgFileCount && isBookResizeOk == true)
+				{
+					if(pwd)
+					{
+						if( RunTime.encrypt(pwdDefault) == pwd)
+						{
+							prepareShowBook();
+						}
+						else
+						{
+							if(pwdCfm == null)
+							{
+								var cfm:PasswordConfirm = new PasswordConfirm();
+								cfm.pwd = pwd;
+								cfm.showDialog();
+								cfm.returnCallback = prepareShowBook;
+								pwdCfm = cfm;
+							}
+						}
+					}
+					else
+					{
+						prepareShowBook();
+					}
+				}
+			}
+			
+			private function prepareShowBook():void
+			{
+				pwd = null;
+				pwdCfm = null;
+				var timer:Timer = new Timer(500,1);
+				timer.addEventListener(TimerEvent.TIMER, function(...args):void
+				{
+					showBook();						
+				});
+				timer.start();
+			}
+
+			private var _initTimer:Timer;
+			
+			private function initApp(): void
+			{
+				_initTimer = new Timer(10);
+				_initTimer.addEventListener(TimerEvent.TIMER, initAppCore);
+				_initTimer.start();
+//				preloadInfo.source = Setting.logo;
+				
+				trace(RunTime.encrypt("global"));
+			}
+			
+			private function initAppCore(e:TimerEvent):void
+			{
+				if(Setting.swfLoaded == false) return;
+				
+				_initTimer.removeEventListener(TimerEvent.TIMER, initAppCore);
+				_initTimer.stop();
+				
+				loadLocalSetting();
+				runtime.initApp(this);
+				RunTime.mainPage = this;
+				RunTime.mainApp = this;
+				
+				RunTime.sModeBook = book;
+				
+				var request:Function = function():void
+				{
+					new RpcRequest(runtime.configPath, null, parseConfig);
+				};
+				
+				RunTime.service.init(request);
+				
+				mouseListener = new SModeBookMouseListener(book);
+				stageMouseListener = new SModeStageMouseListener(this);
+				Security.allowDomain("*");
+			}
+			
+			private function loadLocalSetting():void
+			{
+				RunTime.localSetting = SharedObjectManager.instance.getLocalSetting();
+				
+				if(RunTime.localSetting == null) return;
+				
+				if(RunTime.localSetting.hasOwnProperty("flippingSoundEnabled"))
+				{
+					this.audio.flippingSoundEnabled = Boolean(RunTime.localSetting.flippingSoundEnabled);
+				}
+				
+				if(RunTime.localSetting.hasOwnProperty("bgSoundsEnabled"))
+				{
+					this.audio.bgSoundsEnabled = Boolean(RunTime.localSetting.bgSoundsEnabled);
+				}
+				
+				if(RunTime.localSetting.hasOwnProperty("autoMoveAfterZoom"))
+				{
+					this.landscape.autoMoveAfterZoom = Boolean(RunTime.localSetting.autoMoveAfterZoom);
+				}
+				
+				if(RunTime.localSetting.hasOwnProperty("audioVolume"))
+				{
+					RunTime.audioVolume = Number(RunTime.localSetting.audioVolume);
+				}
+				
+				if(RunTime.localSetting.hasOwnProperty("lang"))
+				{
+					var lang:String = String(RunTime.localSetting.lang);
+					if(RunTime.langConfig != null)
+					{
+						var i:int = 0;
+						for each(var item:XML in RunTime.langConfig.language)
+						{
+							if(String(item.@content) == lang)
+							{
+								l.loadRemote(RunTime.instance.getLanguageData(String(item.@content)));
+								RunTime.langSelectedId = i;
+								break;
+							}
+							i++;
+						}
+					}
+				}
+			}
+			
+			private function loadLocalData():void
+			{
+				SharedObjectManager.instance.id = RunTime.bookId;
+				RunTime.service.loadLocalData();
+			}
+			
+			private function calcKey(w:int, h:int):String
+			{
+				var val:String = (w * h).toString();
+				val = val.substr(val.length - 3) + val.substr(0,2);
+				var n:String = "";
+				for(var i:int = 0; i < val.length; i++)
+				{
+					var c:int = int(val.charCodeAt(i))/2;
+					n = n + c.toString(16);
+				}
+				return n.toUpperCase();
+			}
+			
+			private function parseConfig(xmlData: Object):void
+			{
+				BindingUtils.bindSetter(setBookContent, this, "bookConfig");
+				
+				bookConfig = new XML(xmlData);
+				RunTime.bookConfig = bookConfig;
+				
+				pageWidth = parseInt(bookConfig.@pageWidth);
+				pageHeight = parseInt(bookConfig.@pageHeight);
+				
+				RunTime.pageWidth = pageWidth;
+				RunTime.pageHeight = pageHeight;
+				
+				RunTime.key = calcKey(pageWidth,pageHeight);
+				RunTime.bookId = String(bookConfig.@id);
+				
+				var lic:String = "";
+				if(String(bookConfig.@lic))
+				{
+					lic = String(bookConfig.@lic);
+				}
+				else{
+					lic = "trial";
+				}
+				
+				RunTime.license = RunTime.getLicenseType(lic);
+				
+				if(RunTime.license == LicenseType.TRIAL){
+					
+					var timer:Timer = new Timer(200*60*1000,1);
+//					var timer:Timer = new Timer(2*60*1000,1);
+					timer.addEventListener(TimerEvent.TIMER, function (){
+						//trace("timer........");
+						licCfm = new LicenseInfo();
+						licCfm.showDialog();
+					}
+					);
+					timer.start();
+				}
+				
+				if(String(bookConfig.@analyticsUA))
+				{
+					RunTime.analyticsUA = String(bookConfig.@analyticsUA);
+					RunTime.useAnalyticsUA(RunTime.analyticsUA);
+				}
+				
+				loadLocalData();
+				
+				if(String(bookConfig.@limitTo100))
+				{
+					
+					RunTime.limitTo100 = String(bookConfig.@limitTo100).toLowerCase() == "true";
+				}
+				
+				if(String(bookConfig.@mouseWheelZoom)){
+					RunTime.mouseWheelZoom = String(bookConfig.@mouseWheelZoom).toLowerCase() == "true";
+				}
+				//protectedPages
+				if(String(bookConfig.@protectedPages)){
+					var szPages:String = String(bookConfig.@protectedPages);
+					RunTime.protectedPages = szPages.split(",");
+				}
+				
+				if(String(bookConfig.@bookSize)){
+					RunTime.bookSize = 0.5 + parseFloat(bookConfig.@bookSize)*0.05;
+				}
+				
+				if(String(bookConfig.@showZoomBox))
+				{
+					
+					RunTime.showZoomBox = String(bookConfig.@showZoomBox).toLowerCase() == "true";
+				}
+				
+				if(String(bookConfig.@defaultZoomScale))
+				{
+					var localDefaultZoomScale:Number = SharedObjectManager.instance.getLocalDefaultScale();
+					if(isNaN(localDefaultZoomScale))
+					{
+						this.defaultZoomScale = Number(String(bookConfig.@defaultZoomScale));
+					}
+					else
+					{
+						this.defaultZoomScale = localDefaultZoomScale;
+					}
+				}
+				
+				if(String(bookConfig.@fitScreenAfterZoom))
+				{
+					RunTime.fitScreenAfterZoom = String(bookConfig.@fitScreenAfterZoom) == "true";
+					RunTime.configFitScreenAfterZoom = String(bookConfig.@fitScreenAfterZoom) == "true";
+					if(RunTime.fitScreenAfterZoom == true)
+					{
+						
+						this.defaultZoomScale = this.width / book.width;
+						RunTime.fitScreenScale = defaultZoomScale;
+					}
+				}
+				RunTime.fitScreenScale = this.width / book.width;
+				
+				if(String(bookConfig.@password))
+				{
+					pwd = String(bookConfig.@password);
+				}
+				
+				if(String(bookConfig.@pdfUrl))
+				{
+					pdfUrl = String(bookConfig.@pdfUrl);
+				}
+				
+				if(String(bookConfig.@clickToZoom))
+				{
+					RunTime.clickToZoom = String(bookConfig.@clickToZoom).toLowerCase();
+				}
+				
+				if(String(bookConfig.@zoomAfterLoaded))
+				{
+					RunTime.zoomAfterLoaded = String(bookConfig.@zoomAfterLoaded).toLowerCase() == "true";
+				}
+				
+				if(String(bookConfig.@bgColor))
+				{
+					preloadInfo.setStyle("backgroundColor", String(bookConfig.@bgColor).replace( /0x/gi, '#' ) );
+				}
+				
+				if(String(bookConfig.@autoFlip))
+				{
+					autoFlip = String(bookConfig.@autoFlip) == "true";
+				}
+				
+				var highlightColor:uint = SharedObjectManager.instance.getHighlightColor();
+				if(highlightColor != HighlightRecord.emptyColor)
+				{
+					HighlightRecord.defaultColor = highlightColor;
+				}
+				else if(String(bookConfig.@highlightColor))
+				{
+					HighlightRecord.defaultColor = Helper.parseColor(String(bookConfig.@highlightColor));
+				}
+				
+				var bgImage:String = RunTime.getAbsPath(String(bookConfig.@bgImage));
+				if(bgImage)
+				{
+					new RpcRequest(bgImage,null,
+						function(... args):void
+						{
+							preloadInfo.setStyle("backgroundImage", bgImage);
+							parseConfig2();
+						},
+						function(... args):void
+						{
+							parseConfig2();
+						});
+				}
+				else
+				{
+					parseConfig2();
+				}
+			}
+			
+			private function parseConfig2():void
+			{
+				var logoUrl:String = RunTime.getAbsPath(String(bookConfig.@loadingLogo));
+				if(logoUrl)
+				{
+					new RpcRequest(logoUrl,null,
+						function(... args):void
+						{
+							if(!preloadInfo.source)
+							{
+								preloadInfo.source = logoUrl;
+							}
+							
+							parseConfig3();
+						},
+						function(... args):void
+						{
+							preloadInfo.prog.visible = true;
+							updateProloadInfo();
+							parseConfig3();
+						});
+				}
+				else
+				{
+					parseConfig3();
+				}
+			}
+			
+			private function parseConfig3():void
+			{
+				RunTime.infoUrl = RunTime.getAbsPath(String(bookConfig.bottommenu.info.@url));
+				RunTime.helpUrl = RunTime.getAbsPath(String(bookConfig.bottommenu.help.@url));
+				RunTime.autoHideOnFullScreen = !(String(bookConfig.bottommenu.@autoHideOnFullScreen) == "false");
+				RunTime.hideLefMenuAfterZoom = (String(bookConfig.leftmenu.@hideAfterZoom) == "true");
+				RunTime.hideBottomMenuAfterZoom = (String(bookConfig.bottommenu.@hideAfterZoom) == "true");
+				RunTime.bottomMenuFixTop = (String(bookConfig.bottommenu.@position) == "top");
+				
+				if(String(bookConfig.leftmenu.@showTabBackground)){
+					RunTime.showTabBackground = (String(bookConfig.leftmenu.@showTabBackground) == "true");
+				}
+				
+				if(String(bookConfig.bottommenu.@iconSameSize)){
+					RunTime.iconSameSize = (String(bookConfig.bottommenu.@iconSameSize) == "true");
+				}
+				
+				if(String(bookConfig.leftmenu.@visible)){
+					RunTime.hideLeftMenu = !(String(bookConfig.leftmenu.@visible) == "true");
+				}
+				
+				if(String(bookConfig.@exportPdfQuality)){
+					RunTime.exportPdfQuality = parseInt(String(bookConfig.@exportPdfQuality));
+					if (RunTime.exportPdfQuality < 50) RunTime.exportPdfQuality = 50;
+					if(RunTime.exportPdfQuality > 100) RunTime.exportPdfQuality = 100;
+				}
+				else{
+					RunTime.exportPdfQuality = 80;
+				}
+				
+				if(String(bookConfig.bottommenu.@visible)){
+					RunTime.hideBottomMenu = !(String(bookConfig.bottommenu.@visible) == "true");
+				}
+				
+				if(bookConfig.contextmenu.menu)
+				{
+					menus = [];
+					menuLinks = [];
+					
+					var cmenu:ContextMenu = new ContextMenu();
+					cmenu.hideBuiltInItems();
+					for each(var menu:XML in bookConfig.contextmenu.menu)
+					{
+						var menuItem:ContextMenuItem = new ContextMenuItem(String(menu.@title));
+						menus.push(menuItem);
+						menuLinks.push(RunTime.getAbsPath(String(menu.@url)));
+						
+						menuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,
+							function(e:Event):void
+							{
+								var url:String = menuLinks[menus.indexOf(e.target)];
+								RunTime.clickHref(url);
+							});
+						cmenu.customItems.push(menuItem);
+					}
+					this.contextMenu = cmenu;
+				}
+				
+				if(bookConfig.mainAd && bookConfig.mainAd.@url)
+				{
+					this.mainAdUrl = RunTime.getAbsPath(String(bookConfig.mainAd.@url));
+					if(bookConfig.mainAd.@href)
+					{
+						this.mainAdHref = RunTime.getAbsPath(String(bookConfig.mainAd.@href));
+					}
+					prefetchSource(mainAdUrl);
+				}
+				
+				if(bookConfig.bookLogo)
+				{
+					logoRdUrl = RunTime.getAbsPath(bookConfig.bookLogo.@url);
+					logoRdHref = RunTime.getAbsPath(bookConfig.bookLogo.@href);
+					prefetchSource(logoRdUrl);
+				}
+				
+				if(String(bookConfig.@autoFlipSeconds))
+				{
+					this._flipTimer.delay = int(bookConfig.@autoFlipSeconds) * 1000;
+				}
+				
+				if(String(bookConfig.@autoMoveAfterZoom))
+				{
+					this.landscape.autoMoveAfterZoom = String(bookConfig.@autoMoveAfterZoom) != "false";
+				}
+				
+				if(String(bookConfig.@flipSpeedBoost))
+				{
+					this.book.flipSpeedBoost = int(bookConfig.@flipSpeedBoost);
+				}
+				
+				if(String(bookConfig.@bookmarkWidth))
+				{
+					this.book.bookmarkWidth = Math.max(5, Number(String(bookConfig.@bookmarkWidth)));
+				}
+				
+				if(String(bookConfig.@bookmarkHeight))
+				{
+					this.book.bookmarkHeight = Math.max(5, Number(String(bookConfig.@bookmarkHeight)));
+				}
+				
+				if(String(bookConfig.@bookmarkFontSize))
+				{
+					this.book.bookmarkFontSize = Math.max(5, Number(String(bookConfig.@bookmarkFontSize)));
+				}
+				
+				loadLocalSetting();
+				/*
+				new RpcRequest(runtime.pagesPath, null, parsePages,RunTime.onConfigFileLoadFail);
+				new RpcRequest(runtime.soundsPath, null, parseSounds,RunTime.onConfigFileLoadFail);
+				RunTime.service.requestBookMarks();
+				RunTime.service.requestHighlights();
+				RunTime.service.requestNotes();
+				RunTime.service.requestHotlinks();
+				RunTime.service.requestVideos();
+				RunTime.service.requestButtons();
+				
+				*/
+				
+				new RpcRequest(runtime.pagesPath, null, parsePages,RunTime.onConfigFileLoadFail);
+				if(RunTime.license != LicenseType.STANDARD){
+					new RpcRequest(runtime.soundsPath, null, parseSounds,RunTime.onConfigFileLoadFail);
+				}
+				else{
+					RunTime.onConfigFileLoadFail(null);
+				}
+				RunTime.service.requestBookMarks();
+				RunTime.service.requestHighlights();
+				RunTime.service.requestNotes();
+				
+				if(RunTime.license != LicenseType.STANDARD){
+					RunTime.service.requestHotlinks();
+					RunTime.service.requestVideos();
+					RunTime.service.requestButtons();
+					RunTime.service.requestForms();
+					RunTime.service.requestSlideshows();
+				}
+				else{
+					RunTime.onConfigFileLoadFail(null);
+					RunTime.onConfigFileLoadFail(null);
+					RunTime.onConfigFileLoadFail(null);
+					RunTime.onConfigFileLoadFail(null);
+					RunTime.onConfigFileLoadFail(null);
+				}
+				RunTime.service.requestTOC();
+				RunTime.service.requestIssues();
+				RunTime.service.requestSites();
+				RunTime.service.requestLanguages();
+				RunTime.service.requestCopyright();
+				RunTime.service.requestTexts();
+				RunTime.service.requestNotes();
+				
+				RunTime.service.requestRss();
+				
+				RunTime.service.requestCustomButtonsIcon();
+				
+				RunTime.cfgFileLoadedCount++;
+				updateProloadInfo();
+			}
+			
+			private var isPreloadPages:Boolean = true;
+			
+			private function prefetchSource(url:String, callback:Function = null, fail:Function = null):void
+			{
+				if(url)
+				{
+					RunTime.cfgFileCount++;
+					new RpcRequest(url, null,
+						function(...args):void
+						{
+							RunTime.cfgFileLoadedCount++;
+							updateProloadInfo();
+							if(callback != null) callback();
+						},
+						function(...args):void
+						{
+							RunTime.cfgFileLoadedCount++;
+							updateProloadInfo();
+							if(fail != null) fail();
+						}
+					);
+				}
+			}
+			
+			private function parsePages(xmlData: Object):void
+			{
+				RunTime.cfgFileLoadedCount++;
+				
+				var root:XML = new XML(xmlData);
+				var pages:Array = [];
+				
+				if(root.@preload)
+				{
+					isPreloadPages = String(root.@preload) != "false";
+				}
+				
+				var globalShowShadow:Boolean = String(bookConfig.@shadow) == "true";
+				
+				for each(var pagenode: XML in root.page)
+				{
+					var page: BookPage = new BookPage();
+					page.pageId = pagenode.@id;
+					page.thumb = RunTime.getAbsPath(pagenode.@thumb);
+					page.source = RunTime.getAbsPath(String(pagenode.@source));
+					page.canZoom =  !(String(pagenode.@canZoom) == "false");
+					if(String(pagenode.@shadow))
+					{
+						var pageShadow:Boolean = String(pagenode.@shadow) == "true";
+						page.shadow = pageShadow;
+					}
+					else
+					{
+						page.shadow = globalShowShadow;
+					}
+					
+					pages.push(page);
+				}
+				
+				RunTime.bookPages = pages;
+				utils.PageNumHelper.buildPageMap();
+				prefetch.pages = pages;
+				RunTime.updateBookPages(soundConfig);
+				updateProloadInfo();
+				RunTime.history.pushMomento(defaultPage-1);
+				
+				
+								
+				if(defaultPage != 1){
+					
+					book.turnToPage(defaultPage-1);
+				}
+				else{
+					book.startPage = defaultPage-1;
+				}
+				
+				if(showToc){
+					shiftRight(1);
+					autoFlip=false;
+					checkFlip();
+					RunTime.removeHighlightOn();
+				}
+				
+			}
+			
+			private function preloadPages(): void
+			{
+				prefetch.prefetchPages(Math.min(60,RunTime.bookPages.length/2), false, true);
+			}
+			
+			private function parseSounds(xmlData: Object):void
+			{
+				soundConfig = new XML(xmlData);
+				RunTime.cfgFileLoadedCount++;
+				
+				if(soundConfig.background.@enable && String(soundConfig.background.@enable) == "false")
+				{
+					this.audio.bgSoundsEnabled = false;
+				}
+				
+				if(soundConfig.background.sound)
+				{
+					var audios:Array = [];
+					for each(var audioNode:XML in soundConfig.background.sound)
+					{
+						var s:Sound = new Sound(new URLRequest(RunTime.getAbsPath(String(audioNode.@url))));
+						audios.push(s);
+					}
+					this.audio.bgSounds = audios;
+				}
+				
+				if(soundConfig.flipping)
+				{
+					audio.flippingSound = new Sound(new URLRequest(RunTime.getAbsPath(String(soundConfig.flipping.@url))));
+				}
+				
+				if(soundConfig.flipping.@enable)
+				{
+					audio.flippingSoundEnabled = String(soundConfig.flipping.@enable) != "false";
+				}
+				
+				if(soundConfig.click){
+					audio.clickSound = new Sound(new URLRequest(RunTime.getAbsPath(String(soundConfig.click.@url))));
+				}
+				
+				if(soundConfig.click.@enable)
+				{
+					audio.clickSoundEnabled = String(soundConfig.click.@enable) != "false";
+				}
+				
+				loadLocalSetting();
+				
+				RunTime.updateBookPages(soundConfig);
+				
+				updateProloadInfo();
+			}
+			
+			private var sizeResizedCount:int = 0;
+			
+			public function setBookContent(conf: XML): void
+			{
+				if(conf == null) return;
+				
+				if(String(conf.bottomthumb.@visible)){
+					RunTime.showBottomThumb = String(conf.bottomthumb.@visible) == "true";
+				}
+				if(String(conf.bottomthumb.@bgColor)){
+					var szBgColor:String = conf.bottomthumb.@bgColor;
+					szBgColor = szBgColor.replace("#","0x");
+					RunTime.bottomThumbBgColor = Number(szBgColor);
+				}
+				if(String(conf.bottomthumb.@bgAlpha)){
+					RunTime.bottomThumbAlpha = Number(conf.bottomthumb.@bgAlpha);
+				}
+				
+				if(String(conf.bottommenu.@visible)){
+					RunTime.hideBottomMenu = !(String(bookConfig.bottommenu.@visible) == "true");
+				}
+				
+				if(String(conf.@thickness)){
+					RunTime.showPageCount = parseInt(conf.@thickness);
+					
+				}
+				//trace(conf.tks);
+				var tk:ThicknessInfo = new ThicknessInfo();
+				tk.parse(conf.tks);
+				RunTime.thicknessInfo = tk;
+				
+				bookAspectRatio = (parseInt(conf.@pageWidth)) / (parseInt(conf.@pageHeight));
+				bookAspectRatioNoStack = parseInt(conf.@pageWidth) / (parseInt(conf.@pageHeight));
+				
+				setBookSize();
+				
+				bookBg.setStyle("backgroundColor", String(conf.@bgColor).replace( /0x/gi, '#' ) );
+				bookBg.setStyle("backgroundImage", RunTime.getAbsPath(String(conf.@bgImage)) );
+				
+				RunTime.bookBgImage = (RunTime.getAbsPath(String(conf.@bgImage)) );
+				
+				if(String(conf.@bgPosition)){
+					RunTime.bookBgImageLayout = String(conf.@bgPosition);
+				}
+				
+				if(RunTime.bookBgImageLayout == "center"){	
+					bookBg.setStyle("backgroundImage", RunTime.getAbsPath(String(conf.@bgImage)) );
+				}
+				else if(RunTime.bookBgImageLayout == "stretch"){	
+					bookBg.setStyle("backgroundImage", RunTime.getAbsPath(String(conf.@bgImage)) );
+					bookBg.setStyle("backgroundSize","100%");
+				}
+				else{
+					
+					if(RunTime.bookBgImageLayout == "tile"){
+						bookBg.setStyle("backgroundSize","100%");
+					}
+					
+					bookBgImage.addEventListener(Event.COMPLETE, onBookBgImageLoaded);
+					
+					bookBgImage.source = RunTime.bookBgImage;
+				}
+			}
+			
+			private function updateBgImage():void{
+				if(RunTime.bookBgImageLayout == "center" || RunTime.bookBgImageLayout == "stretch"){	
+					return;
+				}
+				onBookBgImageLoaded(null);
+			}
+			
+			private function onBookBgImageLoaded(e:*){
+				
+				if(bookBgImage == null || bookBgImage.content == null ||bookBg == null) return;
+				
+				var width:Number = bookBgImage.content.width;
+				var height:Number = bookBgImage.content.height;
+				
+				if(RunTime.bookBgImageLayout == "fill"){
+					bookBgImage.height = bookBg.height;
+					bookBgImage.width = width / height * bookBg.height;
+					bookBgImage.x =  (bookBg.width - bookBgImage.width )/2;
+				}
+				else if(RunTime.bookBgImageLayout == "fit"){
+					bookBgImage.width = bookBg.width;
+					bookBgImage.height = height /width  * bookBg.width;
+					
+					bookBgImage.y =  (bookBg.height - bookBgImage.height )/2;
+				}
+				else if(RunTime.bookBgImageLayout == "tile"){
+					var srcBmp:BitmapData = new BitmapData(width,height);
+					srcBmp.draw(bookBgImage);
+					bookBgImage.source = null;
+					
+					bookBg.setStyle("backgroundSize","100%");
+					bookBgImage.graphics.beginBitmapFill(srcBmp);
+					bookBgImage.graphics.drawRect(0,0,bookBg.width,bookBg.height);
+					bookBgImage.graphics.endFill();
+				}
+				
+			}
+			
+			private function setBookSize(normal:Boolean = true): void
+			{
+				if(!isNaN(bookAspectRatio))
+				{
+					var canvasAspectRatio: Number = (bookCanvas.width - 40) / (bookCanvas.height - 40);
+					if( canvasAspectRatio > bookAspectRatio )
+					{
+						book.height = int( bookCanvas.height - 40);
+						book.width = int( (book.height) * bookAspectRatioNoStack);
+					}
+					else
+					{
+						book.width = int(bookCanvas.width - 40);
+						book.height = int(book.width / bookAspectRatioNoStack);
+					}
+					
+					
+					
+					if(normal){
+						book.width = int(book.width * RunTime.bookSize);
+						book.height = int( book.height * RunTime.bookSize);
+					}
+					
+					book.x = (bookCanvas.width - book.width) * 0.5;
+					book.y = (bookCanvas.height - book.height) * 0.5;
+					
+					RunTime.initBookPageWidth = book.width;
+					RunTime.singlePageMode = true;
+					
+					if(RunTime.fitScreenAfterZoom == true)
+					{
+						this.defaultZoomScale = this.width / book.width;
+						RunTime.fitScreenScale = defaultZoomScale;
+					}
+					RunTime.fitScreenScale =  this.width / book.width;
+					
+					sizeResizedCount ++;
+					if(sizeResizedCount >= 1)
+					{
+						this.isBookResizeOk = true;
+						this.updateProloadInfo();
+					}
+				}
+			}
+			
+			private var _seed:int = 0;
+			
+			private function get seed():String
+			{
+				_seed ++;
+				return _seed.toString();
+			}
+			
+			private function showBookCore():void
+			{
+				if(this.contains(preloadInfo))
+				{
+					RunTime.logPageView(1);
+					this.removeChild(preloadInfo);
+					this.updateHighlights();
+					this.updateNotes();
+					playPageBgSound();
+					
+					if(RunTime.zoomAfterLoaded == true)
+					{
+						this.zoom();
+					}
+					
+					if(isPreloadPages == true) preloadPages();
+					if(autoFlip == true)
+					{
+						const initDelayPlus:int = 3000;
+						new FluentTimer().delay(_flipTimer.delay + initDelayPlus).onTimer(checkFlip).run();
+					}
+				}
+			}
+			
+			private var fullScreenCfgChecked:Boolean = false;
+			
+			private function showBook():void
+			{
+				if(book.visible == false) book.visible = true;
+				if(fullScreenCfgChecked == true) return;
+				fullScreenCfgChecked = true;
+				if(String(bookConfig.@fullScreen) && String(bookConfig.@fullScreen).toLowerCase() == "true")
+				{
+					var cfm:FullScreenConfirm = new FullScreenConfirm();
+					cfm.returnCallback = this.showBookCore;
+					cfm.showDialog();
+				}
+				else
+				{
+					showBookCore();
+				}
+			}
+			
+			private function scrollFront(): void
+			{
+				book.turnToPage(0);
+			}
+			
+			private function scrollPrev(): void
+			{
+				if(book.currentPageIndex > 0)
+					book.turnToPage(book.currentPageIndex - 1);
+			}
+			
+			private function scrollNext():void
+			{
+				if(book.currentPageIndex < RunTime.pageCount - 1)
+					book.turnToPage(book.currentPageIndex + 1);
+			}
+			
+			private function scrollLast():void
+			{
+				book.turnToPage(RunTime.pageCount - 1);
+			}
+			
+			[Bindable]
+			public var autoFlip:Boolean = false;
+			
+			private var bookScale:Number = 1;
+			
+			public function zoomBook(offset:Number):void
+			{
+				if(offset > 0) zoomBox.zoom(0.1);
+				else zoomBox.zoom(-0.1);
+			}
+			
+			public function zoomInBook(focus:Point = null, limit:Number = 0): void
+			{
+				var page:int = book.currentPage-1;
+				if(page >=0){
+					if(!RunTime.bookPages[page].canZoom){
+						return;
+					}
+				}
+				
+
+				
+				if(!RunTime.zoomedIn)
+				{
+					var controller:FocusController = null;
+					if(limit > 0)
+					{
+						this.landscape.dragZoomScale = limit;
+						this.landscape.scaleByDragBox = true;
+						this.landscape.scaleByDragBoxActive = true;
+						controller = new SinglePageFocusController();
+						controller.disenableFitFullScreen = true;
+					}
+					else
+					{
+						landscape.scaleByDragBox = false;
+						this.landscape.scaleByDragBoxActive = false;
+						controller = new SinglePageFocusController();
+					}
+					
+					var target: * = bookCanvas;
+					if(focus != null)
+					{
+						focusOn( target,focus.x, focus.y,controller);
+					}
+					else
+					{
+						focusOn( target, -1,-1,controller);
+					}
+					
+					RunTime.zoomedIn = true;
+					
+					closeNoteDetails();
+					
+					RunTime.showLeftMenu(!RunTime.hideLefMenuAfterZoom );
+					RunTime.showBottomMenu(!RunTime.hideBottomMenuAfterZoom);
+					
+					
+					showFlowTurnButton(true);
+				}
+			}
+			
+			private function zoomOut(event: MouseEvent = null): void
+			{
+				if(landscape.atMoveState() == false)
+				{
+					if(MouseStateHelper.isZoomActive(event.target) == false)
+					{
+						return;
+					}
+					
+					if(event.currentTarget.enabled)
+					{
+						zoomOutBook();
+					}
+					
+					RunTime.showLeftMenu(true);
+					RunTime.showBottomMenu(true);
+					showFlowTurnButton(false);
+				}
+			}
+			
+			private function zoomOutBook():void
+			{
+				if(RunTime.zoomedIn)
+				{
+					showFlowTurnButton(false);
+					showBookNavigation(true);
+					focusOn( bookCanvas );
+				}
+			}
+			
+			private function onZoomComplete(event:BookEvent):void
+			{
+				RunTime.zoomedIn = event.isZoomedIn;
+				if(event.isZoomedIn)
+				{
+					book.filters = [];
+					
+					if(RunTime.isSingleClickToZoom() == true)
+					{
+						book.addEventListener(MouseEvent.CLICK, zoomOut);
+					}
+					else if(RunTime.isDoubleClickToZoom() == true)
+					{
+						book.addEventListener(MouseEvent.DOUBLE_CLICK, zoomOut);
+					}
+					
+					updateZoomBoxHotArea();
+				}
+				else
+				{
+					book.removeEventListener(MouseEvent.CLICK, zoomOut);
+					book.removeEventListener(MouseEvent.DOUBLE_CLICK, zoomOut);
+					
+					book.mouseEnabled = true;
+					book.mouseChildren = true;
+				}
+				landscape.scaleByDragBoxActive = false;
+			}
+			
+			[Bindable]
+			private function showFlowTurnButton(show:Boolean):void
+			{
+				turnLeftIcon.visible = show;
+				turnRightIcon.visible = show;
+			}
+			
+			public function focusOn(target:*,x:Number = -1,y:Number = -1,focusControler:FocusController = null):void
+			{
+				if(landscape.selection.length == 1 && landscape.selection[0] == target)
+				{
+					landscape.selection = [];
+				}
+				else
+				{
+					var item:DisplayObject = target as DisplayObject;
+					var p:Point = new Point(x,y);
+					if(x < 0 || y < 0)
+					{
+						p.x = item.width * 0.5;
+						p.y = item.height * 0.5;
+						landscape.receiveFocusPoint(p,target,focusControler);
+					}
+					else
+					{
+						p = item.globalToLocal(p);
+						landscape.receiveFocusPoint(p,target,focusControler);
+					}
+				}
+			}
+			
+			private function updateZoomBoxHotArea():void
+			{
+				if(this.zoomBox != null)
+				{
+					pauseVideosFromBookPage(true);
+					this.zoomBox.renderSnapshot(book);
+					updateVideos(true);
+				}
+			}
+			
+			private function updatePageSelectBox():void
+			{
+				if(book == null) return;
+				
+				if(this.pageBox != null)
+				{
+					pauseVideosFromBookPage(true);
+					this.pageBox.renderSnapshot(book);
+					updateVideos(true);
+					this.pageBox.setHot();
+				}
+			}
+			
+			private function updatePdfPageSelectBox():void
+			{
+				if(book == null) return;
+				
+				if(this.pdfPageBox != null)
+				{
+					pauseVideosFromBookPage(true);
+					this.pdfPageBox.renderSnapshot(book);
+					updateVideos(true);
+					this.pdfPageBox.setHot();
+				}
+			}
+			
+			private function showBookNavigation(toShow:Boolean):void
+			{
+				if( !toShow )
+				{
+					book.filters = [];
+				}
+			}
+			
+			private function shiftRight(index:int = 0, callback:Function = null):void
+			{
+				var indexChanged:Boolean = index != vsLeft.selectedIndex;
+				
+				var toWidth:Number = 500;
+				if(index == 2 || index == 10) toWidth = 900;
+				
+				refreshSetting();
+				
+				if(this.menuLeft.width <= 40)
+				{
+					vsLeft.selectedIndex = index;
+					shiftOut(toWidth, callback);
+				}
+				else if(indexChanged == false)
+				{
+					shiftIn(
+						function(... args):void
+						{
+							if(LeftMenuButton.selectedButton != null)
+								LeftMenuButton.selectedButton.selected = false;
+						}
+					);
+					vsLeft.selectedIndex = index;
+				}
+				else
+				{
+					shiftIn( function(... args):void
+					{
+						vsLeft.selectedIndex = index;
+						shiftOut(toWidth, callback);
+					});
+				}
+				
+				if(pageSelectBox != null)
+				{
+					pageSelectBox.uncheckAll();
+				}
+			}
+			
+			private function printSelectedPages():void
+			{
+				printSelectBox.enabled = false;
+				var list:Array = [];
+				for each(var cb:CheckBox in SelectedThumbItem.checkBoxes)
+				{
+					if(cb.selected == true)
+					{
+						var page:BookPage = cb.data as BookPage;
+						list.push(page.pageId);
+					}
+				}
+				
+				list.sort(
+					function(p0:int,p1:int):int
+					{
+						if(p0 > p1) return 1;
+						else if(p0 == p1) return 0;
+						else return -1;
+					}
+				);
+				
+				var pages:Array = [];
+				for each(var item:BookPage in RunTime.bookPages)
+				{
+					var find:BookPage = null;
+					for each(var i:int in list)
+					{
+						if(i == item.pageId)
+						{
+							find = item;
+							break;
+						}
+					}
+					if(find != null) pages.push(find);
+				}
+				
+				var printCallback:Function = 
+					function():void
+					{
+						Helper.printPages(pages,
+							function():Boolean
+							{
+								return printSelectBox.enabled == false;
+							},
+							function():void
+							{
+								printSelectBox.enabled = true;
+								shiftLeft();
+							},
+							function():void
+							{
+								printSelectBox.enabled = true;
+							}
+						);
+					}
+					;
+				
+				shiftRight(5, printCallback);
+			}
+			
+			public function shiftLeft():void
+			{
+				shiftIn();
+				if(LeftMenuButton.selectedButton != null)
+					LeftMenuButton.selectedButton.selected = false;
+			}
+			
+			private function shiftIn(callback:Function = null):void
+			{
+				if(this.menuLeft.width > 40)
+				{
+					var resize:Resize = new Resize(this.menuLeft);
+					resize.duration = RunTime.MENU_RESIZE_DURATION;
+					resize.widthFrom = this.menuLeft.width;
+					resize.widthTo = 40;
+					if(callback != null)
+						resize.addEventListener(EffectEvent.EFFECT_END, callback);
+					resize.play();
+				}
+			}
+			
+			private function shiftOut(toWidth:Number, callback:Function = null):void
+			{
+				var resize:Resize = new Resize(this.menuLeft);
+				resize.duration = RunTime.MENU_RESIZE_DURATION;
+				resize.widthFrom = this.menuLeft.width;
+				resize.widthTo = toWidth;
+				resize.play();
+				resize.addEventListener(EffectEvent.EFFECT_END,
+					function(... args):void
+					{
+						if(callback != null) callLater(callback);
+					});
+			}
+			
+			private function pageInfo(currentPageIndex:int, pages:Array):String
+			{
+				if(pages == null || pages.length == 0) return "";
+				return (currentPageIndex + 1).toString() + "/" + pages.length.toString();
+			}
+			
+			private function flipToFrontCover():void
+			{
+				gotoPage(1);
+				stage.focus = null;
+			}
+			
+			private function flipToBackCover():void
+			{
+				gotoPage(RunTime.bookPages.length);
+				stage.focus = null;
+			}
+			
+			public function flipLeft():void
+			{
+				if(this.book.canTurnBackward() == false) return;
+				gotoPage(this.book.currentPage - 1);
+				stage.focus = null;
+			}
+			
+			public function flipRight():void
+			{
+				if(this.book.canTurnForward() == false) return;
+				gotoPage(this.book.currentPage + 1);
+				stage.focus = null;
+			}
+			
+			public function gotoPage(page:int):void
+			{
+				var pageIndex:int = page - 1;
+				if(pageIndex != book.currentPageIndex)
+				{
+					book.turnToPage(pageIndex);
+					book.searchResult();
+				}
+				else
+				{
+					stage.focus = this;
+					book.invalidateDisplayList();
+				}
+			}
+			
+			private var _flipTimer:Timer = new Timer(8000,int.MAX_VALUE);
+			
+			private function onFilpTimer(... args):void
+			{
+				if( this.book.canTurnForward() && RunTime.rightToLeft == false)
+				{
+					if(RunTime.zoomedIn == false)
+					{
+						this.book.turnToPage(this.book.currentPageIndex + 1);
+					}
+					else
+					{
+						this.autoFlip = false;
+						checkFlip();
+					}
+				}
+				else if( this.book.canTurnBackward() && RunTime.rightToLeft == true)
+				{
+					if(RunTime.zoomedIn == false)
+					{
+						this.book.turnToPage(this.book.currentPageIndex - 1);
+					}
+					else
+					{
+						this.autoFlip = false;
+						checkFlip();
+					}
+				}
+				else
+				{
+					this.autoFlip = false;
+					checkFlip();
+				}
+			}
+			
+			internal function checkFlip():void
+			{
+				if(this.autoFlip == false)
+				{
+					_flipTimer.removeEventListener(TimerEvent.TIMER, onFilpTimer);
+					_flipTimer.stop();
+				}
+				else
+				{
+					_flipTimer.addEventListener(TimerEvent.TIMER, onFilpTimer);
+					if(_flipTimer.running == false)
+					{
+						_flipTimer.start();
+						onFilpTimer();
+					}
+				}
+			}
+			
+			private function onBookMarkRecordAdd(event:RecordEvent):void
+			{
+				var newMarks:Array = RunTime.bookmarkRecords.concat(event.record);
+				(event.record as BookMarkRecord).save();
+				RunTime.bookmarkRecords = newMarks;
+			}
+			
+			private function onSearchResultClick(event:RecordEvent):void
+			{
+				this.book.reSearch();
+				var item:SearchResult = event.record as SearchResult;
+				if(item != null && item.node != null)
+				{
+					navigateToURL(new URLRequest(item.node.getPageUrl(event.record.page)), "_black");
+				}
+				else
+				{
+					this.gotoPage(event.record.page);
+				}
+				
+				this.searchBox.minimize = true;
+			}
+			
+			private function onNoteRecordDelete(event:RecordEvent):void
+			{
+				this.deleteNote(event.record as NoteRecord);
+			}
+			
+			private function onNoteRecordClick(event:RecordEvent):void
+			{
+				noteBox.minimize = true;
+				var r:NoteRecord = event.record as NoteRecord;
+				this.gotoPage(r.page);
+				r.detailVisible = true;
+			}
+			
+			private function onRemoveAllNotes(event:Event):void
+			{
+				var newNotes:Array = [];
+				for each(var item:Record in RunTime.noteRecords)
+				{
+					if(item.editable == false)
+					{
+						newNotes.push(item);
+					}
+					else
+					{
+						NoteRecord(item).remove();
+					}
+				}
+				
+				RunTime.noteRecords = newNotes;
+				this.noteBox.visible = false;
+				SharedObjectManager.instance.clearNoteRecords();
+			}
+			
+			public function updateRss():void{
+				if(book==null || book.width < 10) return;
+				var w:int = book.width;
+				
+				removeRssFormBookPage();
+				updateRssOnPage(book.currentPage, true);
+				
+			}
+			
+			public function updateFunButtons():void{
+				
+				var scale:Number = RunTime.initBookPageWidth/RunTime.pageWidth;
+				for(var i:int= 0; i < RunTime.buttons.length; i++){
+					var button:ButtonInfo = ButtonInfo(RunTime.buttons[i]);
+					if(button == null) continue;
+					if(button.buttonBox == null) continue;
+					if(button.layer == ButtonInfo.LAYER_FOREGROUND || button.layer == ButtonInfo.LAYER_BACKGROUND){
+						
+						button.buttonBox.x = scale * button.x;
+						button.buttonBox.y = scale * button.y;
+						button.buttonBox.width = scale * button.width;
+						button.buttonBox.height = scale * button.height;
+					}
+				}
+				
+			}
+			
+			public function updateNotes():void
+			{
+				if(book==null || book.width < 10) return;
+				updateNotesOnPage(book.currentPage);
+			}
+			
+			private function removeNotesFromBookPage():void
+			{
+				for each(var item:NoteRecord in RunTime.noteRecords)
+				{
+					item.remove();
+				}
+			}
+			
+			private function removeRssFormBookPage():void
+			{
+				rssMask.removeAllChildren();
+
+			}
+			
+			private function updateRssOnPage(pageNumber:int, isLeft:Boolean):void{
+				
+				var scale:Number = RunTime.initBookPageWidth/RunTime.pageWidth;
+				for each(var item:RSSInfo in RunTime.rss){
+					if(item.page != pageNumber) 
+						continue;
+					rssMask.addChild(item.rssBox);
+					
+					item.rssBox.x = scale * item.x;
+					item.rssBox.y = scale * item.y;
+
+					item.rssBox.scaleX = scale;
+					item.rssBox.scaleY = scale;
+
+					
+				}
+			}
+			
+			private function updateNotesOnPage(pageNumber:int):void
+			{
+				if(book.width < 10) return;
+				
+				for each(var item:NoteRecord in RunTime.noteRecords)
+				{
+					if(item.page != pageNumber) continue;
+					
+					var m:NoteMark = item.noteMark;
+					m.x = item.xPos * ( book.width);
+					m.y = item.yPos * ( book.height);
+					notesMask.addChild(m);
+					m.checkDetailPos();
+				}
+			}
+			
+			private function updateHighlights():void
+			{
+				if(book==null || book.width < 10) return;
+				updateHighlightsOnPage(book.currentPage);
+			}
+			
+			private function updateVideos(flashMode:Boolean = false):void
+			{
+
+				if(book==null || book.width < 10) return;
+				for each(var item:VideoInfo in RunTime.videos)
+				{
+					if(item.videoBox != null && (item.page == book.currentPage))
+					{
+						item.videoBox.enterPage(flashMode);
+					}
+				}
+			}
+			
+			private function pauseVideosFromBookPage(flashMode:Boolean = false):void
+			{
+				for each(var item:VideoInfo in RunTime.videos)
+				{
+					if(item.videoBox != null)
+					{
+						item.videoBox.pause(flashMode);
+						trace("pauseVideosFromBookPage");
+					}
+				}
+			}
+			
+			private function removeHighlightsFromBookPage():void
+			{
+				for each(var item:HighlightRecord in RunTime.highlightRecords)
+				{
+					item.remove();
+				}
+			}
+			
+			private function updateHighlightsOnPage(pageNumber:int):void
+			{
+				if(book.width < 10) return;
+				
+				for each(var item:HighlightRecord in RunTime.highlightRecords)
+				{
+					if(item.page != pageNumber) continue;
+					item.addParent(book);
+				}
+			}
+			
+			private function shiftHightLightOn():void
+			{
+				if(RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_ON || RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_DETAIL_MOVING)
+				{
+					RunTime.setNormal();
+				}
+				else
+				{
+					RunTime.setHighlightOnState();
+				}
+			}
+			
+			private function onContentClick(event:RecordEvent):void
+			{
+				shiftLeft();
+				gotoPage(event.record.page);
+			}
+			
+			private function onPreviousIssuesClick(event:RecordEvent):void
+			{
+				var r:TreeNodeRecord = event.record as TreeNodeRecord;
+				if(r == null || r.url == "") return;
+				
+				shiftLeft();
+				RunTime.clickHref(r.url,"_blank");
+			}
+			
+			private function print():void
+			{
+				var list:Array = [];
+				
+				if(this.rbPrintCurrent.selected == true)
+				{
+					list.push(book.currentPage);
+				}
+				
+				var pages:Array = [];
+				for each(var item:BookPage in RunTime.bookPages)
+				{
+					var find:BookPage = null;
+					for each(var i:int in list)
+					{
+						if(i == item.pageId)
+						{
+							find = item;
+							break;
+						}
+					}
+					if(find != null) pages.push(find);
+				}
+				
+				Helper.printPages(pages,
+					function():void
+					{
+						rbPrintCurrent.enabled = true;
+						shiftLeft();
+					},
+					function():void
+					{
+						rbPrintCurrent.enabled = true;
+					}
+				);
+			}
+			
+			private function savePdf():void
+			{
+				pauseVideosFromBookPage(true);
+				var bmp:Bitmap =  book.renderPage();
+				updateVideos(true);
+				var page:int = book.currentPage;
+				Helper.savePdf(bmp, page.toString(), String(bookConfig.@title));
+			}
+			
+			private function onPageChanged():void
+			{
+				playPageBgSound();
+				if(book.canTurnForward() == false)
+				{
+					this.autoFlip = false;
+					this.checkFlip();
+				}
+				
+				RunTime.history.pushMomento(book.currentPageIndex);
+				
+				RunTime.logPageView(book.currentPage);
+				prefetch.prefetchForward(book.currentPage);
+				
+				timerZoom();
+			}
+			
+			private function playPageBgSound():void
+			{
+				this.audio.stopTempSound();
+				var sounds:SoundContainer = new SoundContainer(); 
+				for each(var item:BookPage in RunTime.bookPages)
+				{
+					if((item.pageId == book.currentPage) && item.sound != null)
+					{
+						sounds.push(item.sound);
+					}
+				}
+				
+				if(sounds.length > 0)
+				{
+					this.audio.playTempSound(sounds);
+				}
+			}
+			
+			private function refreshSetting():void
+			{
+				if(cmbLanguage != null) cmbLanguage.selectedIndex = RunTime.langSelectedId;
+				if(cbEnableAudio != null) cbEnableAudio.selected = audio.bgSoundsEnabled;
+				if(cbEnableFlippingSound != null) cbEnableFlippingSound.selected = audio.flippingSoundEnabled;
+				if(cbAutoMoveAfterZoom != null) cbAutoMoveAfterZoom.selected = landscape.autoMoveAfterZoom;
+				if(tbSendFrom!= null) tbSendFrom.text = "";
+				if(tbSendMessage!= null) tbSendMessage.text = "";
+				if(tbSendTo!= null) tbSendTo.text = "";
+				if(tbYourName!= null) tbYourName.text = "";
+				if(tbEmailInfo != null) tbEmailInfo.text = "";
+			}
+			
+			[Bindable]
+			private function getBottomThumbBottom():Number
+			{
+				//隐藏底部工具栏
+				if(RunTime.hideBottomMenu) return 0;
+				//return 36;
+				var limitVal:Number = adTop.height;
+				if(!RunTime.bottomMenuFixTop){
+					limitVal = 36;
+				}
+				
+				return limitVal;
+			}
+			
+			[Bindable]
+			private function getBookPaddingTop(isFullScreen:Boolean, topAdHeight:Number = 0):Number
+			{
+				if(RunTime.bottomMenuFixTop) return 50;
+				return isFullScreen ? 2 : topAdHeight + 1;
+			}
+			
+			private function onPageInputKeyDown(event:KeyboardEvent):void
+			{
+				if( event.keyCode == Keyboard.ENTER)
+				{
+					gotoPageInput();
+				}
+			}
+			
+			private function gotoPageInput():void
+			{
+				gotoPage(int(txtPage.text));
+				autoFlip=false;checkFlip();
+			}
+			
+			private function sendEmail():void
+			{
+				var sendTo:String = StringUtil.trim(tbSendTo.text);
+				var sendFrom:String = StringUtil.trim(tbSendFrom.text);
+				var msg:String = StringUtil.trim(tbSendMessage.text);
+				var yourName:String = StringUtil.trim(tbYourName.text);
+				
+				
+				var sendToList:Array = sendTo.split(";");
+				if(sendToList.length > 0){
+					for each(var to:String in sendToList){
+						var sendToResults:Array = emailValidator.validate(to).results;
+						
+						if( sendToResults
+							&& sendToResults.length > 0
+							&& ValidationResult(sendToResults[0]).isError == true)
+						{
+							tbSendTo.errorString = 'Error';
+							tbEmailInfo.text = l.i.s('ErrorEmailAddress','Error Email Address');
+							return;
+						}
+					}
+				}
+				
+				//var sendToResults:Array = emailValidator.validate(sendTo).results;
+				var sendFromResults:Array = emailValidator.validate(sendFrom).results;
+				
+				tbSendTo.errorString = "";
+				tbSendFrom.errorString = "";
+				tbSendMessage.errorString = "";
+				tbYourName.errorString = "";
+				tbEmailInfo.setStyle("color",0xFF0000);
+				
+				/*
+				if( sendToResults
+					&& sendToResults.length > 0
+					&& ValidationResult(sendToResults[0]).isError == true)
+				{
+					tbSendTo.errorString = 'Error';
+					tbEmailInfo.text = l.i.s('ErrorEmailAddress','Error Email Address');
+					return;
+				}
+				*/
+				
+				if(!yourName)
+				{
+					tbYourName.errorString = 'Error';
+					tbEmailInfo.text = l.i.s('EmptyInput','Empty Input');
+					return;
+				}
+				
+				if( sendFromResults
+					&& sendFromResults.length > 0
+					&& ValidationResult(sendFromResults[0]).isError == true)
+				{
+					tbSendFrom.errorString = 'Error';
+					tbEmailInfo.text = l.i.s('ErrorEmailAddress','Error Email Address');
+					return;
+				}
+				
+				if(!msg)
+				{
+					tbSendMessage.errorString = 'Error';
+					tbEmailInfo.text = l.i.s('EmptyInput','Empty Input');
+					return;
+				}
+				
+				tbSendTo.errorString = "";
+				tbSendFrom.errorString = "";
+				tbSendMessage.errorString = "";
+				tbYourName.errorString = "";
+				tbEmailInfo.setStyle("color",0xFFFFFF);
+				tbEmailInfo.text = "";
+				
+				sendEmailByService(sendTo,sendFrom,msg,yourName,
+					function(obj:Object):void
+					{
+						if(obj.toString().length < 2)
+						{
+							tbEmailInfo.text = l.i.s('EmailSendSuccessful','Email Send Successful');
+							tbSendTo.text = "";
+							tbSendFrom.text = "";
+							tbSendMessage.text = "";
+							tbYourName.text = "";
+						}
+						else
+						{
+							tbEmailInfo.setStyle("color",0xFF0000);
+							tbEmailInfo.text = l.i.s('EmailSendFailed','Email Send Failed');
+						}
+					});
+			}
+			
+			private function sendEmailByService(sendTo:String,
+												sendFrom:String,
+												msg:String,
+												yourName:String, 
+												callback:Function):void
+			{
+				var url:String = String(bookConfig.@gateway);
+				if(!url) return;
+				
+				var ref:String = String(bookConfig.@shareUrl);
+				ref = RunTime.getAbsPath(ref);
+				
+				var thumb:String = "content/thumbs/thumb1.jpg";
+				
+				thumb = RunTime.getAbsPath(thumb);
+				
+				msg += "<br /> <br /> " + yourName + l.i.s("ShareEmailContent")
+					+ "<a href='" + ref + "' target='_black'>"+ ref +"<a/>"
+					+ "<br /> <br />" +"<a href='" + ref + "' target='_black'>" +
+					"<img src='" + thumb + "' >" +"<a/>";
+				
+				new RpcRequest(url,
+					{
+						tomail:sendTo,
+						frommail:sendFrom,
+						subject: l.i.s("YourFriend") + yourName + l.i.s("ShareEmailTitle"),
+						message:msg,
+						yourName:yourName
+					},
+					callback);
+			}
+			
+			private function onSoundButton():void{
+				//cbEnableAudio.selected = !cbEnableAudio.selected;
+				//saveSetting();
+				audio.bgSoundsEnabled = !audio.bgSoundsEnabled;
+				
+				if(audio.bgSoundsEnabled){
+					btnSoundSetting.source = RunTime.customButtonSoundEnable;
+				}
+				else{
+					btnSoundSetting.source = RunTime.customButtonSoundDisable;
+					
+				}
+				
+				shiftLeft();
+				
+				var obj:Object = new Object();
+				obj.flippingSoundEnabled = audio.flippingSoundEnabled;
+				obj.bgSoundsEnabled = audio.bgSoundsEnabled;
+				obj.autoMoveAfterZoom = landscape.autoMoveAfterZoom;
+				obj.lang = obj.lang;
+				obj.audioVolume = RunTime.audioVolume;
+				obj.audioBoxPostion =RunTime.audioBoxPostion;
+				SharedObjectManager.instance.saveLocalSetting(obj);
+			}
+			
+			private function saveSetting():void
+			{
+				audio.bgSoundsEnabled = cbEnableAudio.selected;
+				if(audio.bgSoundsEnabled == true)
+				{
+					playPageBgSound();
+				}
+				else
+				{
+					audio.stopTempSound();
+				}
+				audio.flippingSoundEnabled = cbEnableFlippingSound.selected;
+				landscape.autoMoveAfterZoom = cbAutoMoveAfterZoom.selected;
+				var key:String = RunTime.langConfig.language[RunTime.langSelectedId].@content;
+				if(RunTime.langSelectedId != cmbLanguage.selectedIndex)
+				{
+					RunTime.langSelectedId = cmbLanguage.selectedIndex;
+					key = RunTime.langConfig.language[RunTime.langSelectedId].@content;
+					l.loadRemote(
+						RunTime.instance.getLanguageData(key),shiftLeft);
+				}
+				else
+				{
+					shiftLeft();
+				}
+				
+				var obj:Object = new Object();
+				obj.flippingSoundEnabled = audio.flippingSoundEnabled;
+				obj.bgSoundsEnabled = audio.bgSoundsEnabled;
+				obj.autoMoveAfterZoom = landscape.autoMoveAfterZoom;
+				obj.lang = key;
+				obj.audioVolume = RunTime.audioVolume;
+				SharedObjectManager.instance.saveLocalSetting(obj);
+			}
+			
+			private function zoom(focus:Point = null):void
+			{
+				(RunTime.zoomedIn == false) ? zoomInBook(focus):zoomOutBook();
+				autoFlip=false;
+				checkFlip();
+			}
+			
+			private function isShowCornerTease(isZoomedIn:Boolean, mouseState:int):Boolean
+			{
+				if(isZoomedIn || mouseState == RunTime.MOUSE_STATE_HIGHLIGHT_ON)
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			private function onKeyDown(event:KeyboardEvent):void
+			{
+				if(	stage.focus is TextArea
+					|| stage.focus is UITextField)
+				{
+					return;
+				}
+				
+				if(event.keyCode == Keyboard.LEFT)
+				{
+					flipLeft();autoFlip=false;checkFlip();
+				}
+				else if(event.keyCode == Keyboard.RIGHT)
+				{
+					flipRight();autoFlip=false;checkFlip();
+				}
+				else if(event.keyCode == Keyboard.HOME)
+				{	
+					flipToFrontCover();
+					autoFlip=false;checkFlip();
+				}
+				else if(event.keyCode == Keyboard.END)
+				{
+					flipToBackCover();
+					autoFlip=false;checkFlip();
+				}
+			}
+			
+			private function changeBookMarks(event:*):void
+			{
+				for each(var item:BookMark in this.bookmarksArea.getChildren())
+				{
+					item.adjust();
+				}
+			}
+			[Bindable]
+			private function computeBaseVBoxX(parentWidth:Number, vbox:BaseVBox, margin:Number = 10):Number
+			{
+				if(vbox.x <= 0)
+				{
+					return parentWidth - vbox.width - margin;
+				}
+				else
+				{
+					return Math.min(Math.abs(vbox.x), parentWidth - vbox.width - margin);
+				}
+			}
+			[Bindable]
+			private function computeBaseVBoxY(parentHeight:Number, vbox:BaseVBox, margin:Number = 10):Number
+			{
+				if(RunTime.bottomMenuFixTop) return  50;
+				if(vbox.y <= 0)
+				{
+					return margin;
+				}
+				else
+				{
+					return Math.min(Math.abs(vbox.y), parentHeight - vbox.height - margin);
+				}
+			}
+			[Bindable]
+			private function computePaddingLeft(bookmarks:Array):Number
+			{
+				if(bookmarks == null || bookmarks.length == 0)
+				{
+					return 50;
+				}
+				else
+				{
+					return 70;
+				}
+			}
+			[Bindable]
+			private function computePaddingRight(bookmarks:Array, rightAdWidth:int, fullscreen:Boolean):Number
+			{
+				var pr:Number = 0;
+				if(bookmarks == null || bookmarks.length == 0)
+				{
+					pr = 5;
+				}
+				else
+				{
+					pr = 20;
+				}
+				
+				if(fullscreen == true)
+				{
+					return pr;
+				}
+				else
+				{
+					return pr + rightAdWidth;
+				}
+			}
+			
+			[Bindable]
+			private function getBookPaddingBottom():Number{
+				/*
+				if(RunTime.hideBottomMenu){
+					return 5;
+				}
+				var limitVal:Number = adTop.height<5?5:adTop.height;
+				if(!RunTime.bottomMenuFixTop) limitVal = 50;
+				return RunTime.fullScreen?5:limitVal;
+				*/
+				
+				if(RunTime.hideBottomMenu){
+					if(RunTime.showBottomThumb) return 90;
+					return 5;
+				}
+				var limitVal:Number = adTop.height<5?5:adTop.height;
+				if(!RunTime.bottomMenuFixTop){
+					if(RunTime.showBottomThumb) limitVal = 120;
+					else limitVal = 50;
+				}
+				else{
+					limitVal = adTop.height;
+					if(RunTime.showBottomThumb) limitVal += 90;
+				}
+				return RunTime.fullScreen?5:limitVal;
+				
+			}
+			
+			private function isBookActive(zoomIn:Boolean, mouseState:int, note:String):Boolean
+			{
+				return (zoomIn == false) 
+				&& (mouseState != RunTime.MOUSE_STATE_HIGHLIGHT_ON) 
+					&& (note.length == 0); 
+			}
+			
+			private function isBottomMenuBgVisible(config:XML, isFullScreen:Boolean, isZoomedIn:Boolean):Boolean
+			{
+				if(config == null || config.bottommenu == null) return false;
+				else if(!String(config.bottommenu.@background)) return false;
+				else if(String(config.bottommenu.@showBackground) == "true") return true;
+				else return isZoomedIn || isFullScreen;
+			}
+			
+			public function switchFullScreenMode():void
+			{
+				RunTime.switchFullScreenMode();
+				autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+			}
+			
+			private function onBookmarkAdded(m:BookMark):void
+			{
+				bookmarksArea.addChild(m);
+			}
+			
+			public function getAudioLayer():DisplayObjectContainer
+			{
+				return this.audioBoxes;
+			}
+			/**
+			 * 
+			 * 背景音乐播放器容器
+			 */
+			public function getBgAudioLayer():DisplayObjectContainer
+			{
+				return this.bgAudioBoxes;
+			}
+			
+			public function get bookLayoutPageCount():int
+			{
+				return RunTime.bookPages.length;
+			}
+			
+			public function get controlBars():Array
+			{
+				return [menuLeft,menuBottom];
+			}
+			
+			public function updateBookMarks():void
+			{
+				// book.updateBookMarks();
+			}
+			
+			private function checkContentIsLoaded(): void
+			{
+				book.checkContentIsLoaded();
+			}
+			
+			private function loadContent(): void
+			{
+				book.loadContent();
+			}
+	
+			private function getLandscapeScale(realScale:Number, dragActive:Boolean):Number
+			{
+				return realScale;
+			}
+			
+			private function onMouseWheel(event:MouseEvent):void
+			{
+				if(RunTime.zoomedIn == true)
+				{
+					landscape.wheel(event.delta);
+				}
+				else
+				{
+					if(event.delta >= 2)
+					{
+						flipLeft();autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+					}
+					else if(event.delta <= -2)
+					{
+						flipRight();autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+					}
+				}
+			}
+			
+			public function gotoPageIndex(pageIndex:int):void
+			{
+				book.turnToPage(pageIndex);
+			}
+			
+			private function getTopAdHeight(nodes:Vector.<AdInfo>, fullScreen:Boolean):Number
+			{
+				if(fullScreen == true || nodes == null || nodes.length == 0) return 0;
+				var max:int = 0;
+				for each(var item:AdInfo in nodes)
+				{
+					if(max < item.height)
+					{
+						max = item.height;
+					}
+				}
+				return max;
+			}
+			
+			private function getRightAdWidth(nodes:Vector.<AdInfo>, fullScreen:Boolean):Number
+			{
+				if(fullScreen == true || nodes == null || nodes.length == 0) return 0;
+				var max:int = 0;
+				for each(var item:AdInfo in nodes)
+				{
+					if(max < item.width)
+					{
+						max = item.width;
+					}
+				}
+				return max + 6;
+			}
+			
+			protected function zoomBox_fitfullpageHandler(event:Event):void
+			{
+				zoom();Helper.bringTop(zoomBox);RunTime.removeHighlightOn();
+			}
+			
+			protected function zoomBox_settingchangeHandler(event:Event):void
+			{
+				
+				//RunTime.autoMoveAfterZoom = this.landscape.autoMoveAfterZoom;
+				
+				var key:String = RunTime.langConfig.language[RunTime.langSelectedId].@content;
+				shiftLeft();
+				
+				this.landscape.autoMoveAfterZoom  = RunTime.autoMoveAfterZoom;
+				var obj:Object = new Object();
+				obj.flippingSoundEnabled = audio.flippingSoundEnabled;
+				obj.bgSoundsEnabled = audio.bgSoundsEnabled;
+				obj.autoMoveAfterZoom = RunTime.autoMoveAfterZoom ;
+				obj.lang = key;
+				obj.audioVolume = RunTime.audioVolume;
+				obj.audioBoxPostion =RunTime.audioBoxPostion;
+				SharedObjectManager.instance.saveLocalSetting(obj);
+			}
+			
+			protected function zoomBox_fit100Handler(event:Event):void
+			{
+				trace("zoomBox_fit100Handler");
+			}
+			
+			[Bindable]
+			private function fitToWindow():void
+			{
+				
+				//if(Math.abs(landscape.contentPane.x) > Math.abs(RunTime.xRightWhenFitWindow)/2){
+					
+					landscape.zoomToScale(RunTime.fitScreenScale,0,true);
+				//}
+				//else {
+				//	landscape.zoomToScale(zoomBox.scale,-1);
+				//}
+				
+			}
+			
+			[Bindable]
+			private function zoomBox_fitWindowHandler():void{
+				//trace("zoomBox_fitWindowHandler");
+				//this.defaultZoomScale =  this.width / book.width;
+				//RunTime.fitScreenScale = this.defaultZoomScale;
+				//RunTime.fitScreenAfterZoom = true;
+				
+				fitToWindow();
+			}
+			
+			private function timerZoom():void
+			{
+				var timer:Timer = new Timer(100,1);
+				timer.addEventListener(TimerEvent.TIMER, function (){
+					var page:int = book.currentPage-1;
+					if(page >=0){
+						if(!RunTime.bookPages[page].canZoom){
+							zoomOutBook();
+						}
+					}
+
+				}
+				);
+				timer.start();		
+			}
+			
+			
+			
+			public function addFunButton(layer:int,button:ButtonBox):void
+			{
+				if(button != null){
+					if(layer == ButtonInfo.LAYER_FOREGROUND){
+						funButtonsLayer.addChild(button);
+					}
+					else if(layer == ButtonInfo.LAYER_BACKGROUND){
+						bgLayerButtons.addChild(button);
+					}
+					
+					
+					var scale:Number = RunTime.initBookPageWidth/RunTime.pageWidth;
+					button.x = scale  * button.x ;
+					button.y = scale * button.y;
+					button.width = scale * button.width;
+					button.height = scale * button.height;
+					
+				}
+				
+				
+			}
+			
+			public function callButtonFunction(fun:String):void{
+				switch(fun)
+				{
+					case "content":
+					{
+						shiftRight(1);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "thumb":
+					{
+						shiftRight(2);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "email":
+					{
+						shiftRight(3);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "sns":
+					{
+						shiftRight(4);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "print":
+					{
+						updatePageSelectBox();shiftRight(5);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "savepdf":{
+						updatePdfPageSelectBox();shiftRight(6);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+					}
+					case "download":
+					{
+						shiftRight(7);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "issues":
+					{
+						shiftRight(0);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "setting":
+					{
+						shiftRight(8);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "about":
+					{
+						shiftRight(9);autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "close":
+					{
+						RunTime.close();
+						break;
+					}
+					case "help":
+					{
+						RunTime.showHelp();
+						break;
+					}
+					case "morinfo":
+					{
+						RunTime.clickHref(RunTime.infoUrl);
+						break;
+					}
+					case "back":
+					{
+						autoFlip=false;checkFlip();
+						RunTime.history.undo();
+						break;
+					}
+					case "forward":
+					{
+						autoFlip=false;checkFlip();RunTime.history.redo();
+						break;
+					}
+					case "fliptofront":
+					{
+						if(RunTime.rightToLeft == false) flipToFrontCover() else flipToBackCover();autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "flipleft":
+					{
+						flipLeft();autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "flipright":
+					{
+						flipRight();autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "fliptoback":
+					{
+						if(RunTime.rightToLeft == false) flipToBackCover() else flipToFrontCover();autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "audiosetting":
+					{
+						onSoundButton();
+						break;
+					}
+					case "zoom":
+					{
+						zoom();Helper.bringTop(zoomBox);RunTime.removeHighlightOn();
+						break;
+					}
+					case "autoflip":
+					{
+						autoFlip = !autoFlip; checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "search":
+					{
+						searchBox.visible = true; 
+						searchBox.focus();
+						searchBox.minimize = false;
+						Helper.bringTop(searchBox);
+						autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "bookmark":
+					{
+						//bookmarkBox.visible = true; 
+						//bookmarkBox.minimize = false;
+						//Helper.bringTop(bookmarkBox);
+						//autoFlip=false; checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "notes":
+					{
+						noteBox.visible = true;
+						noteBox.minimize = false;
+						Helper.bringTop(noteBox);
+						autoFlip=false;checkFlip();RunTime.removeHighlightOn();
+						break;
+					}
+					case "highlight":
+					{
+						shiftHightLightOn();
+						break;
+					}
+					case "fullscreen":
+					{
+						switchFullScreenMode();
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+			}
+			
+			protected function ShowMVHelpLayer(event:MouseEvent):void
+			{
+				MenuButtonTipLayer.visible = RunTime.showMVHelp();
+				MenuButtonTipLayer.removeAllChildren();
+				
+				var img:Image = new Image();
+				img.source ="content/images/computer_mouse.png";
+				img.width = 109;
+				img.height = 320;
+				img.x = (this.width-img.width)/2 - menuLeft.width;
+				img.y = (this.height - img.height)/2-20;
+				MenuButtonTipLayer.addChild(img);
+				
+				var mouseRightKeyTip:ButtonMenuTipBox = new ButtonMenuTipBox();
+				mouseRightKeyTip.width = 400;
+				mouseRightKeyTip.height = 40;
+				mouseRightKeyTip.lineLen = 60;
+				mouseRightKeyTip.pos = 0;
+				
+				mouseRightKeyTip.x = img.x + 55;
+				mouseRightKeyTip.y = img.y + 140;
+				
+				if(RunTime.mouseWheelZoom){
+					mouseRightKeyTip.toolTipLabel = l.i.s('MouseWheelZoom','Scroll the wheel to zoom in or out');
+				}
+				else {
+					mouseRightKeyTip.toolTipLabel = l.i.s('MouseWheelMove','Scroll the wheel to move');
+				}
+				if(!RunTime.zoomedIn){
+					mouseRightKeyTip.toolTipLabel = l.i.s('MouseWheelFlip','Scroll the wheel to flip page');
+				}
+				MenuButtonTipLayer.addChild(mouseRightKeyTip);
+				
+				
+				var mouseLeftKeyTip:ButtonMenuTipBox = new ButtonMenuTipBox();
+				mouseLeftKeyTip.width = 300;
+				mouseLeftKeyTip.height = 40;
+				mouseLeftKeyTip.lineLen = 180;
+				mouseLeftKeyTip.pos = 1;
+				
+				mouseLeftKeyTip.x = img.x - 150;
+				mouseLeftKeyTip.y = img.y + 150;
+				
+				if(RunTime.isSingleClickToZoom()){
+					mouseLeftKeyTip.toolTipLabel = l.i.s('SingleClickToZoom','Single click to zoom');
+				}
+				else if(RunTime.isDoubleClickToZoom()){
+					mouseLeftKeyTip.toolTipLabel = l.i.s('DoubleClickToZoom','Double click to zoom');
+				}
+				MenuButtonTipLayer.addChild(mouseLeftKeyTip);
+				
+				if(menuBottomMiddle.visible){
+					var gotoPage:ButtonMenuTipBox = new ButtonMenuTipBox();
+					gotoPage.x = menuBottomMiddle.x + menuBottomMiddle.width/2 - menuLeft.width -10;
+					gotoPage.y = this.height - 46 - 100;
+					gotoPage.width = 150;
+					gotoPage.height = 100;
+					gotoPage.lineLen = 90;
+					gotoPage.pos = 2;
+					gotoPage.direct = -1;
+					gotoPage.toolTipLabel = l.i.s('GotoPage','Goto Page');
+					
+					if(RunTime.bottomMenuFixTop){
+						gotoPage.y = -20;
+						gotoPage.pos = 3;
+						gotoPage.height = 120;
+					}
+					
+					MenuButtonTipLayer.addChild(gotoPage);
+				}
+				
+				
+				
+				if(btnSoundSetting.visible && btnSoundSetting.width > 0){
+					var soundSetting:ButtonMenuTipBox = new ButtonMenuTipBox();
+					soundSetting.x = menuBottomRight.x + (btnSoundSetting.x) -30;
+					soundSetting.y = this.height -46 -250;
+					soundSetting.width = 150;
+					soundSetting.height = 250;
+					soundSetting.lineLen = 240;
+					soundSetting.pos = 2;
+					soundSetting.direct = -1;
+					soundSetting.toolTipLabel = l.i.s('Audio','Audio');
+					
+					if(RunTime.bottomMenuFixTop){
+						soundSetting.y = -20;
+						soundSetting.pos = 3;
+						soundSetting.height = 270;
+					}
+					MenuButtonTipLayer.addChild(soundSetting);
+				}
+				
+				if(btnZoom.visible && btnZoom.width > 0){
+					var zoom:ButtonMenuTipBox = new ButtonMenuTipBox();
+					zoom.x = menuBottomRight.x + btnZoom.x -30 ;
+					zoom.y = this.height -46 -230;
+					zoom.width = 170;
+					zoom.height = 230;
+					zoom.lineLen = 220;
+					zoom.pos = 2;
+					zoom.direct = -1;
+					zoom.toolTipLabel = l.i.s('Zoom','Zoom') ;
+					if(RunTime.bottomMenuFixTop){
+						zoom.y = -20;
+						zoom.pos = 3;
+						zoom.height = 250;
+					}
+					MenuButtonTipLayer.addChild(zoom);
+				}
+				
+				if(btnAutoFlip.visible && btnAutoFlip.width > 0){
+					var autoFlip:ButtonMenuTipBox = new ButtonMenuTipBox();
+					autoFlip.x = menuBottomRight.x + btnAutoFlip.x -30 ;
+					autoFlip.y = this.height -46 -210;
+					autoFlip.width = 150;
+					autoFlip.height = 210;
+					autoFlip.lineLen = 200;
+					autoFlip.pos = 2;
+					autoFlip.direct = -1;
+					autoFlip.toolTipLabel = l.i.s('AutoFlip','Auto Flip');
+					if(RunTime.bottomMenuFixTop){
+						autoFlip.y = -20;
+						autoFlip.pos = 3;
+						autoFlip.height = 230;
+					}
+					MenuButtonTipLayer.addChild(autoFlip);
+				}
+				
+				if(btnSearch.visible && btnSearch.width > 0){
+					var search:ButtonMenuTipBox = new ButtonMenuTipBox();
+					search.x = menuBottomRight.x + btnSearch.x -30 ;
+					search.y = this.height -46 -190;
+					search.width = 130;
+					search.height = 190;
+					search.lineLen = 180;
+					search.pos = 2;
+					search.direct = -1;
+					search.toolTipLabel = l.i.s('Search');
+					if(RunTime.bottomMenuFixTop){
+						search.y = -20;
+						search.pos = 3;
+						search.height = 210;
+					}
+					MenuButtonTipLayer.addChild(search);
+				}
+				
+				/*
+				if(btnBookmark.visible && btnBookmark.width > 0){
+					var bookmark:ButtonMenuTipBox = new ButtonMenuTipBox();
+					bookmark.x = menuBottomRight.x + btnBookmark.x -30 ;
+					bookmark.y = this.height -46 -170;
+					bookmark.width = 110;
+					bookmark.height = 170;
+					bookmark.lineLen = 160;
+					bookmark.pos = 2;
+					bookmark.direct = -1;
+					bookmark.toolTipLabel =l.i.s('Bookmark');
+					if(RunTime.bottomMenuFixTop){
+						bookmark.y = -20;
+						bookmark.pos = 3;
+						bookmark.height = 190;
+					}
+					MenuButtonTipLayer.addChild(bookmark);
+				}
+				*/
+				if(btnNote.visible && btnNote.width > 0){
+					var note:ButtonMenuTipBox = new ButtonMenuTipBox();
+					note.x = menuBottomRight.x + btnNote.x -30 ;
+					note.y = this.height -46 -150;
+					note.width = 110;
+					note.height = 150;
+					note.lineLen = 140;
+					note.pos = 2;
+					note.direct = -1;
+					note.toolTipLabel =l.i.s('Notes');
+					if(RunTime.bottomMenuFixTop){
+						note.y = -20;
+						note.pos = 3;
+						note.height = 170;
+					}
+					
+					MenuButtonTipLayer.addChild(note);
+				}
+				
+				if(btnHighlight.visible && btnHighlight.width > 0){
+					var highlight:ButtonMenuTipBox = new ButtonMenuTipBox();
+					highlight.x = menuBottomRight.x + btnHighlight.x -30 ;
+					highlight.y = this.height -46 -130;
+					highlight.width = 110;
+					highlight.height = 130;
+					highlight.lineLen = 120;
+					highlight.pos = 2;
+					highlight.direct = -1;
+					highlight.toolTipLabel =l.i.s('Highlight','Highlight');
+					if(RunTime.bottomMenuFixTop){
+						highlight.y = -20;
+						highlight.pos = 3;
+						highlight.height = 150;
+					}
+					
+					MenuButtonTipLayer.addChild(highlight);
+				}
+				
+				if(btnFullScreen.visible && btnFullScreen.width > 0){
+					var fullscreen:ButtonMenuTipBox = new ButtonMenuTipBox();
+					fullscreen.x = menuBottomRight.x + btnFullScreen.x -30 ;
+					fullscreen.y = this.height -46 -110;
+					fullscreen.width = 110;
+					fullscreen.height = 110;
+					fullscreen.lineLen = 100;
+					fullscreen.pos = 2;
+					fullscreen.direct = -1;
+					fullscreen.toolTipLabel =l.i.s('FullScreen','Full Screen');
+					if(RunTime.bottomMenuFixTop){
+						fullscreen.y = -20;
+						fullscreen.pos = 3;
+						fullscreen.height = 130;
+					}
+					MenuButtonTipLayer.addChild(fullscreen);
+				}
+				
+				var deltalY:int = MenuButtonTipLayer.y;
+				
+				
+				if(lmbContent.visible && lmbContent.height > 0){
+					var content:ButtonMenuTipBox = new ButtonMenuTipBox();
+					content.x = 0;
+					content.y = menuLeft.y + lmbContent.y-deltalY;
+					content.width = 350;
+					content.height = 110;
+					content.lineLen = 100;
+					content.toolTipLabel =l.i.s('TableOfContents','Table of Contents');
+					MenuButtonTipLayer.addChild(content);
+				}
+				
+				if(lmbThumb.visible && lmbThumb.height > 0){
+					var thumb:ButtonMenuTipBox = new ButtonMenuTipBox();
+					thumb.x = 0;
+					thumb.y = menuLeft.y + lmbThumb.y-deltalY;
+					thumb.width = 350;
+					thumb.height = 110;
+					thumb.lineLen = 100;
+					thumb.toolTipLabel =l.i.s('ThumbnailView','Thumbnail View');
+					MenuButtonTipLayer.addChild(thumb);
+				}
+				
+				if(lmbEmail.visible && lmbEmail.height > 0){
+					var email:ButtonMenuTipBox = new ButtonMenuTipBox();
+					email.x = 0;
+					email.y = menuLeft.y + lmbEmail.y-deltalY;
+					email.width = 350;
+					email.height = 110;
+					email.lineLen = 100;
+					email.toolTipLabel =l.i.s('ShareThisFlipBook','Share this FlipBook');
+					MenuButtonTipLayer.addChild(email);
+				}
+				
+				if(lmbSns.visible && lmbSns.height > 0){
+					var sns:ButtonMenuTipBox = new ButtonMenuTipBox();
+					sns.x = 0;
+					sns.y = menuLeft.y + lmbSns.y-deltalY;
+					sns.width = 350;
+					sns.height = 110;
+					sns.lineLen = 100;
+					sns.toolTipLabel =l.i.s('ShareOnSocialNetwork','Share on Social Network');
+					MenuButtonTipLayer.addChild(sns);
+				}
+				
+				if(lmbPrint.visible && lmbPrint.height > 0){
+					var print:ButtonMenuTipBox = new ButtonMenuTipBox();
+					print.x = 0;
+					print.y = menuLeft.y + lmbPrint.y-deltalY;
+					print.width = 350;
+					print.height = 110;
+					print.lineLen = 100;
+					print.toolTipLabel =l.i.s('Print');
+					MenuButtonTipLayer.addChild(print);
+					
+				}
+				
+				if(lmbPdf.visible && lmbPdf.height > 0){
+					var savepdf:ButtonMenuTipBox = new ButtonMenuTipBox();
+					savepdf.x = 0;
+					savepdf.y = menuLeft.y + lmbPdf.y-deltalY;
+					savepdf.width = 350;
+					savepdf.height = 110;
+					savepdf.lineLen = 100;
+					savepdf.toolTipLabel =l.i.s('SaveAsPDF','Save as PDF');
+					MenuButtonTipLayer.addChild(savepdf);
+				}
+				
+				if(lmbDownload.visible && lmbDownload.height > 0){
+					var download:ButtonMenuTipBox = new ButtonMenuTipBox();
+					download.x = 0;
+					download.y = menuLeft.y + lmbDownload.y-deltalY;
+					download.width = 350;
+					download.height = 110;
+					download.lineLen = 100;
+					download.toolTipLabel =l.i.s('Download');
+					MenuButtonTipLayer.addChild(download);
+				}
+				
+				if(lmbIssues.visible && lmbIssues.height > 0){
+					var issues:ButtonMenuTipBox = new ButtonMenuTipBox();
+					issues.x = 0;
+					issues.y = menuLeft.y + lmbIssues.y-deltalY;
+					issues.width = 350;
+					issues.height = 110;
+					issues.lineLen = 100;
+					issues.toolTipLabel =l.i.s('PreviousIssues','Previous Issues');
+					MenuButtonTipLayer.addChild(issues);
+				}
+				
+				if(lmbSetting.visible && lmbSetting.height > 0){
+					var setting:ButtonMenuTipBox = new ButtonMenuTipBox();
+					setting.x = 0;
+					setting.y = menuLeft.y + lmbSetting.y-deltalY;
+					setting.width = 350;
+					setting.height = 110;
+					setting.lineLen = 100;
+					setting.toolTipLabel =l.i.s('Settings','Settings');
+					MenuButtonTipLayer.addChild(setting);
+				}
+				
+				if(lmbAbout.visible && lmbAbout.height > 0){
+					
+					var about:ButtonMenuTipBox = new ButtonMenuTipBox();
+					about.x = 0;
+					about.y = menuLeft.y + lmbAbout.y-deltalY;
+					about.width = 350;
+					about.height = 110;
+					about.lineLen = 100;
+					about.toolTipLabel =l.i.s('AboutUs','About Us');
+					MenuButtonTipLayer.addChild(about);
+				}
+				
+				if(lmbClose.visible && lmbClose.height > 0){
+					var close:ButtonMenuTipBox = new ButtonMenuTipBox();
+					close.x = 0;
+					close.y = menuLeft.y + lmbClose.y -deltalY;
+					close.width = 350;
+					close.height = 110;
+					close.lineLen = 100;
+					close.toolTipLabel =l.i.s('Close','Close');
+					MenuButtonTipLayer.addChild(close);
+				}
+				
+			}
+			
+			protected function HideMVHelpLayer(event:MouseEvent):void
+			{
+				MenuButtonTipLayer.visible = false;
+			}
+			
+			private function showInputPdfRegion():void
+			{
+				/*
+				inputSaveRegion.visible=false;
+				if(rbSaveSelected.selected){
+					inputSaveRegion.visible=true;
+					inputSaveRegion.setFocus();
+				}
+				*/
+			}
+			
+			protected function onNextScreen(event:MouseEvent):void
+			{
+				bottomThumb.nextScreen();
+				
+			}
+			
+			protected function onPrevScreen(event:MouseEvent):void
+			{
+				bottomThumb.prevScreen();
+			}
+			
+			protected function onBottomThumbChage(event:ThumbChangeEvent):void
+			{
+				this.book.turnToPage(event.currentThumb);
+				
+			}
+			
+			protected function bottomThumb_updateCompleteHandler(event:FlexEvent):void
+			{
+				tpiLeft.visible = bottomThumb.horizontalScrollBar==null?false:true;
+				tpiRight.visible = tpiLeft.visible;
+			}
+			
+			protected function onPreviousIssuesOver(event:RecordEvent):void
+			{
+				
+				if(event.record == null){
+					prevIssuesUrlText.text="";
+					return;
+				}
+				var r:TreeNodeRecord = event.record as TreeNodeRecord;
+				if(r == null || r.url == "") return;
+				prevIssuesUrlText.text = r.url;
+				trace("onPreviousIssuesOver = " + r.url);
+				
+				
+			}
+			
+		]]>
+	</Script>
+	<Canvas id="bookarea" visible="{bookConfig}" width="100%" height="100%"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<!--
+		<Canvas id="bookBg" visible="{bookConfig}" width="100%" height="100%"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		-->
+		<Canvas id="bookBg" visible="{bookConfig}" left="0" right="0" height="100%"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			<Image id="bookBgImage" width="{bookBg.width}" height="{bookBg.height}"/>
+			
+		</Canvas>
+		
+		<fbc:AdBar id="adTop" visible="{RunTime.fullScreen == false}" left="0" right="0"
+				   height="{getTopAdHeight(adTop.dataSource,RunTime.fullScreen)}"
+				   nodeConfig="{bookConfig.topAd}"/>
+		<fbc:AdBar id="adRight" visible="{RunTime.fullScreen == false}" right="0"
+				   top="{adTop.height}" bottom="46"
+				   width="{getRightAdWidth(adRight.dataSource,RunTime.fullScreen)}"
+				   direction="vertical" horizontalAlign="center" nodeConfig="{bookConfig.rightAd}"
+				   paddingLeft="3" paddingRight="3" paddingTop="3"/>
+		<containers:Landscape id="landscape" top="0" bottom="0" width="100%" cachePolicy="off"
+							  clipContent="true" mouseListener="{book}"
+							  mouseWheel="onMouseWheel(event)"
+							  paddingBottom="{getBookPaddingBottom()}"
+							  paddingLeft="{computePaddingLeft(RunTime.bookmarkRecords)}"
+							  paddingRight="{computePaddingRight(RunTime.bookmarkRecords,adRight.width,RunTime.fullScreen)}"
+							  paddingTop="{getBookPaddingTop(RunTime.fullScreen,adTop.height)}"
+							  pageMove="{updateZoomBoxHotArea();}"
+							  pageZoomComplete="onZoomComplete(event);" scale="{defaultZoomScale}"
+							  transformChanged="changeBookMarks(event)" zoomContent="{book}">
+			
+			<Box width="100%" height="100%" paddingBottom="{getBookPaddingBottom()}"
+				 paddingLeft="{computePaddingLeft(RunTime.bookmarkRecords)}"
+				 paddingRight="{computePaddingRight(RunTime.bookmarkRecords,adRight.width,RunTime.fullScreen)}"
+				 paddingTop="{getBookPaddingTop(RunTime.fullScreen,adTop.height)}">
+				<Canvas id="bookCanvas" width="100%" height="100%" clipContent="false"
+						horizontalScrollPolicy="off"
+						resize="setBookSize();updateHighlights();updateNotes();updateFunButtons();updateRss();"
+						verticalScrollPolicy="off">
+					<fbc:SModeBook id="book" audio="{audio}" buttons="{RunTime.buttons}"
+								   click="{autoFlip=false;checkFlip();}" color="0x000000"
+								   dataSource="{RunTime.bookPages}" doubleClickEnabled="true"
+								   forms="{RunTime.forms}" hotlinks="{RunTime.hotlinks}"
+								   pageActive="{isBookActive(RunTime.zoomedIn,RunTime.MouseState,RunTime.note)}"
+								   pageChanged="onPageChanged()"
+								   resize="{updateNotes();updateRss();}" RSS="{RunTime.rss}"
+								   slideshows="{RunTime.slideshows}"
+								   turnEnd="{loadContent();updateNotes();             updateHighlights();               updateVideos();                updateRss();                updateZoomBoxHotArea();               }"
+								   turnStart="{checkContentIsLoaded();             removeNotesFromBookPage();                removeRssFormBookPage();             shiftLeft();             removeHighlightsFromBookPage();             pauseVideosFromBookPage();}"
+								   videos="{RunTime.videos}"/>
+					<Canvas id="notesMask" x="{book.x}" y="{book.y}" color="0x000000"/>
+					<Canvas id="rssMask" x="{book.x}" y="{book.y} " clipContent="false"
+							color="0x000000" horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+					<Canvas id="funButtonsLayer" x="{book.x}" y="{book.y}" clipContent="false"
+							color="0x000000"/>
+					<Canvas id="bgLayerButtons" x="{book.x}" y="{book.y}" clipContent="false"/>
+				</Canvas>
+			</Box>
+		</containers:Landscape>
+		<Canvas id="bookmarksArea" clipContent="false" horizontalScrollPolicy="off"
+				verticalScrollPolicy="off"/>
+		<fbc:ZoomBox id="zoomBox" visible="{RunTime.zoomedIn}"
+					 x="{computeBaseVBoxX(width,zoomBox,10)}"
+					 y="{computeBaseVBoxY(height,zoomBox,10)}"
+					 change="{       landscape.zoomToScale(zoomBox.scale);       }"
+					 fit100="zoomBox_fit100Handler(event)"
+					 fitfullpage="zoomBox_fitfullpageHandler(event)"
+					 fitwidth="{zoomBox_fitWindowHandler();}"
+					 scale="{getLandscapeScale(landscape.scale, landscape.scaleByDragBox)}"
+					 settingchange="zoomBox_settingchangeHandler(event)">
+		</fbc:ZoomBox>
+		<fbc:SearchBox id="searchBox" visible="false" x="{computeBaseVBoxX(width,searchBox,20)}"
+					   y="{computeBaseVBoxY(height,searchBox,20)}"
+					   close="{RunTime.searchString='';this.book.reSearch();}"
+					   pageCount="{RunTime.bookPages.length}"
+					   recordClick="{onSearchResultClick(event)}">
+		</fbc:SearchBox>
+		<fbc:NoteBox id="noteBox" visible="false" x="{computeBaseVBoxX(width,noteBox,40)}"
+					 y="{computeBaseVBoxY(height,noteBox,40)}" notes="{RunTime.noteRecords}"
+					 recordClick="{onNoteRecordClick(event)}"
+					 recordDelete="{onNoteRecordDelete(event)}"
+					 removeAll="{onRemoveAllNotes(event)}">
+		</fbc:NoteBox>
+		<Canvas id="bgAudioBoxes" clipContent="false"/>
+		<Canvas id="audioBoxes" clipContent="false"/>
+	</Canvas>
+	
+	<Canvas bottom="{getBottomThumbBottom()}" id="bottomThumbCvs" left="0" right="0" height="{RunTime.showBottomThumb==true?90:0}" 
+			backgroundAlpha="{RunTime.bottomThumbAlpha}"
+			backgroundColor="{RunTime.bottomThumbBgColor}" 
+			horizontalScrollPolicy="off" 
+			verticalScrollPolicy="off"
+			visible="{RunTime.zoomedIn?false:true}">
+		<HBox width="60%" height="{bottomThumbCvs.height}" 
+			  horizontalCenter="0" 
+			  verticalAlign="middle"  
+			  horizontalAlign="center" 
+			  verticalScrollPolicy="off"
+			  >
+			<fbc:TurnPageIcon id="tpiLeft" direct="-1" scaleX="0.3" scaleY="0.3" click="onPrevScreen(event)" bgTransparent="true" />
+			<fbc:BottomThumb height="100%" 
+							 updateComplete="bottomThumb_updateCompleteHandler(event)" 
+							 thumbChange="onBottomThumbChage(event)"  
+							 id="bottomThumb" 
+							 source="{RunTime.bookPages}" 
+							 width="100%" />
+			<fbc:TurnPageIcon id="tpiRight" visible="{bottomThumb.horizontalScrollBar==null?false:true}"  direct="1" scaleX="0.3" scaleY="0.3" click="onNextScreen(event)" bgTransparent="true" />
+		</HBox>
+	</Canvas>
+	
+	<Canvas id="menuBottom"  top="{RunTime.bottomMenuFixTop?0:''}"
+			bottom="{RunTime.bottomMenuFixTop == false?0:''}" width="100%" height="46"
+			horizontalCenter="0" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+			visible = "{!RunTime.hideBottomMenu}">
+		<Image id="bottomMenuBg"
+			   visible="{isBottomMenuBgVisible(bookConfig,RunTime.fullScreen,RunTime.zoomedIn)}"
+			   horizontalCenter="25" source="{String(bookConfig.bottommenu.@background)}"
+			   verticalCenter="2"/>
+		<HBox id="menuBottomLeft" visible="{bookConfig}" width="{RunTime.iconSameSize?130:90}"
+			  height="{RunTime.iconSameSize?RunTime.iconSize:16}" horizontalAlign="left"
+			  horizontalCenter="{RunTime.iconSameSize?-270:-230}" horizontalGap="3"
+			  verticalCenter="0">
+			<fbc:ImageButton visible="{String(bookConfig.bottommenu.help.@visible) == 'true'}"
+							 width="{String(bookConfig.bottommenu.help.@visible) == 'true'?(RunTime.iconSameSize?RunTime.iconSize:16):0}"
+							 height="{RunTime.iconSameSize?RunTime.iconSize:16}"
+							 click="RunTime.showHelp()" icon="{RunTime.customButtonHelp}"
+							 mouseOut="HideMVHelpLayer(event)" mouseOver="ShowMVHelpLayer(event)"
+							 toolTip="{l.i.s('Help','Help Tips')}"/>
+			<fbc:ImageButton visible="{String(bookConfig.bottommenu.info.@visible) == 'true'}"
+							 width="{String(bookConfig.bottommenu.info.@visible) == 'true'?(RunTime.iconSameSize?RunTime.iconSize:16):0}"
+							 height="{RunTime.iconSameSize?RunTime.iconSize:16}"
+							 click="{          RunTime.clickHref(RunTime.infoUrl);         }"
+							 icon="{RunTime.customButtonInfo}"
+							 toolTip="{l.i.s('MoreInfo','More Information')}"/>
+			<Spacer width="100%"/>
+			<fbc:ImageButton visible="{String(bookConfig.bottommenu.back.@visible) == 'true'} "
+							 width="{String(bookConfig.bottommenu.back.@visible) == 'true'?(RunTime.iconSameSize?RunTime.iconSize:16):0}"
+							 height="{RunTime.iconSameSize?RunTime.iconSize:16}"
+							 click="{         autoFlip=false;checkFlip();         RunTime.history.undo()}"
+							 enabled="{RunTime.history.canUndo}"
+							 icon="{RunTime.customButtonBackward}" toolTip="{l.i.s('Back','Back')}"/>
+			<fbc:ImageButton visible="{String(bookConfig.bottommenu.forward.@visible) == 'true'}"
+							 width="{String(bookConfig.bottommenu.forward.@visible) == 'true'?(RunTime.iconSameSize?RunTime.iconSize:16):0}"
+							 height="{RunTime.iconSameSize?RunTime.iconSize:16}"
+							 click="{         autoFlip=false;checkFlip();RunTime.history.redo();         }"
+							 enabled="{RunTime.history.canRedo}"
+							 icon="{RunTime.customButtonForward}"
+							 toolTip="{l.i.s('Forward','Forward')}"/>
+		</HBox>
+		<fbc:Reflection visible="{bookConfig}" top="35" width="{RunTime.iconSameSize?130:90}"
+						height="15" horizontalCenter="{RunTime.iconSameSize?-270:-230}"
+						source="{menuBottomLeft}"/>
+		<HBox id="menuBottomMiddle" width="300" horizontalCenter="-25" horizontalGap="10"
+			  verticalAlign="middle" verticalCenter="0"
+			  height="{RunTime.iconSameSize?27:32}">
+			<fbc:ImageButton height="{RunTime.iconSameSize?RunTime.iconSize:24}"
+							 click="if(RunTime.rightToLeft == false) flipToFrontCover() else flipToBackCover();autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+							 icon="{RunTime.customButtonFirstPage}"
+							 toolTip="{RunTime.rightToLeft == false ? l.i.s('FlipToFront','Flip to Front Cover') : l.i.s('FlipToBack','Flip to Back Cover')}"/>
+			<fbc:ImageButton height="{RunTime.iconSameSize?RunTime.iconSize:32}"
+							 click="flipLeft();autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+							 icon="{RunTime.customButtonPrevPage}"
+							 toolTip="{l.i.s('FlipLeft','Flip Left')}"/>
+			<Canvas width="120" height="32">
+				<TextInput id="txtPage" width="120" backgroundColor="0xFFFFFFFF"
+						   click="{          txtPage.text='';          btnGotoPage.visible=true;          autoFlip=false;checkFlip();RunTime.removeHighlightOn();          refMenuBottomMiddle.updateReflection();          }"
+						   color="#FFFFFF"
+						   focusOut="{          txtPage.text=pageInfo(book.currentPageIndex, RunTime.bookPages);          btnGotoPage.visible=false;          autoFlip=false;checkFlip();refMenuBottomMiddle.updateReflection();          }"
+						   focusThickness="0"
+						   keyDown="onPageInputKeyDown(event);refMenuBottomMiddle.updateReflection();"
+						   restrict="0-9\." tabEnabled="false"
+						   text="{pageInfo(book.currentPageIndex, RunTime.bookPages)}"
+						   textAlign="center" verticalCenter="0"/>
+				<fbc:ImageButton id="btnGotoPage" visible="false" right="2"
+								 click="gotoPageInput();RunTime.removeHighlightOn();"
+								 icon="@Embed(source='assets/blackStyle/btnGotoPage.png')"
+								 toolTip="{l.i.s('GotoPage','Goto Page')}" verticalCenter="-1"/>
+			</Canvas>
+			<fbc:ImageButton height="{RunTime.iconSameSize?RunTime.iconSize:32}"
+							 click="flipRight();autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+							 icon="{RunTime.customButtonNextPage}"
+							 toolTip="{l.i.s('FlipRight','Flip Right')}"/>
+			<fbc:ImageButton height="{RunTime.iconSameSize?RunTime.iconSize:24}"
+							 click="if(RunTime.rightToLeft == false) flipToBackCover() else flipToFrontCover();autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+							 icon="{RunTime.customButtonLastPage}"
+							 toolTip="{RunTime.rightToLeft == false ? l.i.s('FlipToBack','Flip to Back Cover') : l.i.s('FlipToFront','Flip to Front Cover')}"/>
+		</HBox>
+		<fbc:Reflection id="refMenuBottomMiddle" visible="{bookConfig}" top="{RunTime.iconSameSize?35:38}" width="300"
+						height="15" horizontalCenter="-25" source="{menuBottomMiddle}"/>
+		<HBox id="menuBottomRight" visible="{bookConfig}" width="300" horizontalCenter="245"
+			  horizontalGap="0" paddingLeft="30" verticalCenter="0">
+			<fbc:ImageButton id="btnSoundSetting"
+							 width="{String(bookConfig.bottommenu.sound.@visible) == 'true' ? 27 : 0}"
+							 click="onSoundButton();"
+							 source="{(audio.bgSoundsEnabled == true) ? RunTime.customButtonSoundEnable : RunTime.customButtonSoundDisable}"
+							 toolTip="{(audio.bgSoundsEnabled == true) ?          l.i.s('EnableAudio','EnableAudio')          : l.i.s('DisableAudio','DisableAudio')}"
+							 updateComplete="{refMenuBottomRight.updateReflection();}"/>
+			<Spacer width="{String(bookConfig.bottommenu.sound.@visible) == 'true' ? 10 : 0}"/>
+			<fbc:ImageButton id="btnZoom"
+							 width="{String(bookConfig.bottommenu.zoom.@visible) == 'true' ? 27 : 0}"
+							 click="zoom();Helper.bringTop(zoomBox);RunTime.removeHighlightOn();"
+							 source="{(RunTime.zoomedIn == true) ? RunTime.customButtonZoomDisable : RunTime.customButtonZoomEnable}"
+							 toolTip="{(RunTime.zoomedIn == false) ?          l.i.s('ZoomIn','Zoom In')          : l.i.s('ZoomOut','Zoom Out')}"
+							 updateComplete="{refMenuBottomRight.updateReflection();}"/>
+			<Spacer width="{String(bookConfig.bottommenu.zoom.@visible) == 'true' ? 10 : 0}"/>
+			<fbc:ImageButton id="btnAutoFlip"
+							 width="{String(bookConfig.bottommenu.autoflip.@visible) == 'true' ? 27 : 0}"
+							 alpha="{ autoFlip ? 0.4 : 1 }"
+							 click="{ autoFlip = !autoFlip; checkFlip();RunTime.removeHighlightOn();}"
+							 source="{RunTime.customButtonAutoFlipEnable}"
+							 toolTip="{l.i.s('AutoFlip','Auto Flip')}"/>
+			<Spacer width="{String(bookConfig.bottommenu.autoflip.@visible) == 'true' ? 10 : 0}"/>
+			<fbc:ImageButton id="btnSearch"
+							 width="{String(bookConfig.bottommenu.search.@visible) == 'true' ? 27 : 0}"
+							 click="{         searchBox.visible = true;          searchBox.focus();         searchBox.minimize = false;         Helper.bringTop(searchBox);         autoFlip=false;checkFlip();RunTime.removeHighlightOn();         }"
+							 source="{RunTime.customButtonSearchEnable}" toolTip="{l.i.s('Search')}"/>
+			<Spacer width="{String(bookConfig.bottommenu.search.@visible) == 'true' ? 10 : 0}"/>
+			<fbc:ImageButton id="btnNote"
+							 width="{String(bookConfig.bottommenu.notes.@visible) == 'true' ? 27 : 0}"
+							 click="{         noteBox.visible = true;         noteBox.minimize = false;         Helper.bringTop(noteBox);         autoFlip=false;checkFlip();RunTime.removeHighlightOn();         }"
+							 source="{RunTime.customButtonNoteEnable}" toolTip="{l.i.s('Notes')}"/>
+			<Spacer width="{String(bookConfig.bottommenu.notes.@visible) == 'true' ? 10 : 0}"/>
+			<fbc:ImageButton id="btnHighlight"
+							 width="{String(bookConfig.bottommenu.highlight.@visible) == 'true' ? 27 : 0}"
+							 alpha="{(RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_ON          || RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_DETAIL_MOVING)          ? 0.5 : 1}"
+							 click="{shiftHightLightOn()}"
+							 source="{RunTime.customButtonHighlightEnable}"
+							 toolTip="{         RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_ON          ? l.i.s('HighlightOn','Highlight On')         :l.i.s('HighlightOff','Highlight Off')}"/>
+			<Spacer width="{String(bookConfig.bottommenu.highlight.@visible) == 'true' ? 10 : 0}"/>
+			<fbc:ImageButton id="btnFullScreen"
+							 width="{String(bookConfig.bottommenu.fullscreen.@visible) == 'true' ? 27 : 0}"
+							 click="switchFullScreenMode()"
+							 source="{RunTime.fullScreen? RunTime.customButtonFullscreenDisable: RunTime.customButtonFullscreenEnable}"
+							 toolTip="{RunTime.fullScreen         ?l.i.s('ExitFullScreen','Exit Full Screen')         :l.i.s('FullScreen','Full Screen')}"
+							 updateComplete="{refMenuBottomRight.updateReflection();}"/>
+			<Spacer width="{String(bookConfig.bottommenu.fullscreen.@visible) == 'true' ? 10 : 0}"/>
+		</HBox>
+		<fbc:Reflection id="refMenuBottomRight" top="35" width="300" height="15"
+						horizontalCenter="245" ignoreVisible="false" source="{menuBottomRight}"/>
+		<Image id="logoRightDown"
+			   visible="{RunTime.mainApp.width &gt; 800 + logoRightDown.width * logoRightDown.scaleX}"
+			   right="10" maxWidth="160" maxHeight="40" buttonMode="true"
+			   click="{RunTime.clickHref(logoRdHref);}" horizontalAlign="right"
+			   source="{RunTime.getAbsPath(logoRdUrl)}" useHandCursor="true" verticalAlign="middle"
+			   verticalCenter="0"/>
+	</Canvas>
+	<HBox id="menuLeft" visible="{bookConfig}" y="80" width="40"
+		  height="{Math.max(vsLeft.height,600)}" horizontalGap="0" horizontalScrollPolicy="off"
+		  verticalScrollPolicy="off">
+		<Canvas id="cvsLeftMenu" visible="{menuLeft.width &gt; 40}" width="100%"
+				height="{Math.max(vsLeft.height,480)}" backgroundAlpha="0.85"
+				backgroundColor="0x222222" borderColor="0xFFFFFF" borderStyle="solid"
+				borderThickness="2" cornerRadius="3" horizontalScrollPolicy="off"
+				verticalScrollPolicy="off">
+			<ViewStack id="vsLeft" left="0" right="0" top="0" bottom="0"
+					   height="{Math.max(vsLeft.selectedChild.height,480)}">
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('PreviousIssues','Previous Issues')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<VBox width="100%" paddingBottom="0" paddingLeft="0" paddingRight="0"
+						  paddingTop="0">
+						<fbc:ContentsTable id="tbPreviousIssues" width="100%"
+										   height="{vsLeft.height-60}"
+										   recordClick="onPreviousIssuesClick(event)"
+										   recordOver="onPreviousIssuesOver(event)"
+										   showPage="false" source="{RunTime.prevIssues}" showThumNode="{RunTime.showIssueThumb}"/>
+						<Label width="450" id="prevIssuesUrlText" />
+							
+						
+						<!--
+						<HBox width="100%" horizontalAlign="right" paddingRight="5">
+							<Button width="150"
+									label="{l.i.s('ExpandCollapseAll','Expand/Collapse All')}"
+									buttonMode="true" click="{tbPreviousIssues.switchExpand();}"
+									useHandCursor="true"/>
+						</HBox>
+						-->
+						
+					</VBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('TableOfContents','Table of Contents')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<VBox width="100%" paddingBottom="0" paddingLeft="0" paddingRight="0"
+						  paddingTop="0">
+						<fbc:ContentsTable id="tbContents" width="100%"
+										   recordClick="onContentClick(event)"
+										   source="{RunTime.tableOfContents}"/>
+						<HBox width="100%" height="30" horizontalAlign="right" paddingRight="5">
+							<Button width="150"
+									label="{l.i.s('ExpandCollapseAll','Expand/Collapse All')}"
+									buttonMode="true" click="{tbContents.switchExpand();}"
+									useHandCursor="true"/>
+						</HBox>
+					</VBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('ThumbnailView','Thumbnail View')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<fbc:SModeThumbBox width="100%" height="100%" pageSelectedMode="false"
+									   source="{RunTime.bookPages}"/>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" height="30" horizontalAlign="left" paddingLeft="10"
+						  verticalAlign="middle">
+						<Label color="0xFFFFFF" fontSize="16"
+							   text="{ThumbItem.selectedItem.pageInfo()}"/>
+					</HBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('ShareThisFlipBook','Share this FlipBook')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" paddingLeft="30" paddingRight="20" paddingTop="20">
+						<Label width="80" fontWeight="bold" text="{l.i.s('To') + ':'}"/>
+						<TextInput id="tbSendTo" width="100%" color="0x000000"
+								   focusIn="            {            if(tbSendTo.text.length == 0)            {            tbSendTo.text = '@';            }            }"/>
+					</HBox>
+					<HBox width="100%" paddingLeft="30" paddingRight="20" paddingTop="20">
+						<Label width="80" fontWeight="bold"
+							   text="{l.i.s('YourName','Your Name') + ':'}"/>
+						<TextInput id="tbYourName" width="100%" color="0x000000"/>
+					</HBox>
+					<HBox width="100%" paddingLeft="30" paddingRight="20" paddingTop="20">
+						<Label width="80" fontWeight="bold"
+							   text="{l.i.s('YourEmail','Your Email') + ':'} "/>
+						<TextInput id="tbSendFrom" width="100%" color="0x000000"
+								   focusIn="            {            if(tbSendFrom.text.length == 0)            {            tbSendFrom.text = '@';            }            }"/>
+					</HBox>
+					<HBox width="100%" paddingLeft="30" paddingRight="20" paddingTop="20">
+						<Label width="80" fontWeight="bold" text="{l.i.s('Message') + ':'}"/>
+						<TextArea id="tbSendMessage" width="100%" height="200" color="0x000000"/>
+					</HBox>
+					<HBox width="100%" horizontalAlign="right" paddingLeft="30" paddingRight="20"
+						  paddingTop="20">
+						<Button width="80" label="{l.i.s('Send')}" click="sendEmail()"/>
+					</HBox>
+					<HBox height="100%" paddingBottom="20" paddingLeft="30" verticalAlign="bottom">
+						<Label id="tbEmailInfo" mouseChildren="false"/>
+					</HBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('ShareOnSocialNetwork','Share on Social Network')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<fbc:ShareBox width="100%" height="100%" logoHeight="{RunTime.siteLogoHeight}"
+								  logoWidth="{RunTime.siteLogoHeight}" source="{RunTime.sites}"/>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('Print')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" horizontalGap="0">
+						<VBox id="printSelectBox" width="100%" height="100%"
+							  backgroundDisabledColor="0x000000" verticalGap="0">
+							<Canvas width="100%" height="50" borderColor="0xFFFFFF"
+									borderSides="bottom" borderStyle="solid" borderThickness="1">
+								<RadioButton id="rbPrintCurrent" left="15"
+											 label="{l.i.s('PrintCurrentPage','Print Current Page')}"
+											 change="{if(rbPrintCurrent.selected) pageBox.setHot();}"
+											 selected="true" verticalCenter="0"/>
+							</Canvas>
+							<Canvas width="100%" height="50">
+								<RadioButton id="rbPrintSelected" left="15"
+											 label="{l.i.s('PrintSelectedPages','Print Selected Pages')}"
+											 verticalCenter="0"/>
+							</Canvas>
+						</VBox>
+						<Canvas width="1" height="100%" backgroundColor="0xFFFFFF"/>
+						<ViewStack width="242" height="240"
+								   selectedIndex="{ printSelectBox.enabled ? (rbPrintSelected.selected ? 1 : 0) : 2}">
+							<fbc:SModePageSelectBox id="pageBox" width="100%" height="100%"
+													creationComplete="{updatePageSelectBox();}"/>
+							<VBox width="100%" paddingLeft="10" paddingRight="10" paddingTop="10">
+								<Button width="100%"
+										label="{l.i.s('SelectPagesFromThumbnails', 'Select pages from thumbnails')}"
+										buttonMode="true" click="shiftRight(10)"
+										useHandCursor="true"/>
+								<TextArea width="100%" backgroundAlpha="0" borderStyle="none"
+										  color="0xFFFFFF" focusThickness="0"
+										  text="{l.i.s('PleaseSelectNoMoreThan15PagesAtATime', 'Please select no more than 15 pages at a time.')}"/>
+							</VBox>
+							<VBox width="100%" paddingLeft="10" paddingRight="10" paddingTop="10">
+								<TextArea width="100%" backgroundAlpha="0" borderStyle="none"
+										  color="0xFFFFFF" focusThickness="0"
+										  text="{l.i.s('PagesBeingPrepared',             'Pages are being prepared for printing. this may take a few minutes. Please wait ...')}"/>
+							</VBox>
+						</ViewStack>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" horizontalAlign="right" paddingRight="10" paddingTop="10">
+						<Button label="{printSelectBox.enabled ? l.i.s('Print') : l.i.s('Cancel')}"
+								buttonMode="true"
+								click="printSelectBox.enabled ? print() : printSelectBox.enabled = true"
+								enabled="{printSelectBox.enabled ? !rbPrintSelected.selected : true}"
+								useHandCursor="true"/>
+					</HBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('SaveAsPDF','Save as PDF')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" horizontalGap="0">
+						<VBox width="100%" height="200" verticalGap="0">
+							<HBox visible="{pdfUrl}" width="100%" height="100%" buttonMode="true"
+								  click="{Helper.download(RunTime.getAbsPath(pdfUrl))}"
+								  horizontalAlign="center" paddingLeft="5" paddingRight="5"
+								  useHandCursor="true" verticalAlign="middle">
+								<Label width="100%" fontWeight="bold" mouseChildren="false"
+									   text="{l.i.s('DownloadEntirePdfFile','Download entire PDF file')}"
+									   textAlign="center"/>
+							</HBox>
+						</VBox>
+						<Canvas width="1" height="100%" backgroundColor="0xFFFFFF"/>
+						<fbc:SModePageSelectBox id="pdfPageBox" width="240" height="200"
+												creationComplete="{updatePdfPageSelectBox();}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" horizontalAlign="right" paddingRight="10" paddingTop="10">
+						<Button label="{l.i.s('Save')}" buttonMode="true" click="savePdf()"
+								useHandCursor="true"/>
+					</HBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('Download')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<VBox width="100%" horizontalAlign="center" paddingBottom="20" paddingLeft="20"
+						  paddingRight="20" paddingTop="20" verticalGap="20">
+						<HBox width="100%" height="{String(bookConfig.@zipUrl) ? 50 : 0}"
+							  borderColor="0xFFFFFF" borderStyle="solid" borderThickness="1"
+							  buttonMode="true"
+							  click="{Helper.download(RunTime.getAbsPath(String(bookConfig.@zipUrl)))}"
+							  cornerRadius="10" horizontalAlign="center" paddingLeft="20"
+							  paddingRight="20" useHandCursor="true" verticalAlign="middle">
+							<Image visible="{String(bookConfig.@zipIcon)}"
+								   source="{RunTime.getAbsPath(String(bookConfig.@zipIcon))}"/>
+							<Label width="100%" fontWeight="bold" mouseChildren="false"
+								   text="{l.i.s('DownloadZip','Download this FlipBook in ZIP format')}"
+								   textAlign="center"/>
+						</HBox>
+						<HBox width="100%" height="{String(bookConfig.@exeUrl) ? 50 : 0}"
+							  borderColor="0xFFFFFF" borderStyle="solid" borderThickness="1"
+							  buttonMode="true"
+							  click="{Helper.download(RunTime.getAbsPath(String(bookConfig.@exeUrl)))}"
+							  cornerRadius="10" horizontalAlign="center" paddingLeft="20"
+							  paddingRight="20" useHandCursor="true" verticalAlign="middle">
+							<Image visible="{String(bookConfig.@exeIcon)}"
+								   source="{RunTime.getAbsPath(String(bookConfig.@exeIcon))}"/>
+							<Label width="100%" fontWeight="bold" mouseChildren="false"
+								   text="{l.i.s('DownloadExe','Download this FlipBook in EXE format')}"
+								   textAlign="center"/>
+						</HBox>
+					</VBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('Settings')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<VBox width="100%" paddingBottom="20" paddingLeft="20" paddingTop="20">
+						<CheckBox id="cbEnableAudio" label="{l.i.s('EnableAudio','Enable Audio')}"
+								  selected="{audio.bgSoundsEnabled}"/>
+						<CheckBox id="cbEnableFlippingSound"
+								  label="{l.i.s('EnableFlippingSound','Enable Flipping Sound')}"
+								  selected="{audio.flippingSoundEnabled}"/>
+						<CheckBox id="cbAutoMoveAfterZoom"
+								  label="{l.i.s('AutoMoveAfterZoom','Auto Move After Zoom')}"
+								  selected="{landscape.autoMoveAfterZoom}"/>
+						<HBox width="100%">
+							<Label text="{l.i.s('SelectLanguage','Select Language') + ':'}"/>
+							<ComboBox id="cmbLanguage" color="0x000000"
+									  dataProvider="{Helper.createLanguageDataSource(RunTime.langConfig,l.i)}"
+									  editable="false" rowCount="10"
+									  selectedIndex="{RunTime.langSelectedId}"/>
+						</HBox>
+					</VBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" horizontalAlign="right" paddingRight="10" paddingTop="10">
+						<Button width="80" label="{l.i.s('OK')}" buttonMode="true"
+								click="saveSetting()" useHandCursor="true"/>
+					</HBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('AboutUs','About Us')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" height="280" paddingBottom="10" paddingTop="10">
+						<Box width="200" height="200" horizontalAlign="center" verticalAlign="middle">
+							<Image maxWidth="200" maxHeight="100"
+								   source="{RunTime.getAbsPath(bookConfig.@companyLogo)}"/>
+						</Box>
+						<TextArea width="100%" height="100%" backgroundAlpha="0" borderStyle="none"
+								  editable="false"
+								  htmlText="{ Helper.buildAboutUsHtmlText(l.i, bookConfig)}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<VBox width="100%" paddingLeft="20" paddingRight="20" paddingTop="20"
+						  verticalGap="1">
+						<Image visible="{String(RunTime.copyrightConfig.@logo)}"
+							   source="{RunTime.getAbsPath(String(RunTime.copyrightConfig.@logo))}"/>
+						<Label visible="{String(RunTime.copyrightConfig.@build)}" width="100%"
+							   text="{'Build' + ': ' + String(RunTime.copyrightConfig.@build)}"/>
+						<Spacer height="10"/>
+						<TextArea width="100%" height="100%" backgroundAlpha="0" borderStyle="none"
+								  editable="false" horizontalScrollPolicy="off"
+								  htmlText="{StringUtil.trim(String(RunTime.copyrightConfig.text()))}"
+								  verticalScrollPolicy="off"/> 
+					</VBox>
+				</VBox>
+				<VBox width="100%" horizontalScrollPolicy="off" verticalGap="0"
+					  verticalScrollPolicy="off">
+					<HBox width="100%" height="30" paddingLeft="10" paddingRight="10"
+						  verticalAlign="middle">
+						<Label fontSize="15" fontWeight="bold" mouseChildren="false"
+							   text="{l.i.s('SelectPagesFromThumbnails', 'Select pages from thumbnails')}"/>
+						<Spacer width="100%"/>
+						<fbc:CloseBox click="{shiftLeft()}" toolTip="{l.i.s('Close')}"/>
+					</HBox>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<fbc:SModeThumbBox id="pageSelectBox" width="100%" height="100%"
+									   pageSelectedMode="true" source="{RunTime.bookPages}"/>
+					<Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+					<HBox width="100%" height="30" horizontalAlign="right" horizontalGap="8"
+						  paddingLeft="10" paddingRight="10" verticalAlign="middle">
+						<Label color="0xFFFFFF" fontSize="16"
+							   text="{l.i.s('PleaseSelectNoMoreThan15PagesAtATime', 'Please select no more than 15 pages at a time.')}"/>
+						<Button label="{l.i.s('Clear', 'Clear')}" buttonMode="true"
+								click="{pageSelectBox.uncheckAll();}" useHandCursor="true"/>
+						<Button label="{l.i.s('Print', 'Print')}" buttonMode="true"
+								click="printSelectedPages()" enabled="{SelectedThumbItem.checked}"
+								useHandCursor="true"/>
+					</HBox>
+				</VBox>
+			</ViewStack>
+		</Canvas>
+		<VBox visible="{bookConfig}" width="40" horizontalAlign="center" horizontalScrollPolicy="off"
+			  paddingTop="2" verticalGap="0" verticalScrollPolicy="off">
+			<fbc:LeftMenuButton id="lmbContent"
+								visible="{String(bookConfig.leftmenu.toc.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.toc.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(1);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnContents.png')"
+								toolTip="{l.i.s('TableOfContents','Table of Contents')}"/>
+			<fbc:LeftMenuButton id="lmbThumb"
+								visible="{String(bookConfig.leftmenu.thumbs.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.thumbs.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(2);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnThumbs.png')"
+								toolTip="{l.i.s('ThumbnailView','Thumbnail View')}"/>
+			<fbc:LeftMenuButton id="lmbEmail"
+								visible="{String(bookConfig.leftmenu.email.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.email.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(3);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnEmail.png')"
+								toolTip="{l.i.s('ShareThisFlipBook','Share this FlipBook')}"/>
+			<fbc:LeftMenuButton id="lmbSns"
+								visible="{String(bookConfig.leftmenu.sns.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.sns.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(4);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnShare.png')"
+								toolTip="{l.i.s('ShareOnSocialNetwork','Share on Social Network')}"/>
+			<fbc:LeftMenuButton id="lmbPrint"
+								visible="{String(bookConfig.leftmenu.print.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.print.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="updatePageSelectBox();shiftRight(5);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnPrint.png')"
+								toolTip="{l.i.s('Print')}"/>
+			<fbc:LeftMenuButton id="lmbPdf"
+								visible="{String(bookConfig.leftmenu.pdf.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.pdf.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="updatePdfPageSelectBox();shiftRight(6);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnSavePdf.png')"
+								toolTip="{l.i.s('SaveAsPDF','Save as PDF')}"/>
+			<fbc:LeftMenuButton id="lmbDownload"
+								visible="{String(bookConfig.leftmenu.download.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.download.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(7);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnDownload.png')"
+								toolTip="{l.i.s('Download')}"/>
+			<fbc:LeftMenuButton id="lmbIssues"
+								visible="{String(bookConfig.leftmenu.issues.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.issues.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(0);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnPrevIssues.png')"
+								toolTip="{l.i.s('PreviousIssues','Previous Issues')}"/>
+			<fbc:LeftMenuButton id="lmbSetting"
+								visible="{String(bookConfig.leftmenu.setting.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.setting.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(8);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnSetting.png')"
+								toolTip="{l.i.s('Settings')}"/>
+			<fbc:LeftMenuButton id="lmbAbout"
+								visible="{String(bookConfig.leftmenu.about.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.about.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="shiftRight(9);autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+								icon="@Embed(source='assets/blackStyle/btnAbout.png')"
+								toolTip="{l.i.s('AboutUs','About Us')}"/>
+			<fbc:LeftMenuButton id="lmbClose"
+								visible="{String(bookConfig.leftmenu.close.@visible)=='true'}"
+								height="{String(bookConfig.leftmenu.close.@visible)=='true'?LeftMenuButton.DEFAULT_HEIGHT:0}"
+								click="RunTime.close(true)"
+								icon="@Embed(source='assets/blackStyle/btnCloseBox16.png')"
+								toolTip="{l.i.s('Close','Close')}"/>
+		</VBox>
+	</HBox>
+	<Canvas id="turnLeftIcon" visible="false" y="400" left="40" width="100" height="100"
+			click="flipLeft();autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+			horizontalScrollPolicy="off" scaleX="0.6" scaleY="0.6"
+			toolTip="{l.i.s('FlipLeft','Flip Left')}" verticalCenter="0" verticalScrollPolicy="off">
+		<fbc:TurnPageIcon direct="-1">
+			
+		</fbc:TurnPageIcon>
+	</Canvas>
+	
+	<Canvas id="turnRightIcon" visible="false" y="400" right="40" width="100" height="100"
+			click="flipRight();autoFlip=false;checkFlip();RunTime.removeHighlightOn();"
+			horizontalScrollPolicy="off" scaleX="0.6" scaleY="0.6"
+			toolTip="{l.i.s('FlipRight','Flip Right')}" verticalCenter="0"
+			verticalScrollPolicy="off">
+		<fbc:TurnPageIcon>
+			
+		</fbc:TurnPageIcon>
+	</Canvas>
+	
+	<Canvas id="MenuButtonTipLayer" visible="false" x="{menuLeft.x+menuLeft.width}"
+			y="{RunTime.bottomMenuFixTop ? 46 :0}" width="100%"
+			height="{this.height - menuBottom.height}" alpha="0.85" backgroundColor="0x000000"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		
+	</Canvas>
+	
+	<EmailValidator id="emailValidator"/>
+	<l:PreloadInfo id="preloadInfo" width="100%" height="100%" backgroundColor="0x454545"/>
+</Application>

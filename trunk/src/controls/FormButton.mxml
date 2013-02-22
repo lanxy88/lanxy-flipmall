@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   borderStyle="solid" borderThickness="0" cornerRadius="5" 
+		   mouseOver="onMouseOver()" mouseOut="onMouseOut()" backgroundColor="{isMouseOver ? 0x33666b : 0x2e3131}"
+		   horizontalScrollPolicy="off" 
+		   verticalScrollPolicy="off"
+		   >
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			private var isMouseOver:Boolean;
+			
+			[Bindable]
+			public var text:String;
+			
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+				
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Label color="0xffffff" verticalCenter="0" horizontalCenter="0" textAlign="center" mouseChildren="false"
+			  fontSize="14" text="{text}" truncateToFit="false" fontWeight="bold" width="{this.width}" />
+</mx:Canvas>

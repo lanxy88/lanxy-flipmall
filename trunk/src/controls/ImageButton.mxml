@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Image xmlns:mx="http://www.adobe.com/2006/mxml" 
+		  buttonMode="true" useHandCursor="true"
+		  mouseOver="onMouseOver()" mouseOut="onMouseOut()"
+		  source="{icon}" alpha="{enabled ? 1 : 0.5}">
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			public var icon:Object;
+			
+			private var mouseOverFilter:GlowFilter = new GlowFilter(0xFFFFFFFF,0.6);
+			
+			private function onMouseOver():void
+			{
+				if(this.filters == null)
+					this.filters = [];
+				if( enabled == true)
+				{
+					var nowFilters:Array = this.filters;
+					nowFilters.push(mouseOverFilter);
+					this.filters = nowFilters;
+				}
+			}
+			
+			private function onMouseOut():void
+			{
+				if(this.filters != null)
+				{
+					var newFilters:Array = [];
+					for each(var item:Object in this.filters)
+					{
+						if(item != mouseOverFilter)
+						{
+							newFilters.push(item);
+						}
+					}
+					this.filters = newFilters;
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:Image>

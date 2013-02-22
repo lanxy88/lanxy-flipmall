@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:controls="controls.*"
+		   height="100" width="100"  alpha="0.8"
+		   buttonMode="true" useHandCursor="true"
+		   borderStyle="solid" borderThickness="0" cornerRadius="5" 
+		   mouseOver="onMouseOver()" mouseOut="onMouseOut()" backgroundAlpha="{getBgAlpha()}" backgroundColor="{getBgColor()}" xmlns:local="*"
+		   >
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			private var isMouseOver:Boolean;
+			
+			[Bindable]
+			public var bgTransparent:Boolean;
+			
+			[Bindable]
+			private function getBgColor():uint
+			{
+				if(!bgTransparent){
+					return isMouseOver ? 0x33666b : 0x2e3131;
+				}
+				else{
+					return 0x000000;
+				}
+				
+			}
+			[Bindable]
+			private 	function getBgAlpha():uint
+			{
+				if(!bgTransparent){
+					return 1;
+				}
+				else{
+					return 0;
+				}
+			}
+			
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+			}
+			[Bindable]
+			public var direct:int = 0;
+			
+			private function getPoints():Array
+			{
+				if(direct == -1) return 	[{x:12,y:32},{x:-16,y:0},{x:12,y:-32}];
+				return 	[{x:-12,y:32},{x:16,y:0},{x:-12,y:-32}]; 
+			}
+		]]>
+	</mx:Script>
+	<controls:PolygonIcon horizontalCenter="0" verticalCenter="0"
+					  points="{getPoints()}"
+					  color="0xFFFFFF" />
+</mx:Canvas>

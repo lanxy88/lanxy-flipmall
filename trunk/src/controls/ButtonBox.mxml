@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		  useHandCursor="{showHandCursor(buttonInfo)}"
+		  buttonMode="{showHandCursor(buttonInfo)}"
+		  mouseDown="{onMouseDown(event)}" 
+		  width="{buttonInfo.width}" 
+		  height="{buttonInfo.height}"
+		  x="{buttonInfo.x}"
+		  y="{buttonInfo.y}"
+		  horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		  xmlns:player="org.bytearray.gif.player.*"
+		 >
+	<mx:Script>
+		<![CDATA[
+			import common.ButtonInfo;
+			
+			import flash.net.navigateToURL;
+			
+			import mx.effects.Effect;
+			import mx.effects.Glow;
+			import mx.effects.Zoom;
+			
+			import utils.ContentHelper;
+			
+			[Bindable]
+			public var buttonInfo:ButtonInfo;
+			
+			[Bindable]
+			public var mouseOver:Boolean = false;
+			
+			/**
+			 * 放大效果
+			 */
+			private var zoom:Zoom;
+			/**
+			 * 发光效果
+			 */
+			private var light:Glow;
+			
+			public function get isTooltipActive():Boolean
+			{
+				return !showHandCursor(buttonInfo);
+			}
+			
+			private function onInit():void
+			{
+				this.addEventListener(Event.ADDED_TO_STAGE, function():void
+				{
+					gifPlayer.play();
+				});
+				
+				this.addEventListener(Event.REMOVED_FROM_STAGE, function():void
+				{
+					gifPlayer.stop();
+				});
+			}
+			
+			private function toTooltip(item:ButtonInfo):String
+			{
+				return item.rolloverText;
+			}
+			
+			private function showHandCursor(item:ButtonInfo):Boolean
+			{
+				if(item.type == 'none') return false;
+				else
+				{
+					return (item.destination || item.message || item.youtubeId)?true:false;
+				}
+			}
+			
+			private function getLink(item:ButtonInfo):Object
+			{
+				var linkType:String = "none";
+				var linkObj:* = 0;
+				var rawType:String = item.type;
+				var dest:String = item.destination;
+				switch(rawType)
+				{
+					case 'image':
+					case 'video':
+					case 'audio':
+					case 'message':
+					case 'message-hover':
+					case 'none':
+						linkType = rawType;
+						linkObj = dest;
+						break;
+					case 'url':
+					default:
+						if(dest.indexOf("page:") == 0)
+						{
+							linkType = "page";
+							linkObj = int(dest.substr("page:".length));
+						}
+						else if(dest.indexOf("fun:") == 0){
+							linkType = "fun";
+							linkObj = dest.substr("fun:".length);
+						}
+						else if(dest.indexOf("mailto:") == 0)
+						{
+							linkType = "email";
+							linkObj = dest;
+						}
+						else if(dest)
+						{
+							linkType = "http";
+							linkObj = dest;
+						}
+						break;
+				}
+				return {dest:linkObj,type:linkType};
+			}
+			
+			private function getLinkToolTip(item:ButtonInfo):String
+			{
+				if(item==null) return "";
+				var result:Object = getLink(item);
+				var linkType:String = result.type;
+				var dest:* = result.dest;
+				if(linkType == "page")
+				{
+					return l.i.s('GotoPage','Goto Page') + ' ' + int(dest).toString();
+				}
+				else
+				{
+					return "";
+				}
+			}
+			
+			private var hoverContent:ComboContent;
+			
+			private function onMouseOver(event:MouseEvent):void
+			{
+				mouseOver = true;
+				
+				if(buttonInfo.type == "message-hover")
+				{
+					if(hoverContent == null || hoverContent.parent == null)
+					{
+						var pos:Point = RunTime.computePopupPosition(event,buttonInfo.popupWidth,buttonInfo.popupHeight);
+						hoverContent = ContentHelper.showMessageHover(
+							buttonInfo.message, pos.x, pos.y, buttonInfo);
+					}
+				}
+				else if(buttonInfo.type == "image-hover")
+				{
+					if(hoverContent == null || hoverContent.parent == null)
+					{
+						var pos:Point = RunTime.computePopupPosition(event,buttonInfo.popupWidth,buttonInfo.popupHeight);
+						hoverContent = ContentHelper.showImageHover(buttonInfo.destination, 
+							pos.x,pos.y, buttonInfo,buttonInfo.popupWidth, buttonInfo.popupHeight);
+					}
+				}
+				
+				if(buttonInfo.rollover == ButtonInfo.ROLLOVER_ZOOM){
+					if(zoom == null) zoom = new Zoom(this);
+					zoom.stop();
+					zoom.duration=100;
+					zoom.zoomHeightFrom = 1;
+					zoom.zoomHeightTo = 1.1;
+					zoom.zoomWidthFrom = 1;
+					zoom.zoomWidthTo = 1.1;
+					zoom.play();
+				}
+				else if(buttonInfo.rollover == ButtonInfo.ROLLOVER_LIGHT){
+					
+					/*
+					if(light == null) light = new Glow(this);
+					light.stop();
+					light.duration=1000;
+					light.blurXFrom = 20;
+					light.blurXTo = 10;
+					light.blurYFrom = 20;
+					light.blurYTo = 10;
+					
+					light.color=0xffffff;
+					light.play();
+					
+					light.addEventListener("effectEnd", onGlowEnd);
+					
+					*/
+					this.filters = [new GlowFilter(0xffffff,1,10,10)];
+				}
+				
+			}
+			private function onGlowEnd(e:*){
+				//trace("trace........");
+				//light.stop();
+				this.filters = [new GlowFilter(0xffffff,1,10,10)];
+			}
+			private function onMouseOut(event:MouseEvent):void
+			{
+				mouseOver = false;
+				
+				if(buttonInfo.type == "message-hover" || buttonInfo.type == "image-hover")
+				{
+					if(hoverContent != null)
+					{
+						hoverContent.close();
+					}
+				}
+
+				if(buttonInfo.rollover == ButtonInfo.ROLLOVER_ZOOM){
+					if(zoom == null) zoom = new Zoom(this);
+					zoom.stop();
+					zoom.duration=100;
+					zoom.zoomHeightFrom = 1.1;
+					zoom.zoomHeightTo = 1;
+					zoom.zoomWidthFrom = 1.1;
+					zoom.zoomWidthTo = 1;
+					
+					zoom.play();
+				}
+				else if(buttonInfo.rollover == ButtonInfo.ROLLOVER_LIGHT){
+					if(light == null) light = new Glow(this);
+					light.stop();
+					
+					/*
+					light.duration=1;
+					light.blurXFrom = 0;
+					light.blurXTo = 0;
+					light.blurYFrom = 0;
+					light.blurYTo = 0;
+					
+					light.color=0xffffff;
+					light.play();
+					*/
+					
+					this.filters = [];
+					
+				}
+			}
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				if(!buttonInfo.destination && !buttonInfo.message && !buttonInfo.youtubeId) return;
+				
+				//if(RunTime.singlePageMode) RunTime.sModeBook.audio.playClickSound();
+				//else RunTime.book.audio.playClickSound();
+				
+				if(RunTime.singlePageMode && buttonInfo.clickSound) RunTime.sModeBook.audio.playClickSound();
+				else if(buttonInfo.clickSound) RunTime.book.audio.playClickSound();
+				
+				var result:Object = getLink(buttonInfo);
+				var linkType:String = result.type;
+				var dest:* = result.dest;
+				switch(linkType)
+				{
+					case "fun":{
+						RunTime.mainPage.callButtonFunction(dest);
+						break;
+					}
+					case "page":
+						RunTime.mainPage.gotoPage(int(dest));
+						break;
+					case "email":
+						flash.net.navigateToURL( new URLRequest(String(dest)), buttonInfo.target);
+						RunTime.logClickLink(String(dest));
+						break;
+					case "image":
+						if(String(dest).indexOf("swf") > 0)
+						{
+							ContentHelper.showVideo(String(dest), buttonInfo.youtubeId,buttonInfo.popupWidth, buttonInfo.popupHeight);
+						}
+						else
+						{
+							ContentHelper.showImage(String(dest), buttonInfo.popupWidth, buttonInfo.popupHeight);
+						}
+						RunTime.logClickLink(String(dest));
+						break;
+					case "video":
+						ContentHelper.showVideo(String(dest), buttonInfo.youtubeId, buttonInfo.popupWidth, buttonInfo.popupHeight);
+						break;
+					case "audio":
+						ContentHelper.showAudio(String(dest));
+						break;
+					case "message":
+						ContentHelper.showMessage(buttonInfo.message, buttonInfo);
+						break;
+					case "message-hover":
+					case "image-hover":
+						break;
+					case "none":
+					default:
+						RunTime.clickHref(String(dest),buttonInfo.target);
+						RunTime.logClickLink(String(dest));
+						break;
+				}
+				event.stopPropagation();
+			}
+			
+			private function filterGifUrl(url:String):String
+			{
+				if(!url) return null;
+				else
+				{
+					return url.toLowerCase().indexOf(".gif") > 0 ? url : null;
+				}
+			}
+			
+			private function onGifUpdate():void
+			{
+				backgroundImage.source = gifPlayer;
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Image id="backgroundImage"  width="100%" 
+			   height="100%"
+			   maintainAspectRatio="false" scaleContent="true"
+			   source="{buttonInfo.image}"
+			   toolTip="{toTooltip(buttonInfo)}"
+			   mouseOver="onMouseOver(event)"
+			   mouseOut="onMouseOut(event)"
+			   visible="{buttonInfo.text==''?true:false}"
+			   init="onInit()" >
+
+	</mx:Image>
+	
+	<player:GIFPlayer id="gifPlayer" width="1" height="1"
+					  source="{filterGifUrl(buttonInfo.image)}"
+					  visible="false" change="onGifUpdate()"/>
+	<mx:Label text="{buttonInfo.text}"  width="100%"
+			  fontSize="{buttonInfo.fontSize}" 
+			  color="{buttonInfo.fontColor}" visible="{buttonInfo.text==''?false:true}"
+			  truncateToFit="false"/>
+
+</mx:Canvas>

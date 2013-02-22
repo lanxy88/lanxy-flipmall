@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   width="400" height="300"
+		   backgroundColor="0xFFFFFF" 
+		   click="onClick(event)"
+		   >
+	<mx:Script>
+		<![CDATA[
+			import common.NoteRecord;
+			import mx.utils.StringUtil;
+			
+			private function onClick(e:MouseEvent):void
+			{
+				e.stopPropagation();
+			}
+			
+			private function toRecordString(obj:Object):String
+			{
+				if(!obj) return "";
+				else
+				{
+					return NoteRecord(obj.record).content;
+				}
+			}
+			
+			public function get content():String
+			{
+				return StringUtil.trim(tbInput.text);
+			}
+			
+			public function loadData():void
+			{
+				if(!data) return;
+				tbInput.text = NoteRecord(data.record).content;
+			}
+			
+			public function save():void
+			{
+				if(!data) return;
+				
+				NoteRecord(data.record).content = content;
+				NoteRecord(data.record).update();
+			}
+			
+			public function focus():void
+			{
+				RunTime.editor = this;
+				stage.focus = tbInput;
+			}
+			
+			public function receiveClick(x:Number, y:Number):void
+			{
+				if(this.hitTestPoint(x,y) == false && Object(this.data.editButton).hitTestPoint(x,y) == false)
+				{
+					RunTime.editor  = null;
+					this.visible = false;
+					Object(this.data.text).visible = true;
+					Object(this.data.editButton).editing = this.visible;
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:TextInput id="tbInput"
+				  text="{toRecordString(data)}"
+				  tabEnabled="false"
+				  color="#000000"
+				  focusThickness="0"
+				  borderStyle="none"
+				  textDecoration="underline"
+				  backgroundAlpha="0"
+				  left="10" 
+				  right="10" 
+				  width="100%" height="100%" 
+				  />
+</mx:Canvas>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   horizontalScrollPolicy="off" verticalScrollPolicy="auto"
+		   width="400" height="300">
+	<mx:Script >
+		<![CDATA[
+			import common.ShareSite;
+			
+			[Bindable]
+			public var logoWidth:int = 100;
+			
+			[Bindable]
+			public var logoHeight:int = 40;
+			
+			private var _source:Array = [];
+
+			public function get source():Array
+			{
+				return _source;
+			}
+
+			[Bindable]
+			public function set source(value:Array):void
+			{
+				_source = value;
+				this.layout();
+			}
+			
+			private function layout():void
+			{
+				this.removeAllChildren();
+				if(_source == null) return;
+				
+				var columnCount:int = 3;
+				
+				var i:int = 0;
+				for each(var site:ShareSite in _source)
+				{
+					var col:int = i % columnCount;
+					var rol:int = i / columnCount;
+					var item:ShareSiteItem = new ShareSiteItem();
+					item.site = site;
+					item.x = 20 + col * (120 + 20);
+					item.y = 20 + rol * (item.height + 10);
+					this.addChild(item);
+					i++;
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

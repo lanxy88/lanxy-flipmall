@@ -1,0 +1,205 @@
+﻿<!--
+	 flipSpeedBoost: 调整电子杂志翻页动画的速度。默认为100. 该值越高，则翻页速度越快。
+ -->
+<!-- 
+<bookinfo id="test_02" autoFlipSeconds="5" autoMoveAfterZoom="false" fullScreen="false"
+	password="ga+Vbnauoa15" analyticsUA="UA-25696144-1"
+	bgColor="#454545" bgImage="content/images/fondor.jpg" shadow="true" pageWidth="1535" pageHeight="2047"
+	flipSpeedBoost="80" title="" author="" zipUrl="offline/demo.zip" 
+	shareUrl="http://www.flipmall.net/test/wide/index.html"
+	zipIcon="content/images/iconZip.gif" exeUrl="offline/demo.exe"
+	exeIcon="content/images/iconExe.gif" companyLogo="" companyName=""
+	companyAddress="company Address company Address company Address company Address company Address company Address"
+	companyUrl="http://www.flipmall.net"
+	email="xiaotie@geblab.com" tel="111-11111111"
+	gateway="email.php" loadingLogo="data/logoRd.jpg"
+	bookmarkWidth="24" highlightColor="#454545"
+	bookmarkHeight="280" rightToLeft="false"
+	bookmarkFontSize="14" pdfUrl="pdf/test.pdf"
+	defaultZoomScale="2.5" autoFlip="false"
+	>
+ -->
+ 
+ <!-- password="gbmVbnamoax5" 
+ standard: pLaSr5Wao2Q=
+annual: krCftpJs
+professional: obSgp5aspKGgn6Ns
+enterprise: lrClpqOpo6GkZQ==
+global: mK6go5Js -->
+
+ <!--  
+<bookinfo id="test_02" autoFlipSeconds="5" autoMoveAfterZoom="false" fullScreen="false"
+	password="gbmVbnamoax5" analyticsUA="UA-25696144-1"
+	bgColor="#454545" bgImage="content/images/fondor.jpg" shadow="true" pageWidth="1241" pageHeight="1123"
+	flipSpeedBoost="80" title="" author="" zipUrl="offline/demo.zip" 
+	shareUrl="http://www.flipmall.net/test/wide/index.html"
+	zipIcon="content/images/iconZip.gif" exeUrl="offline/demo.exe"
+	exeIcon="content/images/iconExe.gif" companyLogo="" companyName=""
+	companyAddress="company Address company Address company Address company Address company Address company Address"
+	companyUrl="http://www.flipmall.net"
+	email="xiaotie@geblab.com" tel="111-11111111"
+	gateway="http://flipmall.net/test/email.php" loadingLogo="data/logoRd.jpg"
+	bookmarkWidth="24" highlightColor="#0080FF"
+	bookmarkHeight="280" rightToLeft="false"
+	bookmarkFontSize="14" pdfUrl="pdf/test.pdf"
+	defaultZoomScale="2.5" autoFlip="false"
+	fitScreenAfterZoom="true" 
+	clickToZoom="doubleclick" zoomAfterLoaded="false" hardCover="true" limitTo100="false"
+	showZoomBox="true" mouseWheelZoom="true" lic="lrClpqOpo6GkZQ=="
+	protectedPages="2,10,11,12,20,3"
+	thickness="8" exportPdfQuality="100"
+	>
+	
+	lic="pbWammw="
+-->
+
+<bookinfo id="Software_License_Agreement"
+ autoFlipSeconds="5" 
+ autoMoveAfterZoom="false" 
+ bgColor="#454545 " 
+ bgImage="content/images/fondor.jpg"
+ shadow="true" 
+ pageWidth="1232" 
+ pageHeight="1754" 
+ flipSpeedBoost="80" 
+ title="Software License Agreement" 
+ author="" 
+ loadingLogo="data/logoRd.jpg"
+ zipIcon="content/images/iconZip.gif" 
+ exeIcon="content/images/iconExe.gif" 
+ companyUrl="http://www.ePageCreator.net" 
+ gateway="http://www.flipmall.net/sendmail/email.php" 
+ shareUrl="index.html" 
+ zipUrl="offline/demo.zip" 
+ bookmarkWidth="18" 
+ bookmarkHeight="150" 
+ bookmarkFontSize="10" 
+ defaultZoomScale="2" 
+ clickToZoom="doubleclick" 
+ rightToLeft="false" 
+ autoFlip="false" 
+ fitScreenAfterZoom="false" 
+ zoomAfterLoaded="false" 
+ limitTo100="false" 
+ showZoomBox="true" 
+ mouseWheelZoom="true" 
+ companyName="" 
+ companyAddress="" 
+ tel="" 
+ email="" 
+ exeUrl="" 
+ fullScreen="true" 
+ hardCover="false" 
+ pdfUrl="pdf/test.pdf"
+ thickness="15"
+ lic="AAAAAABs" 
+ protectedPages="8"
+ password="gbqVZnawoa15" 
+ analyticsUA=""
+ bookSize="10"
+ bgPosition="fill"
+ >
+ 	<tooltip bgColor="#ff00ff" fgColor="#000000" showZoomTip="true" showFlipTip="true" />
+	<bottomthumb bgAlpha="0.59" bgColor="0x000000"  visible="true" />
+	<leftmenu 
+			hideAfterZoom="false"
+			showTabBackground="true">
+		<issues visible="true" icon=""/>
+		<toc visible="true" icon=""/>
+		<thumbs visible="true" icon=""/>
+		<email visible="true" icon=""/>
+		<sns visible="true" icon=""/>
+		<print visible="true" icon=""/>
+		<pdf visible="true"  icon="" singlePage="true" doublePage="false" entirePDF="true"/>
+		<download visible="true"  icon=""/>
+		<setting visible="true"  icon=""/>
+		<about visible="true"  icon=""/>
+		<close visible="true" icon="content/images/btnclose.png"/>
+	</leftmenu>
+	<bottommenu visible="true"
+				position="top" 
+				background="content/images/menuBackground.png" 
+				showBackground="false" 
+				autoHideOnFullScreen="false" 
+				hideAfterZoom="false"
+				iconSameSize="false">
+		<help visible="true" url="help.htm"  icon=""/>
+		<info visible="true" url="info.htm"  icon=""/>
+		<back visible="true"  icon=""/>
+		<forward visible="true"  icon=""/>
+		<zoom visible="true"  icon="" dicon=""/>
+		<autoflip visible="true"  icon=""/>
+		<search visible="true"  icon=""/>
+		<highlight visible="true"  icon=""/>
+		<bookmark visible="true"  icon=""/>
+		<notes visible="true"  icon=""/>
+		<fullscreen visible="true"  icon=""/>
+		<sound visible="true"  dicon="content/images/btnSoundMute.png"/>
+		
+		<firstpage visible="true" icon="" />
+		<prevpage visible="true" icon="" />
+		<nextpage visible="true" icon="" />
+		<lastpage visible="true" icon="" />
+
+		
+		
+	</bottommenu>
+	
+	<topAd slideShow="false" position="left"> 
+	  <pic url="content/images/adtop.gif" href="page:4" width="400" height="50" time="5" />
+	  <!--
+  	  <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad2.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad3.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad4.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad5.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad6.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad7.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad8.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad9.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  <pic url="content/images/ad10.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
+  	  -->
+	</topAd>
+	
+	<rightAd slideShow="false" position="bottom"> 
+	  <pic url="content/images/adtop.gif" href="page:4" width="150" height="50" time="5" />
+	  <!-- 
+  	  <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad2.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad3.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad4.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad5.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad6.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad7.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad8.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad9.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	  <pic url="content/images/ad10.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
+  	   -->
+	</rightAd>
+	<!-- 
+	<mainAd url="content/images/4_logos_green_border.gif" href="http://www.flipmall.net"/>
+	<mainAd url="content/images/adtop.gif" href="page:4" hideWhenOpened="true"/>
+	 -->
+	<!-- 右键菜单 -->
+	<contextmenu>
+		<menu title="Flipbook" url="flipbook.html"/>
+	</contextmenu>
+	<!-- 
+	<bookLogo url="data/logoRd.jpg" href="http://www.flipmall.net"/>
+	 -->
+	<!-- 大logo测试  -->
+	<bookLogo url="content/images/fm_rect_logo.jpg" href="http://www.flipmall.net"/>
+	
+	<tks>
+		<tk begin="1" end="2" value="1" />
+		<tk begin="3" end="5" value="4" />
+		<tk begin="6" end="10" value="7" />
+		<tk begin="11" end="20" value="8" />
+		<tk begin="21" end="30" value="9" />
+		<tk begin="31" end="40" value="11" />
+		<tk begin="41" end="55" value="13" />
+		<tk begin="56" end="70" value="15" />
+		<tk begin="71" end="90" value="17" />
+		<tk begin="91" end="0" value="19" />
+	</tks>
+</bookinfo>

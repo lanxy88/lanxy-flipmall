@@ -1,0 +1,11 @@
+<slideshows>
+	<!-- transition: fade, blur, zoom -->
+	<slideshow page="1" x="50" y="50" width="400" height="200" time="5"  bgColor="#ffff00" transition="fade" ctrlBarAlpha="0">
+		<pic url="content/images/a1.png" href="http://www.gamecool8.com"/>
+		<pic url="content/images/a2.png" />
+		<pic url="content/images/a3.jpg" />
+		<pic url="content/images/a4.png" />
+		<pic url="content/images/about.png" />
+	</slideshow>
+	
+</slideshows>

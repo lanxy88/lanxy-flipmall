@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   width="400" height="300"
+		   backgroundColor="0xFFFFFF" 
+		   click="onClick(event)"
+		   >
+	<mx:Script>
+		<![CDATA[
+			import common.BookMarkRecord;
+			import mx.utils.StringUtil;
+			
+			private function onClick(e:MouseEvent):void
+			{
+				e.stopPropagation();
+			}
+			
+			private function toRecordString(obj:Object):String
+			{
+				if(!obj) return "";
+				else
+				{
+					return BookMarkRecord(obj.record).content;
+				}
+			}
+			
+			public function get content():String
+			{
+				return StringUtil.trim(tbInput.text);
+			}
+			
+			public function loadData():void
+			{
+				if(!data) return;
+				tbInput.text = BookMarkRecord(data.record).content;
+				colorPicker.selectedColor = BookMarkRecord(data.record).bgColor;
+			}
+			
+			public function save():void
+			{
+				if(!data) return;
+				
+				BookMarkRecord(data.record).content = content;
+				BookMarkRecord(data.record).bgColor = colorPicker.selectedColor;
+				BookMarkRecord(data.record).update();
+			}
+			
+			public function focus():void
+			{
+				RunTime.editor = this;
+				stage.focus = tbInput;
+			}
+			
+			public function receiveClick(x:Number, y:Number):void
+			{
+				if(this.hitTestPoint(x,y) == false && Object(this.data.editButton).hitTestPoint(x,y) == false)
+				{
+					RunTime.editor  = null;
+					this.visible = false;
+					Object(this.data.text).visible = true;
+					Object(this.data.editButton).editing = this.visible;
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:TextInput id="tbInput"
+				  text="{toRecordString(data)}"
+				  tabEnabled="false"
+				  color="#000000"
+				  focusThickness="0"
+				  borderStyle="none"
+				  textDecoration="underline"
+				  backgroundAlpha="0"
+				  left="10" 
+				  right="20" 
+				  width="100%" height="100%" 
+				  />
+	<mx:ColorPicker id="colorPicker"
+					width="{height}"
+					height="{height}"
+					right="0" borderColor="0x000000"
+					verticalCenter="0"
+					selectedColor="{BookMarkRecord(data.record).bgColor}"
+					/>
+</mx:Canvas>

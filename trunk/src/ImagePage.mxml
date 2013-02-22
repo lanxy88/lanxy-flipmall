@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Canvas xmlns="http://www.adobe.com/2006/mxml"
+		xmlns:controls="qs.controls.*"
+		width="600" height="400" 
+		backgroundColor="0xFFFFFF"
+		mouseMove="onMouseMove(event)"
+		mouseOut="onMouseOut(event)"
+		horizontalScrollPolicy="off"
+		verticalScrollPolicy="off" 
+		cacheAsBitmap="true"
+		clipContent="false" xmlns:local="*" xmlns:controls1="controls.*" >
+	<!--
+	Copyright (c) 2006 Adobe Systems Incorporated
+
+	Permission is hereby granted, free of charge, to any person
+	obtaining a copy of this software and associated documentation
+	files (the "Software"), to deal in the Software without
+	restriction, including without limitation the rights to use,
+	copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the
+	Software is furnished to do so, subject to the following
+	conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+	OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+	HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+	FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+	OTHER DEALINGS IN THE SOFTWARE.
+	-->
+	<Script>
+		<![CDATA[
+			import common.ButtonInfo;
+			import common.FormInfo;
+			import common.HotLink;
+			import common.RSSInfo;
+			import common.SlideshowInfo;
+			import common.VideoInfo;
+			
+			import mx.core.UIComponent;
+			
+			import qs.caching.ContentCache;
+			import qs.controls.flexBookClasses.FlexBookPage;
+			
+			import utils.MouseStateHelper;
+			
+			[Bindable]
+			public var loadingIconUrl:String = "data/logoRd.jpg";
+			
+			private var _hotlinks:Array = [];
+			
+			private var su:UIComponent = new UIComponent();
+
+			public function get hotlinks():Array
+			{
+				return _hotlinks;
+			}
+
+			[Bindable]
+			public function set hotlinks(value:Array):void
+			{
+				_hotlinks = value;
+			}
+			
+			private var _videos:Array = [];
+
+			public function get videos():Array
+			{
+				return _videos;
+			}
+
+			[Bindable]
+			public function set videos(value:Array):void
+			{
+				_videos = value;
+			}
+			
+			private var _buttons:Array = [];
+
+			public function get buttons():Array
+			{
+				return _buttons;
+			}
+
+			[Bindable]
+			public function set buttons(value:Array):void
+			{
+				_buttons = value;
+			}
+			
+			private var _forms:Array;
+			
+			public function get forms():Array{
+				return _forms;
+			}
+			[Bindable]
+			public function set forms(value:Array):void{
+				_forms = value;
+	
+			}
+			
+			private var _slideshows:Array;
+			[Bindable]
+			public function get slideshows():Array{
+				return _slideshows;
+			}
+			public function set slideshows(value:Array):void{
+				_slideshows = value;
+			}
+			
+			private var _rss:Array;
+			[Bindable]
+			public function get RSS():Array{
+				return _rss;
+			}
+			public function set RSS(value:Array):void{
+				_rss = value;
+			}
+			
+			[Bindable]
+			public var book:IBook = null;
+			
+			public var ignoreShadow:Boolean = false;
+			
+			private var shadowed:Boolean = false;
+			private var shadowObj:DisplayObject = null;
+			
+			public function checkContentIsLoaded():void
+			{
+				if(data == null) return;
+				
+				if(data.loaded || ContentCache.getCache().hasContent(data.source.toString()))
+				{
+					imgPage.source = data.source.toString();
+					if(data.loaded)
+					{
+						loadComplete();
+					}
+				}
+			}
+			
+			public function load():void
+			{
+				if(data == null) return;
+				
+				if(ContentCache.getCache().hasContent(data.source.toString()))
+				{
+					imgPage.source = data.source.toString();
+					return;
+				}
+
+				if(data.loaded)
+				{
+					imgPage.source = data.source.toString();
+					proggy.visible = false;
+					if(this.contains(proggy)) this.removeChild(proggy);
+					return;
+				}
+
+				imgPage.source = data.source.toString();
+			}
+			public function clearShadow():void{
+				if(shadowObj != null && imgPage.contains(shadowObj))
+				{
+					imgPage.removeChild(shadowObj);
+				}
+			}
+			public function addShadow():void
+			{
+				drawShadow();
+			}
+			private function drawShadow():void
+			{
+				if(ignoreShadow == true) return;
+				
+				if(shadowObj != null && imgPage.contains(shadowObj))
+				{
+					imgPage.removeChild(shadowObj);
+				}
+				
+				
+				if(this.contains(su)) {
+					su.removeChild(shadowObj);
+					this.removeChild(su);
+					//if(this.su.contains(shadowObj))	su.removeChild(shadowObj);
+				}
+				
+				
+				if(data != null && data.shadow == true && data.loaded == true)
+				{
+					const shadowWidth:int = 20;
+					var atLeft:Boolean = data.pageId % 2 == 1;
+					if(RunTime.rightToLeft == true)
+					{
+						atLeft = !atLeft;
+					}
+					
+					var grads:Array = [];
+					for(var i:int = 0; i < shadowWidth; i++)
+					{
+						grads.push( 0.3 * 30.0/(i+10) - 0.3);
+					}
+					
+					var drawHeight:Number = imgPage.height;
+					var s:Sprite = new Sprite();
+					var g:Graphics = s.graphics;
+					for(var i:int = 0; i < shadowWidth; i++)
+					{
+						if(atLeft)
+						{
+							g.beginFill(0x000000,grads[i]);
+						}
+						else
+						{
+							g.beginFill(0x000000,grads[shadowWidth - i]);
+						}
+						g.drawRect(i,0,1,drawHeight);
+						g.endFill();
+					}
+					
+					if(!atLeft)
+					{
+						s.x = imgPage.width - shadowWidth;
+					}
+					
+					//imgPage.addChild(s);
+					
+					
+					su.addChild(s);
+					
+					this.addChild(su);
+					
+					shadowed = true;
+					shadowObj = s;
+					imgPage.invalidateDisplayList();
+
+				}
+			}
+			
+			private function filterHotlinks(links:Array, data:Object):Array
+			{
+				var list:Array = [];
+				for each(var item:HotLink in links)
+				{
+					if(item.page == data.pageId)
+					{
+						list.push(item);
+					}
+				}
+				return list;
+			}
+			
+			/**
+			 * 是否锁定页面
+			 */
+			private function lockPage(data:Object):Boolean{
+				
+				//trace(">>>>>>>>>>>>");
+				if (RunTime.unlockPage) return false;
+				for each(var item:String in RunTime.protectedPages)
+				{
+					if(item == String(data.pageId)) 
+						return true;
+					
+				}
+				return false;
+			}
+			
+			private function filterRSS(rss:Array, data:Object):Array{
+				var list:Array = [];
+				for each(var item:RSSInfo in rss)
+				{
+					if(item.page == data.pageId)
+					{
+						list.push(item);
+					}
+				}
+				return list;		
+			}
+			
+			private function filterSlideshows(forms:Array, data:Object):Array
+			{
+				var list:Array = [];
+				for each(var item:SlideshowInfo in forms)
+				{
+					if(item.page == data.pageId)
+					{
+						list.push(item);
+					}
+				}
+				return list;				
+			}
+			
+			private function filterForms(forms:Array, data:Object):Array
+			{
+				var list:Array = [];
+				for each(var item:FormInfo in forms)
+				{
+					if(item.page == data.pageId)
+					{
+						list.push(item);
+					}
+				}
+				return list;				
+			}
+			
+			private function filterButtons(buttons:Array, data:Object):Array
+			{
+				var list:Array = [];
+				for each(var item:ButtonInfo in buttons)
+				{
+					if(item.page == data.pageId)
+					{
+						list.push(item);
+					}
+				}
+				return list;				
+			}
+			
+			private function filterVideos(videos:Array, data:Object):Array
+			{
+				var list:Array = [];
+				for each(var item:VideoInfo in videos)
+				{
+					if(item.page == data.pageId)
+					{
+						list.push(item);
+					}
+				}
+				return list;
+			}
+
+			private function loadComplete(): void
+			{
+
+				data.loaded = true;
+				proggy.visible = false;
+				if(this.contains(proggy)) this.removeChild(proggy);
+				
+				if(lpb != null) {
+					
+					if(RunTime.unlockPage) lpb.visible = false;
+					
+				}
+				
+				this.callLater(drawShadow);
+			}
+			
+			private function unlockCallBack():void{
+				//trace("unlockCallBack");
+				if(this.parent is FlexBookPage){
+					FlexBookPage(parent).unlockBookPage();
+				}
+			}
+			
+			private function onMouseMove(e:MouseEvent):void
+			{
+				if(book==null) return;
+				if(MouseStateHelper.isToolTipActive(e.target) == false)
+				{
+					book.clearToolTip();
+				}
+				else
+				{
+					book.updateToolTip();
+				}
+			}
+			
+			private function onMouseOut(e:MouseEvent):void
+			{
+				if(book==null) return;
+				book.clearToolTip();
+			}
+			
+			
+		]]>
+	</Script>
+	<controls:SuperImage smoothImage="true"
+						 left="0" right="0" top="0" bottom="0" 
+						 id="imgPage" 
+						 hotlinks="{filterHotlinks(hotlinks, data)}" 
+						 videos="{filterVideos(videos, data)}"
+						 buttons="{filterButtons(buttons, data)}"
+						 forms="{filterForms(forms,data)}"
+						 slideshows="{filterSlideshows(slideshows,data)}"
+						 RSS="{filterRSS(RSS,data)}"
+						 complete="loadComplete();"
+						 resize="{drawShadow();}"
+						
+						 />
+	<controls1:LockPageBox id="lpb"  width="100%" height="100%" visible="{lockPage(data)}" returnCallback="unlockCallBack"/>
+
+		
+	<local:AppleStylePreloader id="proggy"
+							   sliceColor="0x666666" timerDelay="200" 
+							   horizontalCenter="0"
+							   verticalCenter="0" progInfoVisible="false"
+							   width="1" height="1"
+							   />
+</Canvas>

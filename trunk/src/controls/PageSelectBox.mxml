@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:common="common.*">
+	<mx:Script>
+		<![CDATA[
+			import qs.controls.FlexBook;
+			
+			private var book:FlexBook;
+			
+			public function renderSnapshot(book:FlexBook):void
+			{
+				this.book = book;
+				if(	book == null 
+					|| book.visible == false 
+					|| book.width < 10 
+					|| book.height < 10
+					|| imgSnap == null)
+				{
+					return;
+				}
+				
+				var bmp:Bitmap = book.renderSnapshot(imgSnap.maxWidth,imgSnap.maxHeight);
+				imgSnap.source = bmp;
+			}
+			
+			public function setHot(flag:int = 0):void
+			{
+				if(book == null) return;
+				
+				var leftPage:int = book.getLeftPageNumber();
+				var rightPage:int = book.getRightPageNumber();
+				if(leftPage == -1 || rightPage == -1 || flag == 0)
+				{
+					setAllHot();
+					return;
+				}
+				
+				if(flag < 0) setLeftHot();
+				else setRightHot();
+			}
+			
+			private function setAllHot():void
+			{
+				var bmp:Bitmap = imgSnap.source as Bitmap;
+				if(bmp == null) return;
+				
+				boxRed.setStyle("horizontalCenter",0);
+				boxRed.setStyle("verticalCenter",0);
+				boxRed.width =  bmp.width + 10;
+				boxRed.height = bmp.height + 10;
+				boxRed.visible = true;
+				this.invalidateDisplayList();
+			}
+			
+			private function setLeftHot():void
+			{
+				var bmp:Bitmap = imgSnap.source as Bitmap;
+				if(bmp == null) return;
+				
+				boxRed.setStyle("horizontalCenter",-bmp.width/4);
+				boxRed.setStyle("verticalCenter",0);
+				boxRed.width =  bmp.width * 0.5 + 10;
+				boxRed.height = bmp.height + 10;
+				boxRed.visible = true;
+				this.invalidateDisplayList();
+			}
+			
+			private function setRightHot():void
+			{
+				var bmp:Bitmap = imgSnap.source as Bitmap;
+				if(bmp == null) return;
+				
+				boxRed.setStyle("horizontalCenter",bmp.width/4);
+				boxRed.setStyle("verticalCenter",0);
+				boxRed.width =  bmp.width * 0.5 + 10;
+				boxRed.height = bmp.height + 10;
+				boxRed.visible = true;
+				this.invalidateDisplayList();
+			}
+			
+			public function get snapMaxWidth():Number
+			{
+				return imgSnap.maxWidth;
+			}
+			
+			public function get snapMaxHeight():Number
+			{
+				return imgSnap.maxHeight;	
+			}
+		]]>
+	</mx:Script>
+	<mx:Image id="imgSnap" 
+			  horizontalCenter="0"
+			  verticalCenter="0"
+			  maxWidth="200" alpha="0.7" maxHeight="120" scaleContent="true"/>
+	<mx:Canvas id="boxRed" 
+			   horizontalCenter="0" verticalCenter="0" 
+			   borderColor="0xFF0000" 
+			   borderStyle="solid" 
+			   borderThickness="3" />
+</mx:Canvas>

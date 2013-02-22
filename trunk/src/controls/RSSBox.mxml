@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   mouseDown="{onMouseDown(event)}" 
+		   width="{rssInfo.width}" 
+		   height="{rssInfo.height}"
+		   x="{rssInfo.x}"
+		   y="{rssInfo.y}"
+		   mouseOver="onMouseOver(event)"
+		   mouseOut="onMouseOut(event)" 
+		   creationComplete="{onInit();}"
+		   cacheAsBitmap="true"
+		   cachePolicy="auto"
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off" 
+		   >
+	<mx:Script>
+		<![CDATA[
+			import common.RSSInfo;
+			import common.RpcRequest;
+			
+			import mx.containers.FormItem;
+			import mx.containers.HBox;
+			import mx.controls.Alert;
+			import mx.controls.Button;
+			import mx.controls.CheckBox;
+			import mx.controls.ComboBox;
+			import mx.controls.Label;
+			import mx.controls.RadioButton;
+			import mx.controls.RadioButtonGroup;
+			import mx.controls.TextInput;
+			import mx.events.FlexEvent;
+			import mx.formatters.DateFormatter;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.HTTPService;
+			import mx.utils.StringUtil;
+			
+			import utils.ContentHelper;
+			
+			[Bindable]
+			public var rssInfo:RSSInfo;
+			
+			[Bindable]
+			public var mouseOver:Boolean = false;
+			
+			
+			private var httpService:HTTPService;
+			
+			private var szHtml:String = "";
+			
+			private function onInit():void
+			{
+				
+				browser.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDown);
+				browser.addEventListener(MouseEvent.MOUSE_MOVE,onMouseDown);
+				//trace("httpService......");
+				if(httpService == null){
+					httpService = new HTTPService();
+				
+					httpService.url = rssInfo.url;
+					//httpService.useProxy = false;
+					httpService.addEventListener(ResultEvent.RESULT,onServiceResult);
+				}
+				
+				httpService.send();
+				
+				browser.cacheAsBitmap= true;
+				
+
+			}
+			
+			public function clearRSS():void{
+				browser.htmlText="";
+				
+				//browser.visible = false;
+				
+			}
+
+			public function LoadRSS():void{
+				//trace("loadRss");
+				browser.htmlText =this.szHtml;
+
+			}
+			
+			private function onServiceResult(e:ResultEvent){
+				//组合html字符串
+				var szHtml:String = "";
+				var dt:Date ;
+				var formatterString:String = "YYYY-MM-DD LL:NN:SS"; 
+				var dateFormatter:DateFormatter = new DateFormatter();
+				dateFormatter.formatString = formatterString;
+				for each (var itemNode:Object in httpService.lastResult.rss.channel.item) 
+				{
+					szHtml +=  "<p>";
+					szHtml += "<b>";
+					szHtml +="<font color='#52c0dc'>"
+					szHtml +=  itemNode.title;
+					szHtml +=  "</font>";
+					szHtml += "</b>";
+					szHtml += "</p>";
+					dt = DateFormatter.parseDateString(itemNode.pubDate);
+					szHtml +=  dateFormatter.format(dt);
+					szHtml += "<br>";
+					szHtml += "<br>";
+					szHtml += itemNode.description;
+					szHtml += "<br>";
+					szHtml = szHtml.replace("<br/>","<br>");
+				}
+				this.szHtml = szHtml;
+				//trace(szHtml);
+				
+				browser.htmlText =this.szHtml;
+				
+			}
+			
+						
+			private function onMouseOver(event:MouseEvent):void
+			{
+				mouseOver = true;
+			}
+			
+			private function onMouseOut(event:MouseEvent):void
+			{
+				mouseOver = false;
+			}
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				
+				event.stopPropagation();
+			}
+			
+			
+		]]>
+	</mx:Script>
+	<mx:TextArea id="browser" 
+				 x="0" 
+				 y="0" 
+				 width="100%" 
+				 height="100%" 
+				 editable="false"
+				 htmlText=""/>
+
+</mx:Canvas>

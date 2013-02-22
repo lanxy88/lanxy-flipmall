@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:BasePopupCanvas xmlns:mx="http://www.adobe.com/2006/mxml"
+						  xmlns:common="common.*"
+						  xmlns:controls="controls.*"
+						  xmlns:images="org.alivepdf.images.*"
+						  xmlns:player="org.bytearray.gif.player.*"
+						  width="400"
+						  height="300"
+						  clipContent="false"
+						  includeInLayout="false"
+						  mouseOver="onMouseOver()"
+						  mouseOut="onMouseOut()"
+						  mouseMove="onMouseMove(event)"
+						  mouseUp="onMouseUp(event)"
+						  xmlns:local="*"
+						  alpha="{(isSwf() || isHover()) ? 1 : 0}"
+						  creationCompleteEffect="{(isSwf() || isHover()) ? null : zoomAll}"
+						  horizontalScrollPolicy="off"
+						  verticalScrollPolicy="off"
+						  visible="true">
+	<mx:Script>
+		<![CDATA[
+			import common.AudioManager;
+			import common.SharedObjectManager;
+			import common.SoundContainer;
+			import common.VideoInfo;
+			
+			import mx.events.TweenEvent;
+			import mx.managers.PopUpManager;
+			
+			import utils.ContentHelper;
+			import utils.Helper;
+
+			public var autosize:Boolean=false;
+
+			protected var moving:Boolean=false;
+
+			protected var start:Point=null;
+
+			protected function onMouseDown(event:MouseEvent):void
+			{
+				RunTime.CurrentMovingObject=this;
+			}
+
+			protected function onClick(event:MouseEvent):void
+			{
+				Helper.bringTop(this);
+				RunTime.removeHighlightOn();
+			}
+
+			public var hoverOwner:DisplayObject;
+
+			[Bindable]
+			public var url:String="";
+			
+			[Bindable]
+			public var playlist:SoundContainer;
+
+			
+			[Bindable]
+			public var videoInfo:VideoInfo;
+
+			[Bindable]
+			public var type:String="";
+
+			[Bindable]
+			public var message:String="";
+			
+			[Bindable]
+			public var audioManager:AudioManager;
+
+			private function onTimeOut(e:Event):void
+			{
+				PopUpManager.removePopUp(this);
+			}
+
+			private var timer:Timer;
+
+			private function removeTimer():void
+			{
+				if (timer != null)
+				{
+					timer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimeOut);
+				}
+			}
+
+			private function setTimer():void
+			{
+				timer=new Timer(1000, 1)
+				timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimeOut);
+				timer.start();
+			}
+
+			public override function close():void
+			{
+
+				if (type == 'message-hover' || type == 'image-hover')
+				{
+					// 延迟关闭
+					removeTimer();
+					setTimer();
+				}
+				else
+				{
+					audio.close();
+					super.close();
+				}
+			}
+
+			private function isHover():Boolean
+			{
+				return type == 'message-hover' || type == 'image-hover';
+			}
+
+			private function onMouseOver():void
+			{
+				if (type == 'message-hover' || type == 'image-hover')
+				{
+					removeTimer();
+				}
+			}
+
+			private function onMouseOut():void
+			{
+				if (type == 'message-hover' || type == 'image-hover')
+				{
+					this.close();
+				}
+			}
+
+			private function isFlv():Boolean
+			{
+				if (videoInfo == null)
+					return false;
+				return ContentHelper.isVideoUrl(videoInfo.url) || videoInfo.youtubeId;
+			}
+
+			private function isSwf():Boolean
+			{
+				if (videoInfo == null)
+					return false;
+				return videoInfo.url.indexOf(".swf") > 0;
+			}
+
+			private function onSwfResize():void
+			{
+
+			}
+
+			private function filterGifUrl(url:String):String
+			{
+				if (!url)
+					return null;
+				else
+				{
+					return url.toLowerCase().indexOf(".gif") > 0 ? url : null;
+				}
+			}
+
+			private function isImageVisible(type:String, url:String):Boolean
+			{
+				return type == 'image' || type == 'image-hover';
+			}
+
+			private function isCloseVisible(type:String):Boolean
+			{
+				return type.indexOf("-hover") < 0;
+			}
+
+			private function onZoomUpdate(e:TweenEvent):void
+			{
+				if (e.value[0] > 0.55)
+					this.alpha=1;
+			}
+			
+			protected function onMouseMove(event:MouseEvent):void
+			{
+				
+				if(event.buttonDown){
+					trace("x = " + this.x + "  ,y = " + this.y);
+					RunTime.audioBoxPostion = new Point(x,y);
+					//SharedObjectManager.instance.saveAudioboxRecord(
+				}
+			}
+			
+			protected function onMouseUp(event:MouseEvent):void
+			{
+				SharedObjectManager.instance.saveAudioBoxPostion();
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Zoom id="zoomAll"
+			 tweenUpdate="onZoomUpdate(event)"
+			 zoomWidthTo="1"
+			 zoomHeightTo="1"
+			 zoomWidthFrom="0.5"
+			 zoomHeightFrom="0.5"/>
+	
+	<controls:AudioBox id="audio"
+					   width="100%"
+					   height="100%"
+					   visible="true"
+					   url="{url}"
+					   playlist="{playlist}"
+					   backgroundColor="0x333333"
+					   mouseDown="onMouseDown(event)"
+					   click="onClick(event)"/>
+	<mx:Image right="{type == 'audio--hover' ? -16: -24}"
+			  top="{type == 'audio--hover' ? -16: -24}"
+			  source="@Embed(source='content/images/close.png')"
+			  buttonMode="true"
+			  useHandCursor="true"
+			  click="close()"
+			  visible="true"/>
+</controls:BasePopupCanvas>

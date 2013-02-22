@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="50" height="50" clipContent="false"
+		   preinitialize="draw()" addedToStage="onAdded(event)"
+		   >
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			
+			private var timer:Timer;
+			private var slices:int = 12;
+			private var radius:int = 11;
+			
+			[Bindable]
+			private var value:int = 0;
+			
+			[Bindable]
+			public var progInfoVisible:Boolean = true;
+			
+			public var timerDelay:int = 50;
+			
+			public var sliceColor:uint = 0xFFFFFF;
+			
+			public function setProgress(val:int):void
+			{
+				value = val;
+			}
+			
+			private function onAdded(event:Event):void
+			{
+				draw();
+				removeEventListener(Event.ADDED_TO_STAGE, onAdded);
+				addEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
+				timer = new Timer(timerDelay);
+				timer.addEventListener(TimerEvent.TIMER, onTimer, false, 0, true);
+				timer.start();
+			}
+			
+			private function onRemovedFromStage(event:Event):void
+			{
+				removeEventListener(Event.REMOVED_FROM_STAGE, onRemovedFromStage);
+				addEventListener(Event.ADDED_TO_STAGE, onAdded);
+				timer.reset();
+				timer.removeEventListener(TimerEvent.TIMER, onTimer);
+				timer = null;
+			}
+			
+			private function onTimer(event:TimerEvent):void
+			{
+				if(cycleContainer != null)
+					cycleContainer.rotation = (cycleContainer.rotation + (360 / slices)) % 360;
+			}
+			
+			private var cycleContainer:UIComponent = null;
+			
+			private function draw():void
+			{
+				if(cycleContainer == null)
+				{
+					var ui:UIComponent = new UIComponent();
+					var i:int = slices;
+					var degrees:int = 360 / slices;
+					while (i--)
+					{
+						var slice:Shape = getSlice();
+						slice.alpha = Math.max(0.2, 1 - (0.1 * i));
+						var radianAngle:Number = (degrees * i) * Math.PI / 180;
+						slice.rotation = -degrees * i;
+						slice.x = Math.sin(radianAngle) * radius;
+						slice.y = Math.cos(radianAngle) * radius;
+						ui.addChild(slice);
+					}
+					this.addChildAt(ui,0);
+					cycleContainer = ui;
+				}
+			}
+			
+			private function getSlice():Shape
+			{
+				var slice:Shape = new Shape();
+				slice.graphics.beginFill(sliceColor);
+				slice.graphics.drawRoundRect(-1, 0, 4, 14, 4, 4);
+				slice.graphics.endFill();
+				return slice;
+			}
+			
+			private var _progInfo:String = "";
+			
+			private function progInfo(val:int):String
+			{
+				onTimer(null);
+				if(val >=0 && val <= 100)
+				{
+					_progInfo = val.toString() + "%";
+				}
+				return _progInfo;
+			}
+		]]>
+	</mx:Script>
+	<mx:Label text="{progInfo(value)}" alpha="1"
+			  width="50" textAlign="center" visible="{progInfoVisible}"
+			  verticalCenter="50" horizontalCenter="3" />
+</mx:Canvas>

@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="400" height="300" implements="IBook"
+		   resize="onResize()"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+	<mx:Metadata>
+		[Event(name="change")]
+		[Event(name="pageChanged")]
+		[Event(name="turnStart")]
+		[Event(name="turnEnd")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			
+			import common.AudioManager;
+			import common.BookPage;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.Alert;
+			import mx.effects.Move;
+			import mx.events.EffectEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MoveEvent;
+			import mx.managers.CursorManager;
+			
+			import org.alivepdf.pages.Page;
+			import org.hamcrest.object.nullValue;
+			
+			import qs.controls.SuperImage;
+			
+			public var flipSpeedBoost:int;
+			public var bookmarkWidth:Number;
+			public var bookmarkHeight:Number;
+			public var bookmarkFontSize:Number;
+			
+			private var _startPage:int;
+			[Bindable]
+			public function set startPage(value:int){
+				_startPage = value;
+				this.removeAllChildren();
+				
+				
+				//if(this.currentPageIndex >= 0 && currentPageIndex < pages.length)
+				if(this._startPage == 0)
+				{
+					var page:ImagePage = pages[currentPageIndex];
+					render = page;
+					
+					this.addChild(page);
+					
+					page.load();
+					
+					render.addEventListener(FlexEvent.UPDATE_COMPLETE, updateCompleteHandler);
+				}
+			}
+			
+			[Bindable]
+			public var pageActive:Boolean = true;
+			
+			[Bindable]
+			public var hotlinks:Array = [];
+			
+			[Bindable]
+			public var videos:Array = [];
+			
+			[Bindable]
+			public var buttons:Array = [];
+			
+			private var _forms:Array;
+			
+			public function get forms():Array{
+				return _forms;
+			}
+			[Bindable]
+			public function set forms(value:Array):void{
+				_forms = value;
+				
+			}
+			
+			private var _slideshows:Array;
+			[Bindable]
+			public function get slideshows():Array{
+				return _slideshows;
+			}
+			public function set slideshows(value:Array):void{
+				_slideshows = value;
+			}
+			
+			private var _rss:Array;
+			[Bindable]
+			public function get RSS():Array{
+				return _rss;
+			}
+			public function set RSS(value:Array):void{
+				_rss = value;
+			}
+			
+			[Bindable]
+			public var audio:AudioManager;
+			
+			public function get currentPage():int
+			{
+				return this.currentPageIndex + 1;
+			}
+			
+			private var _dataSource:Array = [];
+
+			public function get dataSource():Array
+			{
+				return _dataSource;
+			}
+
+			public function set dataSource(value:Array):void
+			{
+				_dataSource = value;
+				updateBook();
+			}
+			
+			public function checkContentIsLoaded():void
+			{
+				var imgPage:ImagePage = this.pages[this.currentPageIndex];
+				imgPage.checkContentIsLoaded();
+			}
+			
+			public function canTurnBackward():Boolean
+			{
+				return this.currentPageIndex > 0
+			}
+			
+			public function loadContent(): void
+			{
+				var imgPage:ImagePage = this.pages[this.currentPageIndex];
+				imgPage.load();
+				
+				if(render != null){
+					if(this.contains(render)){
+						render.removeEventListener(FlexEvent.UPDATE_COMPLETE, updateCompleteHandler);
+					}
+				}
+				render = imgPage;
+				render.addEventListener(FlexEvent.UPDATE_COMPLETE, updateCompleteHandler);
+			}
+			
+			public function canTurnForward():Boolean
+			{
+				return this.currentPageIndex < RunTime.pageCount - 1;
+			}
+			
+			public function turnToPage(pageIndex:int, showAnimate:Boolean = true):void
+			{
+				if(pageIndex == currentPageIndex) return;
+				else if(pageIndex < 0 || pageIndex >= pages.length) return;
+				var oldItem:ImagePage = pages[currentPageIndex];
+				var newItem:ImagePage = pages[pageIndex];
+				newItem.width = width;
+				oldItem.width = width;
+				oldItem.x = 0;
+				this.dispatchEvent(new Event("turnStart"));
+				audio.playFlippingSound();
+				if(showAnimate == false)
+				{
+					newItem.x = 0;
+					newItem.y = 0;
+					currentPageIndex = pageIndex;
+					this.dispatchEvent(new Event("pageChanged"));
+					if(this.contains(newItem) == false)
+					{
+						this.addChild(newItem);
+						newItem.load();
+					}
+					
+					if(this.contains(oldItem) == true)
+					{
+						this.removeChild(oldItem);
+					}
+					this.dispatchEvent(new Event("turnEnd"));
+				}
+				else
+				{
+					if(pageIndex > currentPageIndex)
+					{
+						newItem.x = width;
+					}
+					else
+					{
+						newItem.x = -width;
+					}
+					
+					newItem.y = 0;
+					if(this.contains(newItem) == false)
+					{
+						this.addChild(newItem);
+						newItem.load();
+					}
+					currentPageIndex = pageIndex;
+					this.dispatchEvent(new Event("pageChanged"));
+					var xBy:Number = - newItem.x ;					
+					var move:Move = new Move();
+					move.duration = 500;
+					var self:SModeBook = this;
+					var finished:Boolean = false;
+					move.addEventListener(EffectEvent.EFFECT_END, function(e:Event):void
+					{
+						// move 可能会产生两次End事件
+						if(finished == true) return;
+						if(self.contains(oldItem) == true)
+						{
+							self.removeChild(oldItem);
+						}
+						
+						self.dispatchEvent(new Event("turnEnd"));
+						finished = true;
+					});
+					move.xBy = xBy;
+					move.play([oldItem, newItem]);
+				}
+			}
+			
+			[Bindable]
+			public var currentPageIndex:int;
+			
+			private var pages:Array = [];
+			
+			private var render:ImagePage = null;
+			
+			private var snapText:TextSnapshot = null;
+			
+			private function onResize():void
+			{
+				for each(var item:DisplayObject in pages)
+				{
+					item.width = this.width;
+					item.height = this.height;
+				}
+			}
+			
+			public function updateBook():void
+			{
+				if(this.dataSource != null)
+				{
+					var pageList:Array = [];
+					for each(var item:BookPage in this.dataSource)
+					{
+						var img:ImagePage = new ImagePage();
+						//img.videos = this.videos;
+						//img.buttons = this.buttons;
+						//img.hotlinks = this.hotlinks;
+						//img.RSS = this.RSS;
+						//img.slideshows = this.slideshows;
+						//img.forms = this.forms;
+						
+						img.width = this.width;
+						img.height = this.height;
+						img.ignoreShadow = true;
+						img.data = item;
+						img.book = this;
+						BindingUtils.bindProperty(img, "videos", this, "videos");
+						BindingUtils.bindProperty(img, "buttons", this, "buttons");
+						BindingUtils.bindProperty(img, "hotlinks", this, "hotlinks");
+						BindingUtils.bindProperty(img, "RSS", this, "RSS");
+						BindingUtils.bindProperty(img, "slideshows", this, "slideshows");
+						BindingUtils.bindProperty(img, "forms", this, "forms");
+						
+						pageList.push(img);
+					}
+					pages = pageList;
+				}
+				if(render != null){
+					if(this.contains(render)){
+						render.removeEventListener(FlexEvent.UPDATE_COMPLETE, updateCompleteHandler);
+					}
+				}
+				
+				
+				
+				/*
+				this.removeAllChildren();
+				if(this.currentPageIndex >= 0 && currentPageIndex < pages.length)
+				{
+					var page:ImagePage = pages[currentPageIndex];
+					render = page;
+					
+					this.addChild(page);
+					
+					page.load();
+					
+					render.addEventListener(FlexEvent.UPDATE_COMPLETE, updateCompleteHandler);
+				}
+				*/
+				
+			}
+			
+			private function updateCompleteHandler(e:FlexEvent):void
+			{
+				//dispatchEvent(new FlexEvent(e.type,e.bubbles,e.cancelable));
+				linkPage();
+				searchResult();
+			}
+			
+			public function reSearch():void
+			{
+				
+				this.snapText = null;
+			}
+
+			
+			public function searchResult():void
+			{
+				if(render == null || RunTime.searchString.length == 0) return;
+				if(this.snapText == null){
+					if(render.imgPage !=null && render.imgPage.content != null && RunTime.searchString !=""){
+						if (render.imgPage.content is ComboLinkPage 
+							&& 
+							ComboLinkPage(render.imgPage.content).cnt is MovieClip){
+							var _content:MovieClip =  MovieClip(ComboLinkPage(render.imgPage.content).cnt );
+							
+							
+							if(_content is MovieClip){
+								var snapText:TextSnapshot = MovieClip(_content).textSnapshot;
+								var textPos:int = snapText.findText(0,RunTime.searchString,false);
+								snapText.setSelected(0,snapText.charCount-1,false);
+								
+								if(textPos != -1){
+									do{
+										snapText.setSelectColor(0xffff00);
+										snapText.setSelected(textPos, textPos+RunTime.searchString.length,true);
+										textPos = snapText.findText(textPos + RunTime.searchString.length,RunTime.searchString,false);
+									}while(textPos != -1)
+								}
+								
+								this.snapText = snapText;
+								
+							}
+						}
+					}
+					
+				}
+
+				
+				
+			}
+			
+			public function linkPage():void
+			{
+				RunTime.linkInnerSwf = false;
+				if(render != null ){
+					if(render.imgPage !=null && 
+						render.imgPage.content != null){
+						if (render.imgPage.content is ComboLinkPage 
+							&& ComboLinkPage(render.imgPage.content).cnt is MovieClip){
+							var _content:MovieClip =  MovieClip(ComboLinkPage(render.imgPage.content).cnt );
+
+							if(_content is MovieClip){
+								_content.removeEventListener(MouseEvent.MOUSE_DOWN,onBookPageClick);
+								_content.addEventListener(MouseEvent.MOUSE_DOWN,onBookPageClick);
+								_content.addEventListener(TextEvent.LINK,onLinkClick);
+
+							}
+						}
+					}
+					
+				}
+				
+			}
+			
+			private function onBookPageClick(e:MouseEvent):void{
+				
+				e.preventDefault();
+				e.stopPropagation();
+				
+			}
+			private function onLinkClick(e:TextEvent):void
+			{
+				e.stopPropagation();
+				RunTime.linkInnerSwf = true;
+				
+				var t:Array = e.text.split("_");
+				if(t.length > 1){
+					var val:String = t[0].toString();
+					if(val.indexOf("frame") == 0){
+						var dest:int= Number(val.substr(5)) +1;
+						//trace("goto " + dest);
+						RunTime.mainPage.gotoPage(dest);
+					}
+					
+				}
+				else{
+					flash.net.navigateToURL( new URLRequest(String(e.text)), "_blank");
+				}
+				
+			}
+			
+			public function renderSnapshot(maxWidth:Number = 300, maxHeight:Number = 200):Bitmap
+			{
+				var obj:DisplayObject = this; //pages[currentPageIndex];
+				var wScale:Number = maxWidth/obj.width;
+				var hScale:Number = maxHeight/obj.height;				
+				var scale:Number = Math.min(wScale,hScale);
+				var imgWidth:Number = obj.width*scale;
+				var img:BitmapData = new BitmapData(imgWidth, obj.height*scale, true, 0x00000000);
+				img.draw(obj, new Matrix(scale,0,0,scale));
+				var bmp:Bitmap = new Bitmap(img,"auto",true);
+				return bmp;
+			}
+			
+			public function renderPage():Bitmap
+			{
+				var c:DisplayObject = this;
+				var img:BitmapData = new BitmapData(c.width/c.scaleX, c.height/c.scaleY, true, 0x00000000);
+				img.draw(c);
+				var bmp:Bitmap = new Bitmap(img,"auto",true);
+
+				return bmp;
+			}
+			
+			public function clearToolTip():void
+			{
+				this.toolTip = "";
+			}
+			
+			public function updateToolTip():void
+			{
+				if(pageActive == false)
+				{
+					updateToolTipForNote();
+					return;
+				}
+				toolTip="";
+				if(RunTime.showZoomTip)
+					toolTip= l.i.s('ClickOrDragToZoom','Click or Drag to Zoom');
+			}
+			
+			private function updateToolTipForNote():void
+			{
+				if(RunTime.note.length > 0)
+				{
+					this.toolTip = "";
+					this.toolTip = l.i.s('ClickAddNote','Click on page to add your note');
+				}			
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				searchResult();
+				//linkPage();
+			}
+			
+			public function get currentDisplayObject():DisplayObject
+			{
+				return this;
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

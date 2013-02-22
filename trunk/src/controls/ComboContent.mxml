@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:BasePopupCanvas xmlns:mx="http://www.adobe.com/2006/mxml"
+						  xmlns:common="common.*"
+						  xmlns:controls="controls.*"
+						  xmlns:images="org.alivepdf.images.*"
+						  xmlns:player="org.bytearray.gif.player.*"
+						  width="400"
+						  height="300"
+						  clipContent="false"
+						  includeInLayout="false"
+						  mouseOver="onMouseOver()"
+						  mouseOut="onMouseOut()"
+						  mouseMove="onMouseMove(event)"
+						  mouseUp="onMouseUp(event)"
+						  xmlns:local="*"
+						  alpha="{(isSwf() || isHover()) ? 1 : 0}"
+						  creationCompleteEffect="{(isSwf() || isHover()) ? null : zoomAll}"
+						  horizontalScrollPolicy="off"
+						  verticalScrollPolicy="off"
+						  visible="true">
+	<mx:Script>
+		<![CDATA[
+			import common.PlayList;
+			import common.SharedObjectManager;
+			import common.SoundContainer;
+			import common.VideoInfo;
+			
+			import mx.events.TweenEvent;
+			import mx.managers.PopUpManager;
+			
+			import utils.ContentHelper;
+			import utils.Helper;
+
+			public var autosize:Boolean=false;
+
+			protected var moving:Boolean=false;
+
+			protected var start:Point=null;
+
+			protected function onMouseDown(event:MouseEvent):void
+			{
+				RunTime.CurrentMovingObject=this;
+			}
+
+			protected function onClick(event:MouseEvent):void
+			{
+				Helper.bringTop(this);
+				RunTime.removeHighlightOn();
+			}
+
+			public var hoverOwner:DisplayObject;
+
+			[Bindable]
+			public var url:String="";
+			
+			[Bindable]
+			public var playlist:SoundContainer;
+			
+			[Bindable]
+			public var videoInfo:VideoInfo;
+
+			[Bindable]
+			public var type:String="";
+
+			[Bindable]
+			public var message:String="";
+
+			private function onTimeOut(e:Event):void
+			{
+				gifPlayer.stop();
+				PopUpManager.removePopUp(this);
+			}
+
+			private var timer:Timer;
+
+			private function removeTimer():void
+			{
+				if (timer != null)
+				{
+					timer.removeEventListener(TimerEvent.TIMER_COMPLETE, onTimeOut);
+				}
+			}
+
+			private function setTimer(delay:Number = 1000):void
+			{
+				timer=new Timer(delay, 1)
+				timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimeOut);
+				timer.start();
+			}
+
+			public override function close():void
+			{
+
+				if (type == 'message-hover' || type == 'image-hover')
+				{
+					// 延迟关闭
+					removeTimer();
+					setTimer(1);
+				}
+				else
+				{
+					if (type == 'video')
+					{
+						//video.pause();
+						video.closeVideoBox();
+						swf.unloadAndStop(true);
+					}
+					else if (type == 'audio')
+					{
+						audio.close();
+					}
+
+					super.close();
+					gifPlayer.stop();
+				}
+			}
+
+			private function isHover():Boolean
+			{
+				return type == 'message-hover' || type == 'image-hover';
+			}
+
+			private function onMouseOver():void
+			{
+				if (type == 'message-hover' || type == 'image-hover')
+				{
+					removeTimer();
+				}
+				
+			}
+
+			private function onMouseOut():void
+			{
+				if (type == 'message-hover' || type == 'image-hover')
+				{
+					this.close();
+				}
+			}
+
+			private function isFlv():Boolean
+			{
+				if (videoInfo == null)
+					return false;
+				return ContentHelper.isVideoUrl(videoInfo.url) || videoInfo.youtubeId;
+			}
+
+			private function isSwf():Boolean
+			{
+				if (videoInfo == null)
+					return false;
+				return videoInfo.url.indexOf(".swf") > 0;
+			}
+
+			private function onSwfResize():void
+			{
+				if (autosize == true)
+				{
+					var ui:DisplayObject=swf.content;
+					
+					
+					this.width=Math.min(ui.width,RunTime.mainApp.width-100);
+					this.height=Math.min(ui.height,RunTime.mainApp.height-100);
+					PopUpManager.centerPopUp(this);
+					zoomAll.stop();
+					zoomAll.play([this]);
+				}
+			}
+
+			private function filterGifUrl(url:String):String
+			{
+				if (!url)
+					return null;
+				else
+				{
+					return url.toLowerCase().indexOf(".gif") > 0 ? url : null;
+				}
+			}
+
+			private function isImageVisible(type:String, url:String):Boolean
+			{
+				return type == 'image' || type == 'image-hover';
+			}
+
+			private function onGifUpdate():void
+			{
+				img.source=gifPlayer;
+			}
+
+			private function isCloseVisible(type:String):Boolean
+			{
+				return type.indexOf("-hover") < 0;
+			}
+
+			private function onZoomUpdate(e:TweenEvent):void
+			{
+				if (e.value[0] > 0.55)
+					this.alpha=1;
+			}
+			
+			protected function onMouseMove(event:MouseEvent):void
+			{
+				
+				if(event.buttonDown){
+					trace("x = " + this.x + "  ,y = " + this.y);
+					RunTime.audioBoxPostion = new Point(x,y);
+					//SharedObjectManager.instance.saveAudioboxRecord(
+				}
+			}
+			
+			protected function onMouseUp(event:MouseEvent):void
+			{
+				SharedObjectManager.instance.saveAudioBoxPostion();
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Zoom id="zoomAll"
+			 tweenUpdate="onZoomUpdate(event)"
+			 zoomWidthTo="1"
+			 zoomHeightTo="1"
+			 zoomWidthFrom="0.5"
+			 zoomHeightFrom="0.5"/>
+	<mx:Canvas x="-8"
+			   y="-8"
+			   width="{width+16}"
+			   height="{height+16}"
+			   visible="{type == 'audio' ? false: true}"
+			   cornerRadius="8"
+			   borderColor="0x7f7f7f"
+			   borderStyle="solid"
+			   borderThickness="8"
+			   horizontalScrollPolicy="off"
+			   verticalScrollPolicy="off"
+			   backgroundColor="0x333333"
+			   backgroundAlpha="1">
+		<mx:Image id="img"
+				  source="{url}"
+				  verticalAlign="middle"
+				  horizontalAlign="center"
+				  maintainAspectRatio="false"
+				  width="100%"
+				  height="100%"
+				  visible="{isImageVisible(type,url)}"
+				  scaleContent="true"/>
+		<controls:VideoBox id="video"
+						   bgAlpha="0.8"
+						   visible="{isFlv()}"
+						   videoInfo="{videoInfo}"/>
+		<mx:SWFLoader id="swf"
+					  creationComplete="{if(isSwf()) if(videoInfo) RunTime.logVideoView(videoInfo.url);}"
+					  source="{RunTime.getAbsPath(videoInfo.url)}"
+					  visible="{isSwf()}"
+					  init="onSwfResize()"
+					  width="{width}"
+					  height="{height}"/>
+		<mx:TextArea width="100%"
+					 height="100%"
+					 wordWrap="true"
+					 visible="{type=='message' || type == 'message-hover'}"
+					 htmlText="{message}"
+					 backgroundColor="0x333333"
+					 borderStyle="none"
+					 borderThickness="0"/>
+	</mx:Canvas>
+	<player:GIFPlayer id="gifPlayer"
+					  width="1"
+					  height="1"
+					  source="{filterGifUrl(url)}"
+					  visible="false"
+					  change="onGifUpdate()"/>
+	<controls:AudioBox id="audio"
+					   width="100%"
+					   height="100%"
+					   visible="{type == 'audio'}"
+					   url="{url}"
+					   playlist="{playlist}"
+					   backgroundColor="0x333333"
+					   mouseDown="onMouseDown(event)"
+					   click="onClick(event)"/>
+	<mx:Image right="{type == 'audio' ? -16: -24}"
+			  top="{type == 'audio' ? -16: -24}"
+			  source="@Embed(source='content/images/close.png')"
+			  buttonMode="true"
+			  useHandCursor="true"
+			  click="close()"
+			  visible="{isCloseVisible(type)}"/>
+</controls:BasePopupCanvas>

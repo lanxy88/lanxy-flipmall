@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:common="common.*" includeInLayout="false"
+		   clipContent="false" 
+		   creationComplete="{layoutDetail()}"
+		   horizontalScrollPolicy="off" 
+		   verticalScrollPolicy="off" xmlns:controls="controls.*"
+
+		   >
+	<mx:Metadata>
+		[Event(name="recordDelete",type="common.RecordEvent")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.NoteRecord;
+			import common.Record;
+			import common.RecordEvent;
+
+			
+			[Bindable]
+			public var record:NoteRecord;
+			
+			public var mouseDownPoint:Point;
+			private var mouseUpPoint:Point;
+			
+			private var mousePoint:Point;
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				mouseDownPoint = new Point(event.stageX,event.stageY);
+				
+				mouseDownPoint = RunTime.book.globalToLocal(mouseDownPoint);
+				
+				RunTime.MouseState = RunTime.MOUSE_STATE_NOTE_MOVING;
+				RunTime.CurrentMovingObject = this;
+				event.stopPropagation();
+			}
+
+			private function onMouseUp(event:MouseEvent):void
+			{
+				mousePoint = null;
+				RunTime.setNormal();
+				if(mouseDownPoint == null) return;
+				
+				
+				mouseUpPoint = new Point(event.stageX,event.stageY);
+				
+				mouseUpPoint = RunTime.book.globalToLocal(mouseUpPoint);
+				
+				if(Math.abs(mouseUpPoint.x - mouseDownPoint.x) < 3 
+					&&Math.abs(mouseUpPoint.y - mouseDownPoint.y) < 3)
+				{
+					record.detailVisible = !detail.visible;
+					layoutDetail();
+				}
+				
+				mouseDownPoint = null;
+			}
+			
+			private function layoutDetail():void
+			{
+				if(isNaN(record.detailX) || isNaN(record.detailY))
+				{
+					detail.x = 0;
+					detail.y = - 200;
+					if(detail.y + y < 0)
+					{
+						detail.y = 30;
+					}
+					record.detailX = detail.x;
+					record.detailY = detail.y;
+				}
+				else
+				{
+					detail.x = record.detailX;
+					detail.y = record.detailY;
+				}
+				
+				detail.invalidateDisplayList();
+			}
+
+			private function onMouseOut(event:MouseEvent):void
+			{
+				mouseUpPoint = null;
+				mouseDownPoint = null;
+				mousePoint = null;
+			}
+			
+			private function onMouseClick(event:MouseEvent):void
+			{
+				event.stopPropagation();
+			}
+			
+			public function checkDetailPos():void
+			{
+				if(detail == null || stage == null) return;
+				
+				// 确保缩放时，编辑框在stage的内部
+				var sw:int = stage.width;
+				var sh:int = stage.height;
+				var root:Point = this.localToGlobal(new Point());
+				if(detail.x + root.x < 20) detail.x = 20 - root.x;
+				if(detail.y + root.y < 20) detail.y = 20 - root.y;
+				if(detail.x + root.x > sw - 260) detail.x = sw -root.x - 260;
+				if(detail.y + root.y > sh - 260) detail.y = sh -root.y- 260;
+				record.detailX = detail.x;
+				record.detailY = detail.y;
+				
+				detail.invalidateDisplayList();
+			}
+			
+			private function onRecordDelete(event:RecordEvent):void
+			{
+				RunTime.mainPage.deleteNote(event.record as NoteRecord);
+				var record:Record = event.record;
+				this.dispatchEvent(new RecordEvent("recordDelete",record));
+			}
+			
+			public function moveTo(xx:Number,yy:Number):void
+			{
+				
+				record.detailVisible = true;
+				layoutDetail();
+				
+				var offSetX:Number = xx - x;
+				var offSetY:Number = yy - y;
+				this.x = xx;
+				this.y = yy;
+				
+				detail.x -= offSetX;
+				detail.y -= offSetY;
+				record.detailX = detail.x;
+				record.detailY = detail.y;
+				
+				detail.invalidateDisplayList();
+			}
+
+			private function onMouseMove(e:MouseEvent):void
+			{
+
+			}
+			
+		]]>
+	</mx:Script>
+
+	<controls:ImageButton id="btnNote" 
+						icon="{RunTime.CURSOR_NOTE}" 
+						mouseDown="onMouseDown(event)"
+						mouseUp="onMouseUp(event)"
+						mouseOut="onMouseOut(event)"
+						mouseMove="onMouseMove(event)"
+						toolTip="{record.content}" click="onMouseClick(event)"
+						/>
+	<controls:NoteMarkDetail record="{record}"
+						   id="detail"
+						   visible = "{record.detailVisible}"
+						   recordDelete="onRecordDelete(event)"
+						   >
+	</controls:NoteMarkDetail>
+</mx:Canvas>

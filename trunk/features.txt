@@ -1,0 +1,108 @@
+需求说明
+这是一个XML驱动的类似电子书，电子杂志的Flash应用程序，每一页对应一个图片，能支持各种不同尺寸的图片，支持SWF, GIF, JPEG, PNG等格式。除了编程实现需求的功能和效果外，还要有专业美工根据指定的风格来设计界面。
+
+1. 界面
+我想做成类似以下风格和布局，不同的是头顶的一排按钮放底部，而书就往上挪。当然不能用它的任何素材，避免版权问题。要自己设计，主要是设计按钮的图标，按钮的形状等。按钮和弹出来的界面要半透明，能适应不同分辨率的电脑。
+
+具体的操作从以下URL中体验：
+
+http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+http://media.transparency.org/fbooks/reports/gcb_2009/
+
+所有的按钮都能从XML中设定是否显示，界面最终的布局如下：
+
+另外，在左边增加一按钮：Previous Issues，可以显示一些相关的链接，数据都是从XML传入，独立一个XML文件。如下图：
+
+2. 目录架构
+
+最终的文件和目录架构如下图：
+
+3. 书的特性
+
+A）可以从XML文件中设定书的两页之间是否有阴影。B）书的厚度要表现出来，就是当书合起来的时候，它的右边和下边有厚度轮廓。而当书打开时，左边页面的左边和下边有厚度轮廓，右边页面的右边和下边有厚度轮廓。C）有翻页效果。D）当鼠标移到书的上角时，上角翘起，而当鼠标移到书的下角时，下角翘起。E）书的大小要能随着窗口大小的变化而变化。参考这个界面效果：http://media.transparency.org/fbooks/reports/gcb_2009/
+
+4. 功能
+
+以下是左边工具栏按钮的功能：
+1）Table of Contents, 就是目录，点击翻到具体页。树型数据结构，数据从XML传入，独立一个XML文件。参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+2）Thumbnails View，显示所有页面的微缩图。参考这个界面效果：http://media.transparency.org/fbooks/reports/gcb_2009/
+
+3）在左边工具条上增加Previous Issues按钮，可以显示一些相关的链接，数据都是从XML传入。用独立一个XML文件。点击Previous Issues按钮后就弹出以下这个效果：
+
+4）Share this FlipBook，邮件发送功能。用一个PHP去实现发送功能，可以在XML中设定这个PHP文件的URL。做成这个界面效果：http://www.micasa.ch/fvxtool/output/PROD/micasa_DE/wohnen_2009_2010/Web/flipviewerxpress.html
+发送的信息要在读者输入的Message后面加上以下内容：
+XXX(发送人的名字) like the following FlipBook and would like to share it with you.
+To read the Flipbook, click here http://www.XXXXXXXXXX（当前网址）
+
+5）Share on Social Networks，就是显示一些相关的URL链接，点击后在浏览器中打开相应的URL。数据都是从XML传入，包括图标，显示的字符，URL等。用独立一个XML文件。参考这个：http://www.flipviewer.com/large-demo-book/flipviewerxpress.html
+
+6）Print功能，让读者能把书中的页面打印出来。参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+7）Save as PDF，让读者能把书中的页面保存成PDF文件。参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+8）Download FlipBook，可以下载Zip或Exe文件。这两个文件的URL和显示的标题也是从XML中指定。
+
+9）Settings  有以下项目：
+Enable Flipping Sound，默认选上。
+Enable Backguand Audio，默认不选。
+Auto Move After Zoom，默认不选，这个选项确定页面放大后移动页面的模式。当选上后，页面就随鼠标的移动而移动，MZ3默然就是这种模式。如果不选，放大后鼠标变成手，要用鼠标拖动页面才移动。
+Language，选择界面用何种语言显示，默认是English。（详见31）
+以上这些默认值都是从XML传入，就是可以XML中指定这些默认值。
+
+10）About us，显示一些公司的信息，数据在独立一个XML文件定义。参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/以下是底部工具栏按钮的功能：
+
+11）Info，点击后在浏览器中打开一网页, URL从XML中指定。
+
+12）Help，点击后在浏览器中打开一网页, URL从XML中指定。
+
+13）Auto Flip功能，就是用户点击了“Auto Flip”按钮后书会按时间自动翻页，翻页的间隔时间由XML传入。而用户再次点击“Auto Flip”按钮就停止自动翻页。也可以在XML中设定每次打开就能自动翻页，直到用户点击按钮或其他操作时才停止自动翻页。参考这个：http://www.flipviewer.com/large-demo-book/flipviewerxpress.html
+
+14）放大，用户点击放大按钮、直接点击书或框住书的一部分页面就放大。如果是直接点击书，就以鼠标点击书的位置为中心点进行放大。放大后，鼠标变成手，放大按钮变成缩小按钮，右上角显示一放大幅度调节界面，要用鼠标拖动才移动页面。再次点击放大按钮（缩小按钮）、直接点击放大的页面就复原。做成这个效果：
+http://media.transparency.org/fbooks/reports/gcb_2009/
+当Settings 中的Auto Move After Zoom被选上后，页面如果是放大的，页面就随鼠标的移动而移动（不须要用鼠标拖动）。
+
+15）导航按钮，包括Front Cover、Flip Left、Flip Right和Back Cover。中间有个可以输入页号的输入框。输入框中显示格式为“120 – 121 / 180”，也就是“当前左边页码 -当前右边页码 / 总页数”。
+>> 实现
+
+16）Search功能。用一个独立的XML存放每一页的整个页面的文本，用户可以搜索这些文本，然后把所有包含用户所搜索的关键字的页面都列出来，用户点击就翻到相应页。以下是类型产品的Text.xml文件，你可以参考一下。最终做成这个界面效果：http://www.micasa.ch/fvxtool/output/PROD/micasa_DE/wohnen_2009_2010/Web/flipviewerxpress.html
+
+
+17）Bookmark，分成两部分：A）从XML中定义Bookmark的参数，包括书签名称，颜色，对应的页数等。这部分的Bookmark读者是不能删除也不能修改的，数据放在一个独立的XML文件。B）读者自己添加的Bookmark，这部分的Bookmark的参数是存在读者的本地电脑的，也就是说只对该电脑有效，他可以添加、修改和删除。做成这个效果：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/，注意以下两方面：A）能选择书签的颜色。B）美化书签的外表，如改成圆角，颜色有过度等。
+
+18）Notes，可以给读者输入一些笔记，存在读者的本地电脑，参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+19）Highlight，让读者Highlight书中的某一部分内容，存在读者的本地电脑，参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+20）Full Screen，点击Full Screen按钮全屏显示，再次点击后，从全屏状态恢复过来（相当于按ESC键）。
+
+其他功能：
+
+21）背景音乐，分成整书的背景音乐和每一页的背景音乐。在XML中指定是否有背景音乐，和音乐文件地址。支持多个音乐文件，播完一个接着播另一个。用一个独立的XML
+
+22）可以在书的头顶显示一广告条，叫顶广告条。支持SWF, GIF, JPEG, PNG等格式，如果不是SWF的话，点击打开指定的网站。如果显示顶广告条，就把广告条贴着顶，然后书往下挪，几乎贴着广告条的下边。图片文件地址和URL在XML中指定，如果不指定，就不显示。参考这个：http://www.soulm8online.com/ezine/issue8/pageflip.html
+
+23）在右键点击菜单中加一菜单项，显示的字符和URL从XML中指定。
+
+24）当鼠标移至书边时，Hint显示Click to flip和。当鼠标移至书中时，Hint显示Click or Drag to Zoom。当鼠标移到书的厚度轮廓时，显示“Goto page 页码”，如下图。如果用户点击就翻到相应的页面。具体的情况跟这个一样：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+25）启动界面，设计一个启动界面。在Loading时可以显示LOGO，从XML中指定LOGO文件。参考这个：http://www.micasa.ch/fvxtool/output/PROD/micasa_DE/wohnen_2009_2010/Web/flipviewerxpress.html
+
+26）当书在合起来（就是在没有打开时）的时候，书放在右边，而在左边空出来的地方可以放一图片，我们叫边广告条。支持SWF, GIF, JPEG, PNG等格式，如果不是SWF的话，点击打开指定的网站。当书开始翻的时候，图片隐藏起来，书合起来后图片又显示。图片文件地址和URL在XML中指定，如果不指定，就不显示。
+
+27）最终生成的SWF文件能从Flash Player中直接打开。
+
+28）Link，改成可以在指定位置放置Link，就是把书页上的任意区域变成超连接，这个超连接可以是网址，eamil，页号等。参考这个（封面中就有几个超连接）：http://www.rockportpubs.com/3D/DO/2011/01_do/pageflip.html。在XML中指定放置Link的页号，X，Y坐标，Height和Width值，URL，email或页号。当读者点击后在浏览器中打开相应的URL或翻到相应的页面。独立一个XML文件存放相关的数据。
+
+29) 当全屏显示时，如果书的高大于宽，书高度要占满屏幕的高。如果书的宽大于高，书宽度要占满屏幕的宽。而按钮等等都隐藏起来的，只有在鼠标移到他们上面才显示出来。参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+30）界面右下角有个的Logo图片，就是从XML中指定一个Logo图片文件和URL，显示在右下角，用户点击就打开相应的URL。。
+
+31）多语言的支持，可以在Settings中选择界面用什么语言显示，就是界面上显示的所有字符都是从XML中传入，一种语言用一个XML文件，只要把这些XML文件可以放在data\ language文件夹下，就能在Settings中列出并选择需要的语言。参考这个：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/
+
+32）背景图功能，就是可以在XML中指定一个图片文件，显示在背景。
+
+33）翻书声（Flipping Sound），就是在翻页的时候有个“嗖”的一声。可以在Settings中把这个Flipping Sound关掉。参考这个：http://www.artesegno.com/e_brochures/expo_mehrkens_klaus.html
+
+34）其他没有提到的功能和效果要做到和这个一样：http://ebrochure.tucantravel.com/fvx/tucan/2010-2011/

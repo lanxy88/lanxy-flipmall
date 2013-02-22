@@ -1,0 +1,51 @@
+<buttons>
+	<button page="2" clickSound="true" pagewidth="1557"  x="100" y="-80" width="100" height="100" 
+	destination="fun:thumb" layer="foreground" 
+	image="content/images/playaudio.png" rollover="zoom"
+	rolloverText="show thumb" />
+	
+	<button page="3" x="100" y="100" width="100" height="100" 
+	destination="fun:thumb" layer="background" clickSound="true"
+	image="content/images/playaudio.png" rollover="light"
+	rolloverText="show thumb" />
+
+	<button page="2" pagewidth="1557" x="54" y="568" width="250" height="250" image="content/images/gif1.gif" rolloverText="" type="none"/>
+	<button page="2" x="455" y="31" width="367" height="491" image="content/images/gif2.gif" rolloverText="" type="none"/>
+	<button text="Play1" fontColor="0xff00ff" fontSize="20" page="2" pagewidth="1557" x="100" y="260" width="100" height="100" image="content/images/playaudio.png" rolloverText="song01.mp3" type="audio" destination="content/audios/song01.mp3"/>
+	<button page="2" pagewidth="1557" x="300" y="260" width="100" height="100" image="content/images/playaudio.png" rolloverText="song02.mp3" type="audio" destination="content/audios/song02.mp3"/>
+	<button page="2" pagewidth="1557" x="500" y="260" width="100" height="100" image="content/images/playaudio.png" rolloverText="A Dream.mp3" type="audio" destination="content/audios/A Dream.mp3"/>
+	<button page="4" x="600" y="600" width="128" height="128"
+		image="content/images/imageLink.png" type="audio" destination="http://www.flipmall.net/demo/disney_DEL/content/audios/A Dream_New.mp3" />
+	<button page="8" x="200" y="200" width="128" height="128"
+		image="content/images/imageLink.png" destination="page:3" rolloverText="Goto page 3" />
+	<button page="8" x="400" y="200" width="128" height="128"
+		image="content/images/imageLink.png" destination="hotlink.html" />
+	<button page="8" x="600" y="200" width="128" height="128"
+		image="content/images/imageLink.png" destination="http://www.geblab.com/hotlink.html" />
+	<button page="8" x="800" y="200" width="256" height="128"
+		image="content/images/imageLink.png" destination="mailto:xiaotie@geblab.com" />
+	<button page="8" x="200" y="400" width="128" height="128" 
+		image="content/images/demo.gif" type="image" destination="content/images/demo.gif" />
+	<button page="8" x="400" y="400" width="128" height="128"
+		image="content/images/imageLink.png" type="video" destination="content/videos/test.flv" />
+	<button page="8" x="600" y="400" width="128" height="128"
+		image="content/images/imageLink.png" type="video" destination="content/videos/test.swf" />
+	<button page="8" x="800" y="400" width="128" height="128"
+		image="content/images/imageLink.png" type="video" youtubeId="7ZsKqbt3gQ0"/>
+	<button page="8" x="200" y="600" width="128" height="128"
+		image="content/images/imageLink.png" type="message" popupWidth="600" popupHeight="400">
+			<![CDATA[About Us: <font color="#0000FF" size="50" style="font-size:50px"><a href="http://www.geblab.com" target="_black">www.geblab.com</a></font> , Email: <font color="#0000FF"><a href="mailto:xiaotie@geblab.com">xiaotie@geblab.com</a></font>]]>
+	</button>
+	<button page="8" x="400" y="600" width="128" height="128"
+		image="content/images/imageLink.png" type="message-hover" popupWidth="600" popupHeight="400">
+			<![CDATA[About Us: <font color="#0000FF"><a href="http://www.geblab.com" target="_black">www.geblab.com</a></font> , Email: <font color="#0000FF"><a href="mailto:xiaotie@geblab.com">xiaotie@geblab.com</a></font>]]>
+	</button>
+	<button page="8" x="600" y="600" width="128" height="128"
+		image="content/images/imageLink.png" type="audio" destination="content/audios/demo.mp3" />
+	<button page="8" x="800" y="600" width="128" height="128"
+		image="content/images/imageLink.png" type="none"  />
+	<button page="8" x="200" y="800" width="128" height="128" 
+		image="content/images/imageLink.png" type="image-hover" destination="content/images/imageLink.png" />
+	<button page="9" x="600" y="400" width="128" height="128" 
+		image="content/images/imageLink.png" type="image" destination="content/videos/myalbum665.swf" />		
+</buttons>

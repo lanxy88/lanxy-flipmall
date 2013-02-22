@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 visible="{height &gt; 0}" width="100%" height="220" borderColor="0xFFFFFF"
+		 borderSides="top bottom" borderStyle="solid" horizontalGap="0" horizontalScrollPolicy="off"
+		 paddingTop="-1" verticalGap="0" verticalScrollPolicy="auto">
+	<mx:Metadata>
+		[Event(name="recordClick",type="common.RecordEvent")]
+		[Event(name="recordOver",type="common.RecordEvent")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.Record;
+			import common.RecordEvent;
+			import common.TreeNodeRecord;
+			
+			import mx.containers.Canvas;
+			import mx.containers.GridItem;
+			import mx.containers.GridRow;
+			import mx.containers.HBox;
+			import mx.containers.Tile;
+			import mx.controls.Button;
+			import mx.controls.Image;
+			import mx.controls.Spacer;
+			import mx.controls.Text;
+			import mx.controls.TextArea;
+			import mx.core.LayoutContainer;
+			import mx.core.UIComponent;
+			import mx.events.IndexChangedEvent;
+			
+			[Embed(source='assets/blackStyle/btnCloseBox.png')]
+			private var iconDelete:Class;
+			
+			[Bindable]
+			public var showThumNode:Boolean = false;
+			
+			[Bindable]
+			public var rowHeight:int = 20;
+			
+			public var selectedItem:Record;
+			
+			public var title:String = "";
+			
+			public var showPage:Boolean = true;
+			
+			private var _source:Array = null;
+			
+			private var expanded:Boolean = false;
+			
+			private var currentThumbList:Tile = new Tile();
+			
+			[Bindable]
+			public var startExpend:Boolean = true;
+			
+			public function switchExpand():void
+			{
+				expanded = !expanded;
+				for each(var item:TreeNodeRecord in _source)
+				{
+					if(expanded == true)
+					{						
+						item.expendChilds(true);
+					}
+					else
+					{
+						item.collapseChilds();
+					}
+				}
+				updateHeight();
+			}
+			
+			private function collapseAll():void{
+
+				for each(var item:TreeNodeRecord in _source)
+				{
+					
+					item.collapseChilds();
+	
+				}
+			}
+			
+			public function get source():Array
+			{
+				return _source;
+			}
+			
+			public function set source(value:Array):void
+			{
+				_source = value;
+				updateData();
+			}
+			
+			private function updateData():void
+			{
+				removeAllChildren();
+				if(_source == null) return;
+				
+				//trace("_source.length=" + _source.length);
+			
+				//trace(_source);
+				for each(var item:TreeNodeRecord in _source)
+				{
+					//trace("item=" + item);
+					handleRecord(item, this.numChildren);
+				}
+				
+				updateHeight();
+				
+				//switchExpand();
+			}
+			
+			private function updateHeight():void
+			{
+				var lines:int = Math.min(20,this.numChildren);
+				if(showThumNode) lines = 20;
+				
+				
+				//height = lines * rowHeight + 1;
+				
+				
+			}
+			
+			private function addTreeNode(obj:TreeNodeRecord, index:int):void
+			{
+				
+				
+				if(obj.displayObject == null)
+				{
+					var row:HBox = new HBox();
+					row.percentWidth=100;
+					row.height = rowHeight;
+					var bg:uint = 0xFF222222;
+					var self:ContentsTable = this;
+					
+					row.buttonMode = true;
+					row.useHandCursor = true;
+					// row.setStyle("backgroundColor",bg);
+					row.verticalScrollPolicy="off";
+					row.horizontalScrollPolicy="off";
+					row.setStyle("horizontalGap",0);
+					row.setStyle("verticalGap",0);
+					row.setStyle("borderStyle","solid");
+					row.setStyle("borderColor",0xFFFFFF);
+					row.setStyle("borderThickness",1);
+					row.setStyle("borderSides","top");
+					
+					row.addEventListener(MouseEvent.MOUSE_OVER, 
+						function(... args):void
+						{
+							row.setStyle("backgroundColor",0xFFFF0000);
+							row.setStyle("backgroundAlpha",0.4);
+						});
+					
+					row.addEventListener(MouseEvent.MOUSE_OUT, 
+						function(... args):void
+						{
+							row.setStyle("backgroundColor",0x00000000);
+							row.setStyle("backgroundAlpha",0);
+						});
+					
+					row.addEventListener(MouseEvent.CLICK, 
+						function(e:MouseEvent):void
+						{
+							if(e.target is controls.ImageButton) return;
+							
+							selectedItem = obj;
+							self.dispatchEvent(new RecordEvent("recordClick",selectedItem));
+						});
+					
+					if(showPage == true)
+					{
+						var pageText:Text = new Text();
+						pageText.text = obj.page.toString();
+						pageText.mouseChildren=false;
+						pageText.buttonMode = true;
+						pageText.useHandCursor = true;
+						pageText.setStyle("horizontalCenter",0);
+						pageText.setStyle("verticalCenter",0);
+						
+						var c0:Canvas = new Canvas();
+						c0.width = 80;
+						c0.percentHeight=100;
+						c0.addChild(pageText);
+						c0.buttonMode = true;
+						c0.useHandCursor = true;
+						c0.verticalScrollPolicy="off";
+						c0.horizontalScrollPolicy="off";
+						c0.setStyle("horizontalAlign","center");
+						c0.setStyle("verticalAlign","middle");
+						c0.setStyle("paddingLeft",10);
+						c0.setStyle("borderStyle","solid");
+						c0.setStyle("borderColor",0xFFFFFF);
+						c0.setStyle("borderThickness",1);
+						c0.setStyle("borderSides","left");
+					}
+					
+					var contentText:Text = new Text();
+					contentText.htmlText = obj.content;
+					contentText.percentWidth = 100;
+					contentText.mouseChildren=false;
+					contentText.buttonMode = true;
+					contentText.useHandCursor = true;
+					
+					
+					
+					var tabLevel:int = obj.level;
+
+					if(obj.childs.length > 1)
+					{
+						tabLevel --;
+					}
+					
+					
+					
+					var c1:HBox = new HBox();
+					c1.percentWidth = 100;
+					c1.buttonMode = true;
+					c1.useHandCursor = true;
+					c1.verticalScrollPolicy="off";
+					c1.horizontalScrollPolicy="off";
+					c1.setStyle("horizontalAlign","center");
+					c1.setStyle("verticalAlign","middle");
+					c1.setStyle("paddingRight",10);
+					c1.setStyle("paddingLeft",30 + tabLevel * 20);
+					
+					if(obj.childs.length > 1)
+					{
+						var box:MinButton = new MinButton();
+						box.minimize = true;
+						box.data = obj;
+						box.addEventListener(MouseEvent.CLICK,
+							function(event:MouseEvent):void
+							{
+								var btn:MinButton = event.target as MinButton;
+								var r:TreeNodeRecord = btn.data as TreeNodeRecord;
+								if(btn.minimize == true)
+								{
+									r.collapseChilds();
+								}
+								else
+								{
+									r.expendChilds();
+								}
+								
+								updateHeight();
+								event.stopPropagation();
+							});
+						obj.expendButton = box;
+						c1.addChild(box);
+					}
+					
+					c1.addChild(contentText);
+					
+					row.addChild(c1);
+					
+					if(showPage == true)
+					{
+						row.addChild(c0);
+					}
+					
+					obj.displayObject = row;
+					obj.table = this;
+				}
+				
+				this.addChildAt(obj.displayObject, index);
+			}
+			
+			private function addHeader(obj:TreeNodeRecord, index:int):void{
+				
+				if(obj.displayObject == null)
+				{
+					var row:HBox = new HBox();
+					row.percentWidth=100;
+					row.height = rowHeight;
+					var bg:uint = 0xFF222222;
+					var self:ContentsTable = this;
+					
+					row.buttonMode = true;
+					row.useHandCursor = true;
+					// row.setStyle("backgroundColor",bg);
+					row.verticalScrollPolicy="off";
+					row.horizontalScrollPolicy="off";
+					row.setStyle("horizontalGap",0);
+					row.setStyle("verticalGap",0);
+					row.setStyle("borderStyle","solid");
+					row.setStyle("borderColor",0xFFFFFF);
+					row.setStyle("borderThickness",1);
+					row.setStyle("borderSides","top");
+					
+					row.addEventListener(MouseEvent.MOUSE_OVER, 
+						function(... args):void
+						{
+							row.setStyle("backgroundColor",0xFFFF0000);
+							row.setStyle("backgroundAlpha",0.4);
+						});
+					
+					row.addEventListener(MouseEvent.MOUSE_OUT, 
+						function(... args):void
+						{
+							row.setStyle("backgroundColor",0x00000000);
+							row.setStyle("backgroundAlpha",0);
+						});
+					
+					row.addEventListener(MouseEvent.CLICK, 
+						function(e:MouseEvent):void
+						{
+							if(e.target is controls.ImageButton) return;
+							
+							selectedItem = obj;
+							self.dispatchEvent(new RecordEvent("recordClick",selectedItem));
+						});
+
+					var contentText:Text = new Text();
+					contentText.htmlText = obj.content;
+					contentText.percentWidth = 100;
+					contentText.mouseChildren=false;
+					contentText.buttonMode = true;
+					contentText.useHandCursor = true;
+
+					var tabLevel:int = obj.level;
+					
+					if(obj.childs.length > 1)
+					{
+						tabLevel --;
+					}
+					
+					var c1:HBox = new HBox();
+					c1.percentWidth = 100;
+					c1.buttonMode = true;
+					c1.useHandCursor = true;
+					c1.verticalScrollPolicy="off";
+					c1.horizontalScrollPolicy="off";
+					c1.setStyle("horizontalAlign","center");
+					c1.setStyle("verticalAlign","middle");
+					c1.setStyle("paddingRight",10);
+					c1.setStyle("paddingLeft",30 + tabLevel * 20);
+					
+					if(obj.childs.length > 1)
+					{
+						var box:MinButton = new MinButton();
+						box.minimize = true;
+						box.data = obj;
+						box.addEventListener(MouseEvent.CLICK,
+							function(event:MouseEvent):void
+							{
+								var btn:MinButton = event.target as MinButton;
+								var r:TreeNodeRecord = btn.data as TreeNodeRecord;
+								if(btn.minimize == true)
+								{
+									r.collapseChilds();
+									
+								}
+								else
+								{
+									collapseAll();
+									r.expendChilds();
+								}
+								
+								updateHeight();
+								event.stopPropagation();
+							});
+						obj.expendButton = box;
+						c1.addChild(box);
+					}
+					
+					c1.addChild(contentText);
+					
+					row.addChild(c1);
+					
+					obj.displayObject = row;
+					obj.table = this;
+				}
+				
+				this.addChildAt(obj.displayObject, index);
+			}
+			public function removeThumbList():void{
+				
+				if(this.contains(currentThumbList)) removeChild(this.currentThumbList);
+			}
+			private function addThumb(obj:TreeNodeRecord, index:int):void
+			{
+				//trace("addThumb");
+				
+				if(obj.url == null || obj.url == "") return;
+				
+				if(startExpend){
+					//trace("startExpend");
+					currentThumbList.percentWidth=100;
+					currentThumbList.setStyle("paddingLeft","30");
+					currentThumbList.setStyle("paddingTop","15");
+					
+					//currentThumbList.setStyle("horizontalGap","50");
+					currentThumbList.setStyle("verticalGap","20");
+					//currentThumbList.setStyle("backgroundColor","0xff00ff");
+					currentThumbList.setStyle("direction","horizontal");
+					this.addChildAt(currentThumbList,0);
+					startExpend = false;
+				}
+				
+
+				if(obj.displayObject == null)
+				{
+					
+					var row:VBox = new VBox();
+					//row.percentWidth=100;
+					row.width = 90;
+					row.height = 140;
+					var bg:uint = 0xFF222222;
+					var self:ContentsTable = this;
+					
+					row.buttonMode = true;
+					row.useHandCursor = true;
+					 
+					row.verticalScrollPolicy="off";
+					row.horizontalScrollPolicy="off";
+					//row.setStyle("horizontalGap",0);
+					//row.setStyle("verticalGap",0);
+					//row.setStyle("borderStyle","solid");
+					row.setStyle("borderColor",0xFFFFFF);
+					row.setStyle("backgroundColor",bg);
+					//row.setStyle("borderThickness",1);
+					//row.setStyle("borderSides","top");
+					row.setStyle("horizontalAlign","center");
+					row.buttonMode = true;
+					row.useHandCursor = true;
+					
+					row.alpha = 0.7;
+					
+					row.addEventListener(MouseEvent.CLICK, 
+						function(e:MouseEvent):void
+						{
+							if(e.target is controls.ImageButton) return;
+							
+							selectedItem = obj;
+							self.dispatchEvent(new RecordEvent("recordClick",selectedItem));
+						});
+					row.addEventListener(MouseEvent.MOUSE_OUT, 
+						function(e:MouseEvent):void{
+							row.alpha = 0.7;
+							self.dispatchEvent(new RecordEvent("recordOver",null));
+						});
+					
+					row.addEventListener(MouseEvent.MOUSE_OVER, 
+						function(e:MouseEvent):void{
+							row.alpha = 1;
+							if(e.target is controls.ImageButton) return;
+							
+							selectedItem = obj;
+							self.dispatchEvent(new RecordEvent("recordOver",selectedItem));
+						});
+					
+					
+					
+					var thumb:Image = new Image();
+					thumb.addEventListener(Event.COMPLETE, function(e:*):void{
+						
+						var w:Number = thumb.content.width;
+						var h:Number = thumb.content.height;
+					 	thumb.height = 95;
+						thumb.width = w /h * thumb.height;
+						
+						trace("thumb.height=" + thumb.height);
+						
+					});
+					
+					thumb.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(e:*):void{
+						
+						
+						trace("thumb.height=" + e.target);
+					});
+					
+					
+					
+					thumb.addEventListener(IOErrorEvent.IO_ERROR, function(e:*):void{
+						e.target.source = e.target.id;
+						//trace("load error:" + e.target);
+					});
+					
+					
+					
+					//getFullUrl(obj.url);
+					thumb.source = getFullUrl(obj.url) ;// obj.thumb;
+					thumb.id= getFullUrl2(obj.url);
+					thumb.scaleContent = true;
+					//thumb.maintainAspectRatio=false;
+					thumb.height = 90;
+					thumb.maintainAspectRatio = true;
+					thumb.setStyle("horizontalAlign","center");
+					
+					row.addChild(thumb);
+					
+					
+					var contentText:Text = new Text();
+					contentText.htmlText = obj.content;
+					contentText.percentWidth = 100;
+					contentText.mouseChildren=false;
+					contentText.buttonMode = true;
+					contentText.useHandCursor = true;
+					contentText.setStyle("backgroundAlpha","0");
+					contentText.setStyle("textAlign","center");
+					contentText.setStyle("borderThickness",0);
+					contentText.setStyle("verticalScrollPolicy","off");
+					contentText.truncateToFit=true;
+					
+					row.addChild(contentText);
+					
+					thumb.toolTip = obj.content;
+					
+					obj.displayObject = row;
+					obj.table = this;
+				}
+
+				currentThumbList.addChild(obj.displayObject);
+			
+			}
+			
+			private function addTreeThumbNode(obj:TreeNodeRecord, index:int):void{
+								
+				//if(obj.level == 0){
+					//addHeader(obj,index);
+				//}
+				//else{
+					
+					addThumb(obj,index);
+				//}
+			}
+			
+			public function handleRecord(obj:TreeNodeRecord, index:int):void
+			{
+				
+				
+				
+				if(obj != null){
+					//trace("obj:TreeNodeRecord index=" + index);
+					addTreeThumbNode(obj,index);
+					
+					//trace("handleRecord(obj:TreeNodeRecord, index:int)");
+					if(!showThumNode) 
+					addTreeNode(obj,index);
+					else addTreeThumbNode(obj,index);
+				}
+				
+				
+				
+			}
+			
+			private 	function getFullUrl(url:String):String
+			{
+				var szUrlSplit:Array =  url.split("/");
+				var lastWord:String = szUrlSplit[szUrlSplit.length-1];
+				if(lastWord.indexOf(".html") != -1){
+					//trace(url.replace(lastWord,""));
+					return url.replace(lastWord,"") + "content/thumbs/thumb1.jpg";
+				}
+				
+				if(url.substr(url.length-1,1) == "/"){
+					return url + "content/thumbs/thumb1.jpg";
+				}
+				return url+"/content/thumbs/thumb1.jpg";;
+			}
+			
+			private 	function getFullUrl2(url:String):String
+			{
+				var szUrlSplit:Array =  url.split("/");
+				var lastWord:String = szUrlSplit[szUrlSplit.length-1];
+				if(lastWord.indexOf(".html") != -1){
+					//trace(url.replace(lastWord,""));
+					return url.replace(lastWord,"") + "content/thumbs/page1.jpg";
+				}
+				
+				if(url.substr(url.length-1,1) == "/"){
+					return url + "content/thumbs/page1.jpg";
+				}
+				return url+"/content/thumbs/page1.jpg";;
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

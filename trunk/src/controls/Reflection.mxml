@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   clipContent="false">
+	<mx:Script>
+		<![CDATA[
+			import flash.display.*;
+			
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			
+			private var _source:DisplayObject = null;
+			
+			private var _reflect:UIComponent = null;
+			
+			public var ignoreVisible:Boolean = true;
+			
+			public function get source():DisplayObject
+			{
+				return _source;
+			}
+
+			public function set source(value:DisplayObject):void
+			{
+				if(_source != null) _source.removeEventListener(FlexEvent.UPDATE_COMPLETE, updateReflection);
+				
+				_source = value;
+				
+				if(_source != null) _source.addEventListener(FlexEvent.UPDATE_COMPLETE, updateReflection);
+				
+				updateReflection();
+			}
+			
+			public function updateReflection(e:* = null):void
+			{
+				if(_reflect != null) this.removeChild(_reflect);
+				
+				if(source == null || source.width == 0 || source.height == 0) return;
+				
+				if(ignoreVisible == false && source.visible == false) return;
+				
+				var rect:Rectangle = new Rectangle(0,0,source.width,source.height);
+				var h:Number = this.height;
+				var mat:Matrix = new Matrix();
+				mat.createGradientBox(rect.width, h, Math.PI / 2, 0, 0);
+				var s:Sprite = new Sprite();
+				s.graphics.beginGradientFill(GradientType.LINEAR, [3355443, 3355443], [0.3, 0.01], [0, 255], mat);
+				s.graphics.drawRect(0, 0, rect.width, h);
+				s.cacheAsBitmap = true;
+				var bmpData:BitmapData = new BitmapData(rect.width, h, true, 0);
+				bmpData.draw(source, new Matrix(source.scaleX, 0, 0, -source.scaleY, 0, rect.height));
+				var bmp:Bitmap = new Bitmap(bmpData);
+				bmp.y = 0.5;
+				bmp.cacheAsBitmap = true;
+				bmp.mask = s;
+				_reflect = new UIComponent();
+				_reflect.addChild(bmp);
+				_reflect.addChild(s);
+				this.addChild(_reflect);
+			}
+			
+			protected override function createChildren():void
+			{
+				super.createChildren();
+				updateReflection();
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

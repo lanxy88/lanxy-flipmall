@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   width="400" 
+		   height="90" 
+		   horizontalScrollBarStyleName="customScrollbarStyle"
+		   xmlns:common="common.*" xmlns:controls="controls.*"
+		   creationComplete="onCreationComplete(event)"
+		   updateComplete="onUpdateComplete(event)"  
+		   verticalScrollPolicy="off"
+			>
+	
+	<mx:Metadata>
+		[Event(name="thumbChange",type="common.events.ThumbChangeEvent")]
+
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.events.ThumbChangeEvent;
+			
+			import mx.controls.Spacer;
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.events.IndexChangedEvent;
+			
+			private var thumbs:Array = [];
+			
+			public var currentIndex:int = 0;
+			
+			private var timer:Timer = new Timer(0.01);
+			
+			private var moveDeltal:int = 0;
+			private var moveCount:int = 0;
+			private var direct:int = 1;
+			
+			private var speed:Number = 10;
+			
+			private var step:int = 2;
+			
+			private var _singleMode:Boolean = false;
+			
+			[Bindable]
+			public  function set singleMode(bSingleMode:Boolean):void
+			{
+				_singleMode = bSingleMode;	
+				if(_singleMode){
+					step = 1;
+				}else{
+					step = 2;
+				}
+			}
+			
+			public var _source:Array;
+			
+			[Bindable]
+			public function set source(value:Array):void
+			{
+				if(!RunTime.showBottomThumb) return;
+				_source = value;
+				//trace(_source);
+				
+				if(_source.length == 0) return;
+				
+				var count:Number = _source.length;
+				var idx:int = 0;
+				
+				var placeholder:Spacer = new Spacer();
+				placeholder.width = 10;
+				//thumbsSlide.addChild(placeholder);
+				
+				//RunTime.singlePageMode = true;
+				
+				if(!RunTime.singlePageMode){
+					
+					for( var i:int = -1; i < count; i+= 2){
+						
+						var item:BottomThumbItem = new BottomThumbItem();
+						item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
+						item.leftPage = i+1;
+						item.rightPage = i+2;
+						if(item.rightPage >= _source.length) item.rightPage = -1;
+						
+						if(i > -1)	item.szLeftThumb = _source[i].thumb;
+						if(i + 1 < _source.length) item.szRightThumb = _source[i+1].thumb;
+						thumbsSlide.addChild(item);
+						item.index = idx;
+						item.y = 11;
+						
+						idx++;
+						this.thumbs.push(item);
+						
+						if(i+2 >= count){
+							item.addEndSpacer();
+						}
+					}
+				}
+				else{
+					
+					for( var i:int = 1; i < count; i+= 1){
+						
+						var item:BottomThumbItem = new BottomThumbItem();
+						item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
+						item.leftPage = i;
+						item.rightPage = -1;
+						
+						
+						item.szLeftThumb = _source[i].thumb;
+						item.szRightThumb = "";
+						
+						thumbsSlide.addChild(item);
+						item.index = idx;
+						item.y = 11;
+						
+						idx++;
+						this.thumbs.push(item);
+						
+						if(i+1 >= count){
+							item.addEndSpacer();
+						}
+					}
+				}
+				
+
+				thumbChange(0);
+				
+			}
+			
+			protected function onCreationComplete(event:FlexEvent):void
+			{
+			}
+			
+			public function get CurrentThumb():BottomThumbItem{
+				return thumbs[currentIndex];
+			}
+			
+			public function gotoThumb(index:int):void{
+				if(!RunTime.showBottomThumb) return;
+				
+				currentIndex = index;
+				thumbChange(index);
+			}
+			
+			private function thumbChange(currentItem:int):void
+			{
+				//currentIndex = currentItem;
+				
+				for each(var item:BottomThumbItem in this.thumbs){
+					item.checkThumbItem(false);
+					
+				}
+				thumbs[currentItem].checkThumbItem(true);
+				
+				var localPoint:Point = contentToLocal(new Point(CurrentThumb.x,CurrentThumb.y));
+				if(localPoint.x + CurrentThumb.width > this.width){
+					
+					moveDeltal = (localPoint.x + CurrentThumb.width -this.width+30);
+					direct = 1;
+					speed = 10;
+					playAnimtion();
+					//this.horizontalScrollPosition += (localPoint.x + CurrentThumb.width -this.width+30);
+				}
+				else if(localPoint.x < 0){
+					moveDeltal = (-1*localPoint.x +30);
+					direct = -1;
+					speed = 10;
+					playAnimtion();
+					//this.horizontalScrollPosition -= (-1*localPoint.x +30);
+				}
+				
+			}
+			
+			public function next():void{
+				speed = 15;
+				if(currentIndex == thumbs.length-1) return;
+				currentIndex++;
+				thumbChange(currentIndex);
+			}
+			
+			public function prev():void{
+				speed = 15;
+				if(currentIndex == 0) return;
+				currentIndex--;
+				thumbChange(currentIndex);
+			}
+			
+			public function nextScreen():void
+			{
+				speed = 50;
+				moveDeltal = this.width;
+				direct = 1;
+				playAnimtion();
+			}
+			
+			public function prevScreen():void
+			{
+				speed =50;
+				moveDeltal = this.width;
+				direct = -1;
+				playAnimtion();
+			}
+			
+			public function playAnimtion():void{
+				moveCount = 0;
+				timer.reset();
+				timer.addEventListener(TimerEvent.TIMER,onTimer);
+				timer.start();
+			}
+			
+			private function onTimer(e:*){
+				
+				if(moveCount >= moveDeltal) {
+					timer.stop();
+					return;
+				}
+				
+				if(maxHorizontalScrollPosition >= horizontalScrollPosition + speed*direct ){
+					
+					horizontalScrollPosition += speed*direct;
+					moveCount +=speed;
+				}
+				else{
+					horizontalScrollPosition = maxHorizontalScrollPosition;
+					timer.stop();
+				}
+			}
+			
+			protected function onThumbClick(event:ThumbChangeEvent):void
+			{
+
+				currentIndex = event.currentThumb;
+				
+				thumbChange(event.currentThumb);
+			
+				dispatchEvent(new ThumbChangeEvent(ThumbChangeEvent.THUMB_CHANGE,event.currentThumb));
+			}
+			
+
+			
+			protected function onUpdateComplete(event:FlexEvent):void
+			{
+				if(horizontalScrollBar != null) horizontalScrollBar.alpha = 0;
+			}
+			
+		]]>
+	</mx:Script>
+	<!-- <mx:HBox id="thumbsSlide" horizontalGap="20"/> -->
+	
+	<mx:Canvas id="thumbsSlide" />
+
+	
+	
+	
+	<!--
+	
+	<fbc:Reflection id="refThumbsSlide"
+					width="{thumbsSlide.width}" height="15"
+					source="{thumbsSlide}"
+					
+					/>
+	
+	-->
+</mx:Canvas>

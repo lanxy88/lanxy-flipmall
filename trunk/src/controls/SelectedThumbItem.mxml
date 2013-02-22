@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="200" height="150" 
+		 verticalScrollPolicy="off"
+		 horizontalScrollPolicy="off"
+		 clipContent="false"
+		 horizontalGap="0"
+		 horizontalAlign="center"
+		 verticalAlign="bottom"
+		 buttonMode="true" 
+		 useHandCursor="true"
+		 creationComplete="loadData()"
+		 >
+	<mx:Script>
+		<![CDATA[
+			import mx.containers.Canvas;
+			import mx.controls.CheckBox;
+			import mx.controls.Image;
+			
+			private var imgs:Array = [];
+			
+			public static var checkBoxes:Array = [];
+			
+			[Bindable]
+			public static var checked:Boolean = false;
+			
+			public static function get checkedCount():int
+			{
+				var count:int = 0;
+				for each(var item:CheckBox in checkBoxes)
+				{
+					if(item.selected == true) count ++;
+				}
+				return count;
+			}
+			
+			public static function uncheckAll():void
+			{
+				for each(var item:CheckBox in checkBoxes)
+				{
+					item.selected = false;
+				}
+				checked = false;
+			}
+			
+			[Bindable]
+			public var pageHeight:int = 100;
+			
+			[Bindable]
+			public var pageWidth:int = 70;
+			
+			private function loadData():void
+			{
+				if(data==null) return;
+				imgs = [];
+				
+				var array:Array = data as Array;
+				
+				var cvs0:Canvas = new Canvas();
+				cvs0.width = 1;
+				cvs0.height = 1;
+				cvs0.horizontalScrollPolicy = "off";
+				cvs0.verticalScrollPolicy = "off";
+				var img0:Image = new Image();
+				img0.addEventListener(Event.COMPLETE, function(e:*):void
+				{
+					var width:Number = img0.content.width;
+					var height:Number = img0.content.height;
+					img0.width = 70;
+					img0.height = height * 70 / width;
+					pageWidth = 70;
+					pageHeight = img0.height;
+					cvs0.width = img0.width;
+					cvs0.height = img0.height + 30;
+					var ck0:CheckBox = new CheckBox();
+					ck0.x = 0;
+					ck0.y = img0.height + 10;
+					ck0.enabled = true;
+					ck0.mouseChildren = true;
+					ck0.buttonMode = true;
+					ck0.addEventListener(MouseEvent.CLICK, onCheckBoxClick);
+					cvs0.addChild(ck0);
+					checkBoxes.push(ck0);
+					ck0.data = array[0];
+					ck0.label = array[0].pageId.toString();
+				});
+				img0.source = array[0].thumb;
+				cvs0.addChild(img0);
+				addChild(cvs0);
+				imgs.push(img0);
+				
+				if(array.length > 1)
+				{
+					var cvs1:Canvas = new Canvas();
+					cvs1.width = 1;
+					cvs1.height = 1;
+					cvs1.horizontalScrollPolicy = "off";
+					cvs1.verticalScrollPolicy = "off";
+					var img1:Image = new Image();
+					img1.addEventListener(Event.COMPLETE, function(e:*):void
+					{
+						var width:Number = img1.content.width;
+						var height:Number = img1.content.height;
+						img1.width = 70;
+						img1.height = height * 70 / width;
+						pageWidth = 70;
+						pageHeight = img0.height;
+						cvs1.width = img1.width;
+						cvs1.height = img1.height + 30;
+						var ck1:CheckBox = new CheckBox();
+						ck1.x = 0;
+						ck1.y = img1.height + 10;
+						ck1.mouseChildren = true;
+						ck1.enabled = true;
+						ck1.buttonMode = true;
+						ck1.addEventListener(MouseEvent.CLICK, onCheckBoxClick);
+						cvs1.addChild(ck1);
+						checkBoxes.push(ck1);
+						ck1.data = array[1];
+						ck1.label = array[1].pageId.toString();
+					});
+					img1.source = array[1].thumb;
+					cvs1.addChild(img1);
+					addChild(cvs1);
+					imgs.push(img1);
+				}
+			}
+			
+			private function onCheckBoxClick(event:MouseEvent):void
+			{
+				var ck:CheckBox = event.currentTarget as CheckBox;
+				if(ck.selected == true)
+				{
+					if(checkedCount >= 16)
+					{
+						ck.selected = false;
+					}
+				}
+				
+				if(checkedCount > 0)
+				{
+					checked = true;
+				}
+				else
+				{
+					checked = false;
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="400" height="300"
+		   clipContent="true"
+		   includeInLayout="true" 
+		   horizontalScrollPolicy="off" verticalScrollPolicy="auto"
+		   >
+	<mx:Script>
+		<![CDATA[
+			private var _source:Array;
+			
+			public function get source():Array
+			{
+				return _source;
+			}
+			
+			public var pageSelectedMode:Boolean = false;
+			
+			[Bindable]
+			public function set source(value:Array):void
+			{
+				_source = value;
+				layout();
+			}
+			
+			public function uncheckAll():void
+			{
+				if(pageSelectedMode == true)
+				{
+					SelectedThumbItem.uncheckAll();
+				}
+			}
+			
+			private var columnCount:int = 6;
+			
+			private function layout():void
+			{
+				this.removeAllChildren();
+				if(_source == null || _source.length == 0) return;
+				var newSource:Array = [];
+				for each(var item:Object in this.source)
+				{
+					newSource.push([item]);
+				}
+				
+				for(var i:int = 0; i < newSource.length; i++)
+				{
+					var col:int = i%columnCount;
+					var row:int = i/columnCount;
+					if(pageSelectedMode == false)
+					{
+						var thumb:ThumbItem = new ThumbItem();
+						thumb.data = newSource[i];
+						thumb.x = col * 120 + 20;
+						thumb.y = row * 150 + 20;
+						this.addChild(thumb);
+					}
+					else
+					{
+						var selectedThumb:SelectedThumbItem = new SelectedThumbItem();
+						selectedThumb.data = newSource[i];
+						selectedThumb.x = col * 120 + 20;
+						selectedThumb.y = row * 150 + 20;
+						this.addChild(selectedThumb);
+					}
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

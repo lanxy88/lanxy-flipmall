@@ -1,0 +1,22 @@
+<!-- <contents> -->
+<!-- 	<content title="TITLE 1" page="3" > -->
+<!-- 		<content title="TITLE 11" page="5" /> -->
+<!-- 		<content title="TITLE 12" page="7" /> -->
+<!-- 		<content title="TITLE 13" page="8" /> -->
+<!-- 	</content> -->
+<!-- 	<content title="TITLE 2" page="32" /> -->
+<!-- </contents> -->
+<contents>
+  <content title="Tillämpning av BSAB – ritningsnumrering och lagernamn" page="1">
+  <content title="I" page="2"/>
+  <content title="Inledning" page="3"/>
+  <content title="CAD-manual - ritningsnumrering och lagerhantering" page="3"/>
+  <content title="Ritningsnumrering" page="4">
+  <content title="Exempel:" page="5"/>
+  </content>
+  <content title="Namngivning ritnings- och modellfiler samt layouter" page="6"/>
+  <content title="Lagerhantering" page="6"/>
+  <content title="Exempel på lagernamn" page="8"/>
+  <content title="Referenser" page="9"/>
+  </content>
+</contents>
