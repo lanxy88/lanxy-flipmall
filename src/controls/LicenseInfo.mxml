@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:BasePopupCanvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+						  xmlns:controls="controls.*"
+						  backgroundColor="0x333333" 
+						  horizontalScrollPolicy="off" verticalScrollPolicy="off" 
+						  borderColor="0xFFFFFF"
+						  borderStyle="solid" borderThickness="2" cornerRadius="3"
+						  clipContent="false"
+						  width="300" height="110" 
+						  >
+	<mx:Script>
+		<![CDATA[
+			public var returnCallback:Function;
+			
+			
+			public override function showDialog(x:Number = NaN, y:Number = NaN, modal:Boolean = true):void
+			{
+				super.showDialog(x,y,modal);
+			}
+			
+			private function closeBook():void
+			{
+				RunTime.close();
+			}
+
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" height="100%" paddingTop="20" paddingLeft="20" paddingBottom="20" paddingRight="20" horizontalAlign="center" verticalGap="3">
+		
+		<mx:TextArea width="100%" height="50" backgroundAlpha="0" borderThickness="0" wordWrap="true" editable="false" text="{l.i.s('LicenseIsTrial','This publication was presented in a trial version with a time limitation of 2 minutes. Open the publication again to review it.')}" />
+
+		<mx:Spacer height="0" />
+		<mx:HBox width="100%" horizontalAlign="center">
+			<mx:Button buttonMode="true" useHandCursor="true" label="{l.i.s('Close','Close')}" click="closeBook()" />
+			
+		</mx:HBox>
+	</mx:VBox>
+</controls:BasePopupCanvas>

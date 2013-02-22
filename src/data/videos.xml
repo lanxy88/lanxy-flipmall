@@ -1,0 +1,28 @@
+<videos>
+	<!-- 
+	<video showControl="true" autoRepeat="true" autoPlay="true" youtubeId="2WuctGWfuPg" 
+		height="342" width="497" y="762" x="655" pagewidth="1240" page="1" />
+		 -->
+
+	<video page="1" x="80" y="100" width="1000" height="800" 
+		 autoPlay="false" showControl="true" stopWhenFlip="false"
+		 autoRepeat="false" url="content/videos/problem_01.swf"
+		/>
+		 
+	<video page="2" x="80" y="100" width="500" height="500" 
+		 autoPlay="true" showControl="true" stopWhenFlip="false"
+		 autoRepeat="false" url="content/videos/test.mp4"
+		/>
+	<video page="3" x="80" y="100" width="1000" height="800" 
+		 autoPlay="false" showControl="true" stopWhenFlip="true"
+		 autoRepeat="false" url="content/videos/test.mp4"
+		/>
+	<video page="5" x="80" y="100" width="1000" height="800" 
+		 autoPlay="false" showControl="true" stopWhenFlip="false"
+		 autoRepeat="false" url="content/videos/test.swf"
+		/>
+	<video page="10" x="100" y="100" width="600" height="400" 
+		 autoPlay="false" autoRepeat="true" youtubeId="7ZsKqbt3gQ0"
+		/>
+	
+</videos>

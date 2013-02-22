@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:ImageButton xmlns:mx="http://www.adobe.com/2006/mxml"
+					xmlns:common="common.*" width="16" height="16"
+					icon="@Embed(source='assets/blackStyle/btnCloseBox16.png')"
+					xmlns:controls="controls.*"
+					useHandCursor="true" buttonMode="true"
+					>
+</controls:ImageButton>

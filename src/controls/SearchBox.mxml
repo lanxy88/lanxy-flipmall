@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:BaseVBox xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:common="common.*"
+				   xmlns:controls="controls.*"
+				   width="500" height="{btnMin.minimize ? 30 : table.height + 185}"
+				   backgroundAlpha="0.8" backgroundColor="0x000000" borderColor="#FFFFFF"
+				   borderStyle="solid" borderThickness="2" cornerRadius="3"
+				   horizontalScrollPolicy="off" keyDown="onKeyDown(event)" verticalGap="0"
+				   verticalScrollPolicy="off">
+	<mx:Metadata>
+		[Event(name="change",type="flash.events.Event")]
+		[Event(name="recordClick",type="common.RecordEvent")]
+		[Event(name="close", type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.RecordEvent;
+			import common.RpcRequest;
+			import common.SearchResult;
+			import common.SearchTask;
+			import common.TreeNodeRecord;
+			
+			import flash.events.KeyboardEvent;
+			import flash.ui.Keyboard;
+			
+			import mx.utils.StringUtil;
+			
+			//import org.flexunit.internals.runners.statements.RunAfters;
+			
+			import utils.Helper;
+			
+			[Bindable]
+			public var title:String = "Search";
+			
+			[Bindable]
+			public var pageCount:int = 10;
+			
+			private function createPageSource(count:int):Array
+			{
+				var list:Array = [];
+				for(var i:int = 0; i < count; i++)
+				{
+					list.push(i+1);
+				}
+				return list;
+			}
+			
+			public function get minimize():Boolean
+			{
+				return this.btnMin.minimize;
+			}
+			
+			[Bindable]
+			public function set minimize(value:Boolean):void
+			{
+				this.btnMin.minimize = value;
+			}
+			
+			private function search():void
+			{
+				if(this.cbSearchPreviousIssues.selected == false)
+				{
+					searchThisBook();
+				}
+				else
+				{
+					searchPrevIssues();
+				}
+			}
+			
+			private function searchPrevIssues()
+			{
+				var keyword:String = StringUtil.trim(searchInput.text);
+				if(!keyword) return;
+				
+				var results:Array = this.cbPageRange.selected == false
+					? Helper.search(RunTime.bookContent,keyword,this.cbMatchCase.selected)
+					: Helper.search(RunTime.bookContent,keyword,this.cbMatchCase.selected,
+						int(cmbMinPage.selectedItem),int(cmbMaxPage.selectedItem)
+					);
+				
+				table.source = results;
+				
+				var nodes:Vector.<TreeNodeRecord> = RunTime.getAllIssues();
+				var tasks:Array = [];
+				
+				var checkTasks:Function = function():void
+				{
+					for each(var item:SearchTask in tasks)
+					{
+						if(item.finished == true && item.resultsExtracted == false)
+						{
+							item.resultsExtracted = true;
+							results = results.concat(item.results);
+							table.source = results;
+						}
+					}
+				};
+
+				for each(var node:TreeNodeRecord in nodes)
+				{
+					var searchUrl:String = node.getBaseUrl();
+					if(searchUrl)
+					{
+						var task:SearchTask = new SearchTask();
+						task.url = searchUrl + "/data/search.xml";
+						task.keyword = keyword;
+						task.matchCase = cbMatchCase.selected;
+						task.node = node;
+						task.onExitCallback = checkTasks;
+						tasks.push(task);
+					}
+				}
+				
+				for each(var item:SearchTask in tasks)
+				{
+					item.start();
+				}
+			}
+			
+			private function searchThisBook()
+			{
+				RunTime.searchString="";
+				var keyword:String = StringUtil.trim(searchInput.text);
+				if(!keyword) return;
+				
+				RunTime.logSearch(keyword);
+				
+				var results:Array = this.cbPageRange.selected == false
+					? Helper.search(RunTime.bookContent,keyword,this.cbMatchCase.selected)
+					: Helper.search(RunTime.bookContent,keyword,this.cbMatchCase.selected,
+						int(cmbMinPage.selectedItem),int(cmbMaxPage.selectedItem)
+					);
+				table.source = results;
+				if(results.length == 0)
+				{
+					tbNoResults.height = 20;
+					tbNoResults.visible = true;
+					RunTime.searchString="";
+				}
+				else
+				{
+					tbNoResults.height = 0;
+					tbNoResults.visible = false;
+					RunTime.searchString = keyword;
+				}
+			}
+			
+			private function onRecordClick(event:RecordEvent):void
+			{
+				var e:RecordEvent = new RecordEvent("recordClick",event.record);
+				this.dispatchEvent(e);
+			}
+			
+			private function onClose():void{
+				table.source = [];
+				var e:Event = new Event("close");
+				this.dispatchEvent(e);
+			}
+			
+			public function focus():void
+			{
+				searchInput.setFocus();
+			}
+			
+			private function onKeyDown(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					search();
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="100%" height="25">
+		<mx:Label left="8" text="{l.i.s('Search')}" verticalCenter="0"/>
+		<controls:MinButton id="btnMin" right="28" verticalCenter="0">
+		</controls:MinButton>
+		<controls:ImageButton id="btnClose" right="8" click="{visible=false;onClose();}"
+							  icon="@Embed(source='assets/blackStyle/btnCloseBox.png')"
+							  verticalCenter="0"/>
+	</mx:Canvas>
+	<mx:Canvas width="100%" height="1" backgroundColor="0xFFFFFF"/>
+	<mx:Canvas width="100%" height="110" verticalScrollPolicy="off">
+		<mx:TextInput id="searchInput" left="20" top="10" width="300" backgroundColor="0xFFFFFFFF"
+					  color="#FFFFFF" focusThickness="0"/>
+		<mx:Button left="340" top="10" label="{l.i.s('Search')}" buttonMode="true" click="search()"
+				   useHandCursor="true"/>
+		<mx:CheckBox id="cbPageRange" x="20" y="40" width="100"
+					 label="{l.i.s('PageRange','Page Range')}" color="#FFFFFF"/>
+		<!-- 不使用 ComboBox 可以减少 50k 尺寸 -->
+		<mx:ComboBox id="cmbMinPage" x="120" y="40" width="65" color="#000000"
+					 dataProvider="{createPageSource(pageCount)}" editable="false"
+					 enabled="{cbPageRange.selected}" rowCount="{Math.min(20,pageCount)}"/>
+		<mx:Label x="195" y="40" color="#FFFFFF" text="-"/>
+		<mx:ComboBox id="cmbMaxPage" x="215" y="40" width="65" color="#000000"
+					 dataProvider="{createPageSource(pageCount)}" editable="false"
+					 enabled="{cbPageRange.selected}" rowCount="{Math.min(20,pageCount)}"/>
+		<mx:CheckBox id="cbMatchCase" x="20" y="65" label="{l.i.s('MatchCase','Match Case')}"
+					 color="#FFFFFF"/>
+		<mx:CheckBox id="cbSearchPreviousIssues" x="20" y="90"
+					 label="{l.i.s('SearchPreviousIssues','Search Previous Issues')}"
+					 color="#FFFFFF"/>
+	</mx:Canvas>
+	<mx:VBox id="searchResults" width="100%" height="100%" paddingLeft="20" paddingRight="20"
+			 paddingTop="20" verticalGap="0">
+		<mx:Label id="tbNoResults" visible="false" text="No Results Matched."/>
+		<controls:VTable id="table" visible="{(table.source as Array).length &gt; 0}" width="100%"
+						 borderColor="0xFFFFFF" borderStyle="solid"
+						 deleteToolTip="{l.i.s('Delete')}" editable="true"
+						 recordClick="onRecordClick(event)" source="{[]}"
+						 title="{l.i.s('SearchResults','Search Results')}">
+		</controls:VTable>
+	</mx:VBox>
+</controls:BaseVBox>

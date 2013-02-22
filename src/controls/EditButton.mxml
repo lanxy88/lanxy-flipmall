@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:ImageButton xmlns:mx="http://www.adobe.com/2006/mxml" 
+					xmlns:common="common.*"
+					icon="{editing ? iconSave : iconEdit}"
+					toolTip="{editing 
+					? l.i.s('Save','Save')
+					: l.i.s('Edit','Edit')}"
+					click="revert()" xmlns:controls="controls.*"
+					>
+	<mx:Script>
+		<![CDATA[
+			[Embed(source='assets/blackStyle/btnEditButton.png')]
+			private var iconEdit:Class;
+			
+			[Embed(source='assets/btnSaveNote.png')]
+			private var iconSave:Class;
+			
+			[Bindable]
+			public var editing:Boolean = false;
+
+			private function revert():void
+			{
+				editing = !editing;
+				toolTip = "";
+				if(editing) 
+				{
+					toolTip = l.i.s('Save','Save');
+				}
+				else
+				{
+					toolTip=  l.i.s('Edit','Edit');
+				}
+			}
+		]]>
+	</mx:Script>
+</controls:ImageButton>

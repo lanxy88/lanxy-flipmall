@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="400" height="300" 
+		 xmlns:local="*" xmlns:common="common.*"
+		 >
+	<mx:Script>
+		<![CDATA[
+			private var _source:*;
+
+			public function get source():*
+			{
+				return _source;
+			}
+
+			[Bindable]
+			public function set source(value:*):void
+			{
+				_source = value;
+				if(_source)
+				{
+					if(_source is Bitmap)
+					{
+						logo.x = (this.width - Bitmap(_source).width) * width;
+						logo.setStyle("verticalCenter", -0.5 * Bitmap(_source).width - 50);
+						this.callLater(onComplete);
+					}
+				}
+			}
+			
+			public function set progValue(val:int):void
+			{
+				prog.setProgress(val);
+			}
+			
+			public function onComplete():void
+			{
+				logo.setStyle("verticalCenter", -0.5 * logo.contentHeight - 50);
+				logo.visible = true;
+				prog.visible = true;
+			}
+		]]>
+	</mx:Script>
+	<local:AppleStylePreloader id="prog"
+							   horizontalCenter="0"
+							   verticalCenter="0" 
+							   width="0.1" height="0.1" />
+	<mx:Image id="logo" horizontalCenter="0" verticalCenter="-100"
+			  source="{source}" complete="onComplete()" visible="false" />
+</mx:Canvas>

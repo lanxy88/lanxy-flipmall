@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:UIComponent xmlns:mx="http://www.adobe.com/2006/mxml" scaleX="0" scaleY="0">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			
+			import qs.controls.SuperImage;
+			
+			private var _content:DisplayObject;
+			
+			public var cnt:DisplayObject = null;
+			
+			private var contentWidth:Number = 0;
+			private var contentHeight:Number = 0;
+			
+			public override function set width(val:Number):void
+			{
+				super.width = val;
+				if(_content != null && contentWidth > 0)
+				{
+					this.scaleX = width  / contentWidth;
+				}
+			}
+			
+			public override function set height(val:Number):void
+			{
+				super.height = val;
+				if(_content != null && contentHeight > 0)
+				{
+					this.scaleY = height  / contentHeight;
+				}
+			}
+
+			public function get content():DisplayObject
+			{
+				return _content;
+			}
+
+			public function set content(value:DisplayObject):void
+			{
+				if(_content != null)
+				{
+					this.removeChild(_content);
+				}
+				
+				_content = value;
+				if(value != null)
+				{
+					if(value.width == 0 && value is Loader)
+					{
+						if( Loader(value).content == null || Loader(value).content.width == 0)
+						{
+							Loader(value).contentLoaderInfo.removeEventListener(Event.COMPLETE,onLoadComplete);
+							Loader(value).contentLoaderInfo.addEventListener(Event.COMPLETE,onLoadComplete);
+						}
+						else
+						{
+							_content = SuperImage.getSmoothedContent(Loader(value).content);
+							onLoadComplete();
+						}
+					}
+					else
+					{
+						onLoadComplete();
+					}
+				}
+			}
+			
+			private function onLoadComplete(e:Event = null):void
+			{
+				this.addChildAt(_content,0);
+				contentWidth = _content.width;
+				contentHeight = _content.height;
+				
+				if(_content != null && contentWidth > 0)
+				{
+					this.scaleX = width  / contentWidth;
+				}
+				if(_content != null && contentHeight > 0)
+				{
+					this.scaleY = width  / contentWidth;
+				}
+
+			}
+			
+			public override function addChild(child:DisplayObject):DisplayObject
+			{
+				if(child == null || this.contains(child) == true) return null;
+				super.addChild(child);
+				return child;
+			}
+		]]>
+	</mx:Script>
+</mx:UIComponent>

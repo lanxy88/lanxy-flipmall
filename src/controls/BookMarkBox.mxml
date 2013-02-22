@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:BaseVBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="500" height="{btnMin.minimize ? 30 : table.height + 200}"
+		 cornerRadius="3" borderStyle="solid" borderColor="#FFFFFF" borderThickness="2" 
+		 backgroundColor="0x000000" backgroundAlpha="0.8" verticalGap="0"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:common="common.*" xmlns:controls="controls.*">
+	<mx:Metadata>
+		[Event(name="recordClick",type="common.RecordEvent")]
+		[Event(name="recordEdit",type="common.RecordEvent")]
+		[Event(name="recordDelete",type="common.RecordEvent")]
+		[Event(name="recordAdd",type="common.RecordEvent")]
+		[Event(name="removeAll",type="flash.events.Event")]
+		[Event(name="change",type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.BookMarkRecord;
+			import common.Record;
+			import common.RecordEvent;
+			import common.events.BookEvent;
+			
+			import controls.BookMarkEditor;
+			
+			import mx.utils.StringUtil;
+			
+			import qs.controls.FlexBook;
+			
+			import utils.PageNumHelper;
+			
+			[Bindable]
+			public var leftPage:int = -1;
+			
+			[Bindable]
+			public var rightPage:int = -1;
+			
+			[Bindable]
+			public var book:FlexBook;
+			
+			private var _currentBookPageIndex:int = -1;
+			
+			[Bindable]
+			public var bookMarkRecords:Array = [];
+			
+			[Bindable]
+			public function get currentBookPageIndex():int
+			{
+				return _currentBookPageIndex;
+			}
+
+			public function set currentBookPageIndex(value:int):void
+			{
+				_currentBookPageIndex = value;
+			}
+
+			private function containsBookMark(page:int):Boolean
+			{
+				for each(var item:Record in bookMarkRecords)
+				{
+					if(item.page == page) return true;
+				}
+				
+				return false;
+			}
+			
+			public function get minimize():Boolean
+			{
+				return this.btnMin.minimize;
+			}
+
+			[Bindable]
+			public function set minimize(value:Boolean):void
+			{
+				this.btnMin.minimize = value;
+			}
+			
+			public function getY(page:int):int
+			{
+				var maxHeight:int = 800  - 150;
+				var minHeight:int = 20;
+				var offset:int = 20;
+				var prev:BookMarkRecord = null;
+				for each(var item:BookMarkRecord in this.bookMarkRecords)
+				{
+					if(item.page < page)
+					{
+						if(prev == null) prev = item;
+						else
+						{
+							if(prev.page < item.page)
+							{
+								prev = item;
+							}
+						}
+					}
+				}
+				
+				var y:int = prev == null ? 30 : prev.y + 10 + book.bookmarkHeight;
+				if(y > maxHeight)
+				{
+					y = minHeight + page % 10;
+				}
+				return y;
+			}
+			
+			public function getLeftPageNumber():int
+			{
+				return utils.PageNumHelper.convertInnerPageToRealPage(book.getLeftPageNumber());
+			}
+			
+			public function getRightPageNumber():int
+			{
+				return utils.PageNumHelper.convertInnerPageToRealPage(book.getRightPageNumber());
+			}
+			
+			public function canAddToLeftPage(records:Array,book:FlexBook,currentPageIndex:int, pages:Array):Boolean
+			{
+				if(book == null) return false;
+				var pageNum:int = getLeftPageNumber();
+				return (pageNum >= 0 && pageNum <= RunTime.pageCount) ? !containsBookMark(pageNum) : false;
+			}
+			
+			public function canAddToRightPage(records:Array,book:FlexBook,currentPageIndex:int, pages:Array):Boolean
+			{
+				if(book == null) return false;
+				var pageNum:int = getRightPageNumber();
+				var val:Boolean = (pageNum >= 0 && pageNum <= RunTime.pageCount) ? !containsBookMark(pageNum) : false;
+				return val;
+			}
+			
+			public function canAdd(records:Array,book:FlexBook,currentPageIndex:int, pages:Array):Boolean
+			{
+				return canAddToLeftPage(records,book,currentPageIndex, pages) 
+				|| canAddToRightPage(records,book,currentPageIndex, pages);
+			}
+			
+			private function onRecordClick(event:RecordEvent):void
+			{
+				var e:RecordEvent = new RecordEvent("recordClick",event.record);
+				this.dispatchEvent(e);
+			}
+
+			private function onRecordEdit(event:RecordEvent):void
+			{
+			}
+
+			private function onRecordDelete(event:RecordEvent):void
+			{
+				var e:RecordEvent = new RecordEvent("recordDelete",event.record);
+				this.dispatchEvent(e);
+			}
+			
+			private function save():void
+			{
+				var page:int = -1;
+				if(this.rbLeft.selected == true)
+					page = this.getLeftPageNumber();
+				else if(this.rbRight.selected == true)
+					page = this.getRightPageNumber();
+				
+				var content:String = StringUtil.trim(this.markInput.text);
+				if(content.length > 0 && page > 0)
+				{
+					var y:int = this.getY(page);
+					var r:BookMarkRecord = new BookMarkRecord(content,page, color.selectedColor,y, true);
+					var e:RecordEvent = new RecordEvent("recordAdd",r);
+					this.dispatchEvent(e);
+				}
+				
+				this.markInput.text = "";
+				
+			}
+			
+			private function onRemoveAll():void
+			{
+				this.dispatchEvent(new Event("removeAll"));
+			}
+]]>
+	</mx:Script>
+	<mx:Canvas width="100%" height="25">
+		<mx:Label text="{l.i.s('Bookmark')}" left="8" verticalCenter="0"/>
+		<controls:MinButton id="btnMin" verticalCenter="0" right="28">
+		</controls:MinButton>
+		<controls:ImageButton id="btnClose" 
+							verticalCenter="0" right="8" 
+							icon="@Embed(source='assets/blackStyle/btnCloseBox.png')"
+							click="{visible=false}"
+							/>
+	</mx:Canvas>
+	<mx:Canvas width="100%" height="1" backgroundColor="0xFFFFFF" />
+	<mx:HBox width="100%" paddingLeft="20" paddingRight="20" paddingTop="20">
+		<mx:RadioButtonGroup id="group">
+		</mx:RadioButtonGroup>
+		<mx:RadioButton label="{l.i.s('AddLeftBookmark','Add Left Bookmark')}" color="0xFFFFFF" id="rbLeft" group="{group}"
+						enabled="{canAddToLeftPage(bookMarkRecords,book,currentBookPageIndex, RunTime.bookPages)}"
+						selected="{canAddToLeftPage(bookMarkRecords,book,currentBookPageIndex, RunTime.bookPages)?true:false}"
+						>
+		</mx:RadioButton>
+		<mx:Spacer width="100%" />
+		<mx:RadioButton label="{l.i.s('AddRightBookmark','Add Right Bookmark')}" color="0xFFFFFF" id="rbRight"  group="{group}"
+						enabled="{canAddToRightPage(bookMarkRecords,book,currentBookPageIndex, RunTime.bookPages)}" 
+						selected="{canAddToLeftPage(bookMarkRecords,book,currentBookPageIndex, RunTime.bookPages)?
+						false:canAddToRightPage(bookMarkRecords,book,currentBookPageIndex, RunTime.bookPages)}">
+		</mx:RadioButton>
+	</mx:HBox>
+	<mx:HBox width="100%" paddingLeft="20" paddingRight="20" paddingTop="10">
+		<mx:TextInput id="markInput"
+					  color="#FFFFFF" 
+					  backgroundColor="0xFFFFFFFF"
+					  focusThickness="0"
+					  width="100%"/>
+		<mx:ColorPicker id="color" width="22" height="22" selectedColor="{0xFF00FF00}"/>
+	</mx:HBox>
+	<mx:HBox width="100%" paddingLeft="20" paddingRight="20" paddingTop="10">
+		<mx:Button label="{l.i.s('Save')}" 
+				   buttonMode="true" 
+				   useHandCursor="true"
+				   enabled="{canAdd(bookMarkRecords,book,currentBookPageIndex, RunTime.bookPages)}"
+				   click="save()"
+				   />
+		<mx:Spacer width="100%" />
+		<mx:Button label="{l.i.s('RemoveAll','Remove All')}" 
+				   buttonMode="true" 
+				   useHandCursor="true" 
+				   click="{onRemoveAll()}"
+				   />
+	</mx:HBox>
+	<mx:Box width="100%" height="100%" paddingTop="20" paddingLeft="20" paddingRight="20" >
+		<controls:VTable width="100%" borderStyle="solid" borderColor="0xFFFFFF" editable="true" id="table"
+					   deleteToolTip="{l.i.s('Delete')}"
+					   title="{l.i.s('Bookmarks')}"
+					   source="{bookMarkRecords}"
+					   editClass="controls.BookMarkEditor"
+					   recordEdit="onRecordEdit(event)" 
+					   recordDelete="onRecordDelete(event)" 
+					   recordClick="onRecordClick(event)"
+					   >
+		</controls:VTable>
+	</mx:Box>
+</controls:BaseVBox>

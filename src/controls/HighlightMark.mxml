@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:common="common.*" 
+		   includeInLayout="false"
+		   backgroundColor="{record.highlightColor}"
+		   backgroundAlpha="0.6"
+		   borderColor="0x000000" 
+		   borderThickness="{record.detailVisible?1:0}"
+		   borderStyle="solid"
+		   clipContent="false" 
+		   creationComplete="{layoutDetail()}"
+		   horizontalScrollPolicy="off" 
+		   verticalScrollPolicy="off"
+		   mouseDown="onMouseDown(event)"
+		   mouseUp="onMouseUp(event)"
+		   mouseOut="onMouseOut(event)"
+		   mouseOver="onMouseOver(event)" xmlns:controls="controls.*"
+		   >
+	<mx:Metadata>
+		[Event(name="recordDelete",type="common.RecordEvent")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.HighlightRecord;
+			import common.Record;
+			import common.RecordEvent;
+			
+			import mx.managers.CursorManager;
+			
+			[Bindable]
+			public var record:HighlightRecord;
+			
+			private var mouseDownPoint:Point;
+			private var mouseUpPoint:Point;
+			
+			public var drawing:Boolean = false;
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				if(RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_ON && drawing == false)
+				{
+					if(event.localX > 0 && event.localY > 0 && event.localX < width && event.localY < height)
+					{
+						mouseDownPoint = new Point(event.stageX,event.stageY);
+						RunTime.CurrentMovingObject = this;
+					}
+				}
+			}
+			
+			private function onMouseOver(event:MouseEvent):void
+			{
+				if(RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_ON && drawing == false)
+				{
+					event.stopPropagation();
+					CursorManager.removeAllCursors();
+				}
+			}
+			
+			private function onMouseUp(event:MouseEvent):void
+			{
+				if(mouseDownPoint == null) return;
+				if(RunTime.MouseState != RunTime.MOUSE_STATE_HIGHLIGHT_ON) return;
+				if(drawing == true) return;
+				
+				mouseUpPoint = new Point(event.stageX,event.stageY);
+				
+				if(Math.abs(mouseUpPoint.x - mouseDownPoint.x) < 3 
+					&&Math.abs(mouseUpPoint.y - mouseDownPoint.y) < 3)
+				{
+					record.detailVisible = !detail.visible;
+					layoutDetail();
+				}
+				
+				mouseDownPoint = null;
+			}
+			
+			private function onMouseOut(event:MouseEvent):void
+			{
+				mouseUpPoint = null;
+				mouseDownPoint = null;
+				if(RunTime.MouseState == RunTime.MOUSE_STATE_HIGHLIGHT_ON)
+				{
+					CursorManager.setCursor(RunTime.CURSOR_HIGHLIGHT,2,0,-30);
+				}
+			}
+			
+			private function layoutDetail():void
+			{
+				if(isNaN(record.detailX) || isNaN(record.detailY))
+				{
+					detail.x = 0;
+					detail.y = - 240;
+					if(detail.y + y < 20)
+					{
+						detail.y = 70;
+					}
+					record.detailX = detail.x;
+					record.detailY = detail.y;
+				}
+				else
+				{
+					detail.x = record.detailX;
+					detail.y = record.detailY;
+				}
+
+				detail.invalidateDisplayList();
+			}
+			
+			public function checkDetailPos():void
+			{
+				if(detail == null) return;
+				
+				// 确保缩放时，编辑框在stage的内部
+				var sw:int = stage.width;
+				var sh:int = stage.height;
+				var root:Point = this.localToGlobal(new Point());
+				if(detail.x + root.x < 20) detail.x = 20 - root.x;
+				if(detail.y + root.y < 20) detail.y = 20 - root.y;
+				if(detail.x + root.x > sw - 260) detail.x = sw -root.x - 260;
+				if(detail.y + root.y > sh - 260) detail.y = sh -root.y- 260;
+				record.detailX = detail.x;
+				record.detailY = detail.y;
+				
+				detail.invalidateDisplayList();
+			}
+			
+			private function onRecordDelete(event:RecordEvent):void
+			{
+				RunTime.mainPage.deleteHighlight(event.record as HighlightRecord);
+				var record:Record = event.record;
+				this.dispatchEvent(new RecordEvent("recordDelete",record));
+			}
+			
+			public function extendTo(xx:Number,yy:Number):void
+			{
+				if(parent == null) return;
+				
+				var pWidth:Number = this.parent.width;
+				var pHeight:Number = this.parent.height;
+				
+				record.destXPos = xx / pWidth;
+				record.destYPos = yy / pHeight;
+				
+				layout();
+				layoutDetail();
+				this.invalidateDisplayList();
+			}
+			
+			public function layout():void
+			{
+				var xxPos:Number = Math.min(record.xPos,record.destXPos);
+				var yyPos:Number = Math.min(record.yPos,record.destYPos);
+				
+				x = parent.width * xxPos;
+				y = parent.height * yyPos;
+				
+				width = Math.max(HighlightRecord.MIN_SIZE, Math.abs(record.xPos - record.destXPos)*parent.width);
+				height = Math.max(HighlightRecord.MIN_SIZE, Math.abs(record.yPos - record.destYPos)*parent.height);
+				
+				if(width > 0 && height > 0 && record.finished == false)
+				{
+					//trace("record.detailX=" + record.detailX +  ",record.detailY=" +  record.detailY);
+					RunTime.mainPage.addHighlight(record);
+					record.finished = true;
+				}
+			}
+		]]>
+	</mx:Script>
+	<controls:ImageButton id="btnNote" x="0" y="-16"
+						icon="{RunTime.ICON_HIGHLIGHT_NOTE}" 
+						toolTip="{record.content}" visible="{record.content || record.detailVisible}"
+						/>
+	<controls:HighlightMarkDetail record="{record}"
+						   id="detail"
+						   visible = "{record.detailVisible}"
+						   recordDelete="onRecordDelete(event)"
+						   >
+	</controls:HighlightMarkDetail>
+</mx:Canvas>

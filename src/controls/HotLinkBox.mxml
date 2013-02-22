@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		 alpha="{hotlink.opacity}"
+		 useHandCursor="{showHandCursor(hotlink)}"
+		 buttonMode="{showHandCursor(hotlink)}"
+		 mouseDown="onMouseDown(event)"
+		 width="{hotlink.width}" 
+		 height="{hotlink.height}"
+		 x="{hotlink.x}"
+		 y="{hotlink.y}"
+		 backgroundColor="{getBgColor(mouseOver,hotlink)}"
+		 paddingLeft="{hotlink.paddingLeft}"
+		 paddingRight="{hotlink.paddingRight}" 
+		 mouseOver="onMouseOver(event)" 
+		 mouseOut="onMouseOut(event)"
+		 toolTip="{toTooltip(hotlink)}"
+		 horizontalScrollPolicy="off" 
+		 verticalScrollPolicy="off"
+		 >
+	<mx:Script>
+		<![CDATA[
+			import common.HotLink;
+			
+			import flash.net.navigateToURL;
+			
+			import mx.managers.PopUpManager;
+			
+			import utils.ContentHelper;
+			
+			[Bindable]
+			public var hotlink:HotLink;
+			
+			[Bindable]
+			public var mouseOver:Boolean = false;
+			
+			private function getBgColor(mouseOver:Boolean, link:HotLink):uint
+			{
+				return mouseOver ? link.rolloverColor : link.color;
+			}
+			
+			private function showHandCursor(link:HotLink):Boolean
+			{
+				return (hotlink.destination || hotlink.message || hotlink.youtubeId)?true:false;
+			}
+			
+			private function toTooltip(link:HotLink):String
+			{
+				return link.rolloverText;
+			}
+			
+			private function getLink(link:HotLink):Object
+			{
+				var linkType:String = "none";
+				var linkObj:* = 0;
+				var rawType:String = link.type;
+				var dest:String = link.destination;
+				switch(rawType)
+				{
+					case 'image':
+					case 'video':
+					case 'audio':
+					case 'message':
+					case 'message-hover':
+						linkType = rawType;
+						linkObj = dest;
+						break;
+					case 'url':
+					default:
+						if(dest.indexOf("page:") == 0)
+						{
+							linkType = "page";
+							linkObj = int(dest.substr("page:".length));
+						}
+						else if(dest.indexOf("mailto:") == 0)
+						{
+							linkType = "email";
+							linkObj = dest;
+						}
+						else if(dest)
+						{
+							linkType = "http";
+							linkObj = dest;
+						}
+						break;
+				}
+				return {dest:linkObj,type:linkType};
+			}
+			
+			private function getLinkToolTip(link:HotLink):String
+			{
+				// 如果用户未指定rolloverText，则不显示tooltip
+				return "";
+				
+//				if(link==null) return "";
+//				var result:Object = getLink(link);
+//				var linkType:String = result.type;
+//				var dest:* = result.dest;
+//				if(linkType == "page")
+//				{
+//					return l.i.s('GotoPage','Goto Page') + ' ' + int(dest).toString();
+//				}
+//				else
+//				{
+//					return "";
+//				}
+			}
+			
+			private var hoverContent:ComboContent;
+			
+			private function onMouseOver(event:MouseEvent):void
+			{
+				mouseOver = true;
+				this.alpha = this.hotlink.rolloverOpacity;
+				
+
+				if(hotlink.type == "message-hover")
+				{
+					if(hoverContent == null || hoverContent.parent == null)
+					{
+						var pos:Point = RunTime.computePopupPosition(event,hotlink.popupWidth,hotlink.popupHeight);
+						hoverContent = ContentHelper.showMessageHover(hotlink.message, pos.x, pos.y, hotlink);
+						
+					}
+				}
+				else if(hotlink.type == "image-hover")
+				{
+					if(hoverContent == null || hoverContent.parent == null)
+					{
+						var pos:Point = RunTime.computePopupPosition(event,hotlink.popupWidth,hotlink.popupHeight);
+						hoverContent = ContentHelper.showImageHover(hotlink.destination, 
+							pos.x, pos.y, hotlink,hotlink.popupWidth, hotlink.popupHeight);
+					}
+				}
+			}
+			
+			private function onMouseOut(event:MouseEvent):void
+			{
+				mouseOver = false;
+				alpha = this.hotlink.opacity;
+				if(hotlink.type == "message-hover" || hotlink.type == "image-hover")
+				{
+					if(hoverContent != null)
+					{
+						hoverContent.close();
+					}
+				}
+			}
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				if(!hotlink.destination && !hotlink.message && !hotlink.youtubeId) return;
+				
+				//if(RunTime.singlePageMode) RunTime.sModeBook.audio.playClickSound();
+				//else RunTime.book.audio.playClickSound();
+				
+				if(RunTime.singlePageMode && hotlink.clickSound) RunTime.sModeBook.audio.playClickSound();
+				else if(hotlink.clickSound) RunTime.book.audio.playClickSound();
+				
+				var result:Object = getLink(hotlink);
+				var linkType:String = result.type;
+				var dest:* = result.dest;
+				switch(linkType)
+				{
+					case "page":
+						RunTime.mainPage.gotoPage(int(dest));
+						break;
+					case "email":
+						flash.net.navigateToURL( new URLRequest(String(dest)), hotlink.target);
+						RunTime.logClickLink(String(dest));
+						break;
+					case "image":
+						if(String(dest).indexOf("swf") > 0)
+						{
+							ContentHelper.showVideo(String(dest), hotlink.youtubeId,hotlink.popupWidth, hotlink.popupHeight);
+						}
+						else
+						{
+							ContentHelper.showImage(String(dest), hotlink.popupWidth, hotlink.popupHeight);
+						}
+						RunTime.logClickLink(String(dest));
+						break;
+					case "video":
+						ContentHelper.showVideo(String(dest), hotlink.youtubeId,hotlink.popupWidth, hotlink.popupHeight);
+						break;
+					case "audio":
+						ContentHelper.showAudio(String(dest));
+						break;
+					case "message":
+						ContentHelper.showMessage(hotlink.message, hotlink);
+						break;
+					case "message-hover":
+						break;
+					case "none":
+					default:
+						RunTime.clickHref(String(dest),hotlink.target);
+						RunTime.logClickLink(String(dest));
+						break;
+				}
+				event.stopPropagation();
+			}
+			
+			private function onContentMouseDown(event:MouseEvent):void
+			{
+				if(hotlink.isRichText == true)
+				{
+					event.stopPropagation();
+				}
+				else if(hotlink.title)
+				{
+					event.stopPropagation();
+					onMouseDown(event);
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:TextArea editable="false"
+				 backgroundAlpha="0" borderThickness="0"
+				 mouseChildren="{hotlink.isRichText ? true : false}"
+				 width="100%" 
+				 htmlText="{hotlink.title}"
+				 fontSize="{hotlink.fontSize}" 
+				 color="{hotlink.fontColor}"
+				 mouseDown="onContentMouseDown(event)"
+			  />
+	<mx:Label right="0" textAlign="right" mouseChildren="false"
+			  text="{hotlink.pageText}"
+			  fontSize="{hotlink.fontSize}" 
+			  color="{hotlink.fontColor}" 
+			  width="{hotlink.pageText?50:0}"
+			  />
+</mx:Canvas>

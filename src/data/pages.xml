@@ -1,0 +1,41 @@
+<pages preload="true">
+<!-- 
+<page id="1" source="test/case01/page1.png" shadow="false" thumb="content/thumbs/thumb1.jpg"/>
+<page id="2" source="test/case01/page1.png" shadow="false" thumb="content/thumbs/thumb2.jpg"/>
+<page id="3" source="test/case01/page2.png" shadow="false" thumb="content/thumbs/thumb2.jpg"/>
+-->
+<page id="1" source="content/pages/page1.jpg" shadow="true" thumb="content/thumbs/thumb5.jpg" canZoom="true"/>
+
+
+<page id="2" source="content/pages/page2.jpg" shadow="false" thumb="content/thumbs/thumb2.jpg" canZoom="false"/>
+<page id="3" source="content/pages/page3.jpg" shadow="true" thumb="content/thumbs/thumb3.jpg"/>
+
+
+<page id="4" source="content/pages/page4.jpg" shadow="true"  thumb="content/thumbs/thumb4.jpg"/>
+<page id="5" source="content/pages/page5.jpg" shadow="true" thumb="content/thumbs/thumb5.jpg"/>
+<page id="6" source="content/pages/page6.jpg" thumb="content/thumbs/thumb6.jpg"/>
+<page id="7" source="content/pages/page7.jpg" thumb="content/thumbs/thumb7.jpg"/>
+<page id="8" source="content/pages/page8.jpg" thumb="content/thumbs/thumb8.jpg"/>
+
+
+
+<page id="9" source="content/pages/page9.jpg" thumb="content/thumbs/thumb9.jpg"/>
+<page id="10" source="content/pages/page10.jpg" thumb="content/thumbs/thumb10.jpg"/>
+<page id="11" source="content/pages/page11.jpg" thumb="content/thumbs/thumb11.jpg"/>
+<page id="12" source="content/pages/page12.jpg" thumb="content/thumbs/thumb12.jpg"/>
+<page id="13" source="content/pages/page13.jpg" thumb="content/thumbs/thumb13.jpg"/>
+<page id="14" source="content/pages/page14.jpg" thumb="content/thumbs/thumb14.jpg"/>
+<page id="15" source="content/pages/page15.jpg" thumb="content/thumbs/thumb15.jpg"/>
+ 
+<page id="16" source="content/pages/page16.jpg" thumb="content/thumbs/thumb16.jpg"/>
+<page id="17" source="content/pages/page17.jpg" thumb="content/thumbs/thumb17.jpg"/>
+<page id="18" source="content/pages/page18.jpg" thumb="content/thumbs/thumb18.jpg"/>
+<page id="19" source="content/pages/page19.jpg" thumb="content/thumbs/thumb19.jpg"/>
+<page id="20" source="content/pages/page20.swf" thumb="content/thumbs/thumb20.jpg"/>
+<page id="21" source="content/pages/page21.jpg" thumb="content/thumbs/thumb21.jpg"/>
+<page id="22" source="content/pages/page22.swf" thumb="content/thumbs/thumb21.jpg"/>
+
+<!-- 
+<page id="22" source="content/pages/page22.jpg" thumb="content/thumbs/thumb22.jpg"/>
+ -->
+</pages>

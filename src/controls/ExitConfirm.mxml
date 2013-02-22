@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:BasePopupCanvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+						  xmlns:controls="controls.*"
+						  backgroundColor="0x333333" 
+						  horizontalScrollPolicy="off" verticalScrollPolicy="off" 
+						  borderColor="0xFFFFFF"
+						  borderStyle="solid" borderThickness="2" cornerRadius="3"
+						  clipContent="false"
+						  width="300" height="100" 
+						  >
+	<mx:Script>
+		<![CDATA[
+			public var returnCallback:Function;
+			
+			public var pwd:String = "";
+			
+			public override function showDialog(x:Number = NaN, y:Number = NaN, modal:Boolean = true):void
+			{
+				super.showDialog(x,y,modal);
+				
+			}
+
+
+
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" height="100%" paddingTop="20" paddingLeft="20" paddingBottom="20" paddingRight="20" horizontalAlign="center" verticalGap="3">
+		<mx:Label width="100%" text="{l.i.s('ExitConfirm')}" textAlign="center" />
+		<mx:Spacer height="10" />
+		<mx:HBox width="100%" horizontalAlign="center">
+			<mx:Button buttonMode="true" useHandCursor="true" label="{l.i.s('Yes')}" click="{RunTime.close()}" />
+			<mx:Button buttonMode="true" useHandCursor="true" label="{l.i.s('No')}" click="{this.close()}" />
+		</mx:HBox>
+	</mx:VBox>
+</controls:BasePopupCanvas>

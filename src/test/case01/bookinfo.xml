@@ -1,0 +1,70 @@
+﻿<!--
+	 flipSpeedBoost: 调整电子杂志翻页动画的速度。默认为100. 该值越高，则翻页速度越快。
+ -->
+<bookinfo id="test_02" autoFlipSeconds="5" autoMoveAfterZoom="false" fullScreen="false"
+	password="ga+Vbnauoa15" analyticsUA="UA-25696144-1"
+	bgColor="#454545" bgImage="content/images/fondor.jpg" shadow="true" pageWidth="1535" pageHeight="2047"
+	flipSpeedBoost="80" title="" author="" zipUrl="offline/demo.zip" 
+	shareUrl="http://www.flipmall.net/test/wide/index.html"
+	zipIcon="content/images/iconZip.gif" exeUrl="offline/demo.exe"
+	exeIcon="content/images/iconExe.gif" companyLogo="" companyName=""
+	companyAddress="company Address company Address company Address company Address company Address company Address"
+	companyUrl="http://www.flipmall.net"
+	email="xiaotie@geblab.com" tel="111-11111111"
+	gateway="email.php" loadingLogo="data/logoRd.jpg"
+	bookmarkWidth="24" highlightColor="#454545"
+	bookmarkHeight="280" rightToLeft="false"
+	bookmarkFontSize="14" pdfUrl="pdf/test.pdf"
+	defaultZoomScale="2.5" autoFlip="false"
+	>
+<!-- 
+<bookinfo id="test_02" autoFlipSeconds="5" autoMoveAfterZoom="false" fullScreen="false"
+	password="gbmVbnamoax5" analyticsUA="UA-25696144-1"
+	bgColor="#454545" bgImage="content/images/fondor.jpg" shadow="true" pageWidth="1241" pageHeight="1123"
+	flipSpeedBoost="80" title="" author="" zipUrl="offline/demo.zip" 
+	shareUrl="http://www.flipmall.net/test/wide/index.html"
+	zipIcon="content/images/iconZip.gif" exeUrl="offline/demo.exe"
+	exeIcon="content/images/iconExe.gif" companyLogo="" companyName=""
+	companyAddress="company Address company Address company Address company Address company Address company Address"
+	companyUrl="http://www.flipmall.net"
+	email="xiaotie@geblab.com" tel="111-11111111"
+	gateway="email.php" loadingLogo="data/logoRd.jpg"
+	bookmarkWidth="24" highlightColor="#454545"
+	bookmarkHeight="280" rightToLeft="false"
+	bookmarkFontSize="14" pdfUrl="pdf/test.pdf"
+	defaultZoomScale="2.5" autoFlip="false"
+	>
+ -->
+	<leftmenu>
+		<issues visible="false"/>
+		<toc visible="true"/>
+		<thumbs visible="true"/>
+		<email visible="true"/>
+		<sns visible="true"/>
+		<print visible="true"/>
+		<pdf visible="true"/>
+		<download visible="true"/>
+		<setting visible="true"/>
+		<about visible="true"/>
+	</leftmenu>
+	<bottommenu background="content/images/menuBackground.png" showBackground="false">
+		<help visible="true" url="help.htm"/>
+		<info visible="true" url="info.htm"/>
+		<zoom visible="true"/>
+		<autoflip visible="true"/>
+		<search visible="true"/>
+		<highlight visible="true"/>
+		<bookmark visible="true"/>
+		<notes visible="true"/>
+		<fullscreen visible="true"/>
+	</bottommenu>
+	<!-- 右键菜单 -->
+	<contextmenu>
+		<menu title="Flipbook" url="flipbook.html"/>
+	</contextmenu>
+	<!-- 
+	<bookLogo url="data/logoRd.jpg" href="http://www.flipmall.net"/>
+	 -->
+	<!-- 大logo测试  -->
+	<bookLogo url="content/images/fm_rect_logo.jpg" href="http://www.flipmall.net"/>
+</bookinfo>

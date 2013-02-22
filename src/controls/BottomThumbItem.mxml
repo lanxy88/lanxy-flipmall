@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   width="100" 
+		   height="80" 
+		   click="onClick(event)"
+		   creationComplete="onComplete(event)" 
+		   horizontalScrollPolicy="off"
+		   verticalScrollPolicy="off"
+		   toolTip="{getTitle()}"
+		   xmlns:common="common.*" xmlns:controls="controls.*"
+		   mouseOut="onMouseOut(event)"
+		   mouseOver="onMouseOver(event)"
+		   alpha="0.6"
+		   >
+
+	<mx:Script>
+		<![CDATA[
+			import com.asfusion.mate.core.Binder;
+			
+			import common.events.ThumbChangeEvent;
+			
+			import mx.controls.Image;
+			import mx.effects.Zoom;
+			import mx.events.FlexEvent;
+			
+			private var defaultWidth:Number = 100;
+			private var defaultHeight:Number = 90;
+			
+			[Bindable]
+			public var pageHeight:int = 100;
+			
+			[Bindable]
+			public var pageWidth:int = 90;
+			
+			
+			[Bindable]
+			public var leftPage:int = -1;
+			[Bindable]
+			public var rightPage:int = -1;
+			
+			[Bindable]
+			public var szLeftThumb:String = "";
+			[Bindable]
+			public var szRightThumb:String = "";
+			
+			var leftPageImage:Image;
+			var rightPageImage:Image;
+			
+			[Bindable]
+			public var index:int = 0;
+			
+			
+			private var zoom:Zoom;
+			
+			private var checked:Boolean;
+			
+			[Bindable]
+			private var pageCount:int = 0;
+			
+			private var loadedCount:int = 0;
+			
+			private var endSpacer:Boolean = false;
+			
+			private var darkAlpha:Number = 0.6;
+			
+			public function addEndSpacer():void
+			{
+				endSpacer = true;
+			}
+			
+			public function checkThumbItem(select:Boolean):void{
+				checked = select;
+				if(select){
+					//this.setStyle("backgroundColor","0xff00ff" );
+					//this.setStyle("cornerRadius","5");
+					//this.setStyle("borderStyle","solid");
+					//this.setStyle("alpha", 1);
+					this.alpha = 1;
+					
+				}
+				else{
+					//this.setStyle("backgroundColor","" );
+					//this.setStyle("cornerRadius","");
+					//this.setStyle("borderStyle","");
+					//this.setStyle("alpha", 0.2);
+					this.alpha = darkAlpha;
+				}
+				
+				//this.getExplicitOrMeasuredHeight()
+			}
+			
+			private function leftThumbComplete(e:*):void
+			{
+				var width:Number = leftPageImage.content.width;
+				var height:Number = leftPageImage.content.height;
+				leftPageImage.height = 70;
+				leftPageImage.width = width / height * 70;
+				this.width += leftPageImage.width;
+				
+				pageWidth = this.width;
+				pageHeight = leftPageImage.height;
+				
+				loadedCount ++;
+				
+				//图片加载完成
+				if(loadedCount == pageCount){
+					
+					//trace("2loadedCount=" + loadedCount + "  图片加载完成:" + "index=" + index  + ",pageWidth=" + pageWidth);
+					if(index == 1 && pageCount == 2) {
+						this.x = this.index * (pageWidth/2 + 15) + 10;
+					}
+					else if(index == 0){
+						this.x = 10 ; 
+					}
+					else {
+						if(pageCount == 1 && RunTime.singlePageMode == false){
+							this.x = this.index * (pageWidth*2 + 15) - pageWidth + 10 ; 
+						}
+						else{
+							if(RunTime.singlePageMode == false){
+								this.x = this.index * (pageWidth + 15) - pageWidth/2 + 10 ; 
+							}else{
+								this.x = this.index * (pageWidth + 15)  + 10 ; 
+							}
+						}
+					}
+					
+					if(endSpacer) {
+						this.width += 10;
+						trace("endSpacer");
+					}
+				}
+			}
+			
+			private function rightThumbComplete(e:*):void
+			{
+				var width:Number = rightPageImage.content.width;
+				var height:Number = rightPageImage.content.height;
+				rightPageImage.height = 70;
+				rightPageImage.width = width / height * 70;
+				this.width += rightPageImage.width;
+				pageWidth = this.width;
+				pageHeight = rightPageImage.height;
+				
+				loadedCount ++;
+				//图片加载完成
+				if(loadedCount == pageCount){
+					
+					if(index == 1 && pageCount == 2) {
+						this.x = this.index * (pageWidth/2 + 15) + 10;
+					}
+					else if(index == 0){
+						this.x = 10 ; 
+					}
+					else {
+						if(pageCount == 1){
+							this.x = this.index * (pageWidth*2 + 15) - pageWidth + 10 ; 
+						}
+						else{
+							this.x = this.index * (pageWidth + 15) - pageWidth/2 + 10 ; 
+						}
+					}
+					if(endSpacer) {
+						trace("2endSpacer");
+						this.width += 10;
+					}
+					//trace("2loadedCount=" + loadedCount + "  2图片加载完成:" + "index=" + index  + ",pageWidth=" + pageWidth);
+				}
+				
+			}
+			
+			protected function onComplete(event:FlexEvent):void
+			{
+				
+				this.width = 0;
+				
+				var szLeftThumb:String = getLeftPageThumb();
+				var szRightThumb:String = getRightPageThumb();
+				
+				
+				
+				if(szLeftThumb != ""){
+				 	leftPageImage = new Image();
+					leftPageImage.addEventListener(Event.COMPLETE, leftThumbComplete);
+					leftPageImage.source = szLeftThumb;
+					pageBox.addChild(leftPageImage);
+					pageCount++;
+				}
+				if(szRightThumb != ""){
+					
+					rightPageImage = new Image();
+					rightPageImage.addEventListener(Event.COMPLETE, rightThumbComplete);
+					rightPageImage.source = szRightThumb;
+					pageBox.addChild(rightPageImage);
+					
+					pageCount++;
+				
+				}
+				
+				toolTip = getTitle();
+			}
+			[Bindable]
+			private function getLeftPageThumb():String{
+				if(leftPage <= 0){
+					
+					return "";
+				}
+				return szLeftThumb;
+				//return "content/thumbs/thumb" + leftPage + ".jpg";
+				
+			}
+			
+			[Bindable]
+			private function getRightPageThumb():String{
+				if(rightPage <= 0){
+					
+					return "";
+				}
+				return szRightThumb;
+				//return "content/thumbs/thumb" + rightPage + ".jpg";
+				
+			}
+			
+			
+			private function getTitle():String
+			{
+				
+				var szPre:String = l.i.s('Page') + ": ";
+				if(leftPage <= 0) return szPre + String(rightPage);
+				if(rightPage <= 0) return szPre + String(leftPage);
+				return  szPre + leftPage + "-" + rightPage;
+			}
+			
+
+			
+			protected function onClick(event:MouseEvent):void
+			{
+				
+				dispatchEvent(new ThumbChangeEvent(ThumbChangeEvent.THUMB_CHANGE, this.index));
+			}
+			
+			protected function onMouseOut(event:MouseEvent):void
+			{
+				//if(zoom != null && zoom.isPlaying) return;
+				
+				if(zoom == null) zoom = new Zoom(this);
+				zoom.stop();
+				zoom.duration=250;
+				zoom.zoomHeightFrom = 1.2;
+				zoom.zoomHeightTo = 1;
+				zoom.zoomWidthFrom = 1.2;
+				zoom.zoomWidthTo = 1;
+			   
+				if(!checked) this.alpha = darkAlpha;
+				
+				zoom.play();
+
+			}
+			
+			protected function onMouseOver(event:MouseEvent):void
+			{
+				//if(zoom != null && zoom.isPlaying) return;
+				
+				if(zoom == null) zoom = new Zoom(this);
+				zoom.stop();
+				zoom.duration=250;
+				if(!zoom.isPlaying)	zoom.zoomHeightFrom = 1;
+				zoom.zoomHeightTo = 1.2;
+				if(!zoom.isPlaying)	zoom.zoomWidthFrom = 1;
+				zoom.zoomWidthTo = 1.2;
+				zoom.play();
+				
+				this.alpha = 1;
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:VBox width="{this.width}" height="100%" verticalScrollPolicy="off" verticalGap="0" 
+			  >
+		<!-- <mx:Label color="0xffffff" width="100%" text="{getTitle()}" textAlign="center" /> -->
+		<mx:HBox horizontalGap="0" id="pageBox" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				 buttonMode="true" useHandCursor="true" mouseChildren="false">
+		</mx:HBox>
+	</mx:VBox>
+
+</mx:Canvas>

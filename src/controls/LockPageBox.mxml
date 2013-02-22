@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:controls="*"
+		   height="400" width="400"  alpha="1"
+		   buttonMode="true" useHandCursor="true"
+		   borderStyle="solid" borderThickness="0" cornerRadius="2" 
+		   mouseOver="onMouseOver()" mouseOut="onMouseOut()" backgroundColor="{0xffffff}"
+		   >
+	<mx:Script>
+		<![CDATA[
+			
+			[Bindable]
+			public var returnCallback:Function;
+			
+			public var pwd:String = "";
+			
+			[Bindable]
+			private var isMouseOver:Boolean;
+			
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+			}
+			
+			public function checkPwd():void
+			{
+				var s:String = RunTime.encrypt(this.tbPwd.text);
+				if(s == pwd)
+				{
+					//close();
+					if(returnCallback != null)
+					{
+						returnCallback();
+					}
+					this.visible = false;
+					RunTime.unlockPage = true;
+				}
+				else
+				{
+					err.visible = true;
+				}
+				
+				
+			}
+			
+			private function onInputKeyDown(event:KeyboardEvent):void
+			{
+				if( event.keyCode == Keyboard.ENTER)
+				{
+					checkPwd();
+				}
+			}
+			
+			public function focusInput():void
+			{
+				this.callLater(tbPwd.setFocus);
+			}
+
+		]]>
+	</mx:Script>
+	<mx:VBox horizontalCenter="0" verticalAlign="middle" width="100%" height="100%" paddingTop="20" paddingLeft="20" paddingBottom="20" paddingRight="20" horizontalAlign="center" verticalGap="3">
+		<mx:Label width="100%" text="{l.i.s('NeedPassword')}" textAlign="center" />
+		<mx:Label id="err" width="100%" text="{l.i.s('PasswordError')}" textAlign="center" color="0xFF0000" visible="false" />
+		<mx:TextInput id="tbPwd"
+					  color="#000000" backgroundColor="0xFFFFFFFF" 
+					  focusThickness="0" maxChars="64" displayAsPassword="true"
+					  width="100" keyDown="onInputKeyDown(event)" />
+		<mx:Spacer height="10" />
+		<mx:HBox width="100%" horizontalAlign="center">
+			<mx:Button buttonMode="true" useHandCursor="true" label="{l.i.s('Submit')}" click="checkPwd()" />
+			<mx:Button buttonMode="true" useHandCursor="true" label="{l.i.s('Reset')}" click="{tbPwd.text = ''}" />
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>

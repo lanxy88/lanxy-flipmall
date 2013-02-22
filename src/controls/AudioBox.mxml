@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="400" height="300" paddingLeft="10" paddingRight="10"
+		 creationComplete="init()" 
+		 cornerRadius="3" borderColor="0xFFFFFF"
+		 borderStyle="solid" borderThickness="2"
+		 xmlns:icons="icons.*">
+	<mx:Script>
+		<![CDATA[
+			import common.PlayList;
+			import common.SharedObjectManager;
+			import common.SoundContainer;
+			import common.SoundWrap;
+			
+			import flash.events.IOErrorEvent;
+			
+			[Bindable]
+			public var url:String;
+			
+
+			[Bindable]
+			public var playlist:SoundContainer;
+			
+			private var _currentSoundWrap:SoundWrap;
+			
+			[Bindable]
+			public var sound:Sound;
+			
+			[Bindable]
+			public var soundChannel:SoundChannel;
+			
+			public var thumbing:Boolean;
+			
+			private var _isPlaying:Boolean;
+			
+			/**
+			 * 
+			 * 当前播放的音乐索引
+			 * 
+			 */
+			private var currentIndex = 0;
+
+			public function get isPlaying():Boolean
+			{
+				return _isPlaying;
+			}
+
+			[Bindable]
+			public function set isPlaying(value:Boolean):void
+			{
+				_isPlaying = value;
+			}
+
+			//[Embed(source="assets/blackStyle/iconPlayStart36.png")]
+			//[Bindable]
+			//private var buttonForwardPlay36:Class;
+			
+			//[Embed(source="assets/blackStyle/iconPlayPause36.png")]
+			//[Bindable]
+			//private var buttonPausePlayer36:Class;
+			
+			private var timer:Timer;
+			
+			private var lastValue:Number;
+			
+			private function init():void
+			{
+				//if(this.visible == false) return;
+				
+				sound = new Sound();
+				if(playlist != null && playlist.length > 0){
+					var soundWrap:SoundWrap = playlist.nextSoundWrap();
+					if(soundWrap != null){
+						_currentSoundWrap = soundWrap;
+						url = soundWrap.url;
+						this.visible = soundWrap.showControlBar;
+						this.parent.visible = this.visible;
+					}
+				}
+				if(!url) {
+					this.visible = false;
+					//this.parent.visible = this.visible;
+					return;
+				}
+				RunTime.logAudioView(url);
+				sound.addEventListener(IOErrorEvent.IO_ERROR,function(e:Event):void{
+						trace(e.toString());
+					});
+				sound.addEventListener(Event.COMPLETE,
+					function(e:Event):void
+					{
+						sliderTime.maximum = sound.length;
+						updateTimeText();
+					});
+				sound.load(new URLRequest(url));
+				soundChannel = sound.play();
+				soundChannel.soundTransform = new SoundTransform(RunTime.audioVolume);
+				soundChannel.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+				timer = new Timer(1000,1000000000);
+				timer.addEventListener(TimerEvent.TIMER,function(e:Event):void
+				{
+					if(thumbing == false)
+					{
+						if(sound.bytesTotal == 0) return;
+						var soundLength:Number = getSountLength();
+						if(soundLength == 0) return;
+						sliderTime.maximum = soundLength;
+						sliderTime.value = soundChannel.position;
+						lastValue = sliderTime.value;
+					}
+					updateTimeText();
+				});
+				timer.start();
+				isPlaying = true;
+			}
+			
+			private function getSountLength():Number
+			{
+				return sound.length * sound.bytesTotal / sound.bytesLoaded;
+			}
+			
+			private function updateTimeText():void
+			{
+				time.text = formatTime(soundChannel.position) + "/" + formatTime(getSountLength());
+			}
+			
+			private function onSoundComplete(e:Event):void
+			{
+				if(soundChannel == null || sound == null) return;
+				if(soundChannel.position < Math.min(sound.length * 0.99, sound.length - 1000))
+				{
+					soundChannel.removeEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+					soundChannel = sound.play(soundChannel.position + 1000);
+					soundChannel.soundTransform = new SoundTransform(RunTime.audioVolume);
+					soundChannel.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+					return;
+				}
+				//播放列表当前音乐被设置循环播放
+				if(_currentSoundWrap != null && _currentSoundWrap.repeat){
+					soundChannel.removeEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+					soundChannel = sound.play();
+					soundChannel.soundTransform = new SoundTransform(RunTime.audioVolume);
+					soundChannel.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+					return;
+				}
+				//播放列表中存在超过一首的音乐
+				if(playlist !=null && playlist.length > 1){
+					//重新设置播放下一首
+					init();
+					return;
+				}
+				
+				isPlaying = false;
+				soundChannel.removeEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+				soundChannel = sound.play();
+				soundChannel.soundTransform = new SoundTransform(RunTime.audioVolume);
+				soundChannel.stop();
+				soundChannel.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+			}
+			
+			private function pauseSound():void
+			{
+				isPlaying = false;
+				soundChannel.stop();
+			}
+			
+			private function onButtonClick():void
+			{
+				if(isPlaying == true)
+				{
+					pauseSound();
+				}
+				else
+				{
+					if(soundChannel != null)
+					{
+						soundChannel.removeEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+					}
+					soundChannel = sound.play(soundChannel.position);
+					soundChannel.soundTransform = new SoundTransform(RunTime.audioVolume);
+					soundChannel.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+					isPlaying = true;
+				}
+			}
+			
+			private function jump():void
+			{
+				if(sliderTime.value == lastValue) return;
+				
+				soundChannel.stop();
+				soundChannel = sound.play(sliderTime.value);
+				soundChannel.soundTransform = new SoundTransform(RunTime.audioVolume);
+				soundChannel.addEventListener(Event.SOUND_COMPLETE, onSoundComplete);
+				isPlaying = true;
+			}
+			
+			private function formatTime(time:Number):String{
+				time = time/1000;
+				var min:Number = Math.floor(time/60); 
+				var sec:Number = Math.floor(time%60); 
+				var timeResult:String = (min < 10 ? "0"+min.toString() : min.toString()) + ":" + (sec < 10 ? "0"+sec.toString() : sec.toString()); 
+				return timeResult; 
+			} 
+			
+			private function onVolumeChange():void
+			{
+				RunTime.audioVolume = sliderVolume.value;
+				soundChannel.soundTransform = new SoundTransform(RunTime.audioVolume);
+				SharedObjectManager.instance.saveAudioVolume();
+			}
+			
+			public function close():void
+			{
+				if(isPlaying == true)
+				{
+					pauseSound();
+				}
+				if(timer != null)
+					timer.stop();
+			}
+			
+			private function stopEvent(e:Event):void
+			{
+				e.stopImmediatePropagation();
+			}
+		]]>
+	</mx:Script>
+	<icons:MiniPlayVideoIcon x="5" verticalCenter="0" 
+							 scaleX="0.25" scaleY="0.25" isPlaying="{isPlaying}"
+							 click="onButtonClick()" showBgColor="false"
+							 mouseDown="stopEvent(event)"
+							 />
+	<mx:HSlider id="sliderTime" 
+				x="60" verticalCenter="-5" buttonMode="true" useHandCursor="true"
+				width="{width - 300}" maximum="{sound.length}" minimum="0"
+				change="{jump()}" snapInterval="0"
+				styleName="videoSliderSkin" 
+				thumbPress="{thumbing = true;}" thumbRelease="{thumbing = false;}"
+				toolTip="{formatTime(sliderTime.value)}" dataTipFormatFunction="formatTime"
+				sliderThumbClass="{icons.VideoSliderThumb}"
+				mouseDown="stopEvent(event)"
+				/>
+	<mx:Label id="time" x="{width - 240}" verticalCenter="0" textAlign="center" 
+			  fontSize="14" color="0xFFFFFF" width="100" mouseEnabled="false"
+			  />
+	<icons:VolumeIcon id="volume" x="{width - 133}" y="17" volume="{sliderVolume.value}"
+					  scaleX="2" scaleY="2"
+					  change="{sliderVolume.value = volume.volume; onVolumeChange();}"
+					  mouseDown="stopEvent(event)"
+					  />
+	<mx:HSlider id="sliderVolume" buttonMode="true" useHandCursor="true"
+				x="{width - 105}" verticalCenter="-5" width="80" 
+				value="{RunTime.audioVolume}" maximum="1" minimum="0"
+				change="onVolumeChange()" styleName="videoSliderSkin"
+				sliderThumbClass="{icons.VideoSliderThumb}"
+				mouseDown="stopEvent(event)"
+				/>
+</mx:Canvas>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:common="common.*" width="38" height="38" 
+		   clipContent="false"
+		   buttonMode="true" useHandCursor="true"
+		   mouseOver="onMouseOver()"
+		   mouseOut="onMouseOut()" 
+		   click="onClick()"
+
+		   
+		   >
+	<mx:Script>
+		<![CDATA[
+			public static var DEFAULT_HEIGHT :int = 45;
+			
+			public static var selectedButton:LeftMenuButton = null;
+			
+			public var bgAlphaSelected:Number = 1;
+			public var bgAlphaUnSelected:Number = 0.7;
+			public var bgColor:uint = 0x333333;
+			
+			private var _selected:Boolean = false;
+
+			public function get selected():Boolean
+			{
+				return _selected;
+			}
+
+			[Bindable]
+			public function set selected(value:Boolean):void
+			{
+				if(_selected == value) return;
+				_selected = value;
+				this.invalidateDisplayList();
+			}
+			
+			private var _isMouseOver:Boolean = false;
+
+			public function get isMouseOver():Boolean
+			{
+				return _isMouseOver;
+			}
+
+			[Bindable]
+			public function set isMouseOver(value:Boolean):void
+			{
+				if(_isMouseOver == value) return;
+				
+				_isMouseOver = value;
+				this.invalidateDisplayList();
+			}
+
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+			}
+			
+			private function onClick():void
+			{
+				selected = true;
+				
+				if(selectedButton != null)
+				{
+					if(selectedButton != this)
+					{
+						selectedButton.selected = false;
+					}
+				}
+				
+				selectedButton = this;
+			}
+			
+//			private function drawBg():void
+//			{
+//				var corner:Number = 0;
+//				var g:Graphics = this.graphics;
+//				g.clear();
+//				g.beginFill(bgColor,(selected || _isMouseOver)?bgAlphaSelected:bgAlphaUnSelected);
+//				g.moveTo(0,0);
+//				g.lineTo(unscaledWidth - corner,0);
+//				g.curveTo(unscaledWidth,0,unscaledWidth,corner);
+//				g.lineTo(unscaledWidth,unscaledHeight-corner);
+//				g.curveTo(unscaledWidth,unscaledHeight,unscaledWidth-corner,unscaledHeight);
+//				g.lineTo(0,unscaledHeight);
+//				g.endFill();
+//			}
+			
+			private function drawBg():void
+			{
+				var corner:Number = 0;
+				var g:Graphics = this.graphics;
+				g.clear();
+				
+				if(RunTime.showTabBackground == false) return;
+				g.beginFill(bgColor,(selected || _isMouseOver)?bgAlphaSelected:bgAlphaUnSelected);
+				g.moveTo(0,0);
+				g.lineTo(unscaledWidth ,0);
+				g.lineTo(unscaledWidth,unscaledHeight - 10);
+				g.lineTo(0,unscaledHeight+10);
+				g.endFill();
+			}
+			
+			protected override function createChildren():void
+			{
+				super.createChildren();
+			}
+			
+			protected override function updateDisplayList(unscaledWidth:Number,unscaledHeight:Number):void
+			{
+				drawBg();
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+			}
+		]]>
+	</mx:Script>
+	<mx:Image id="img" mouseChildren="false" source="{icon}" horizontalCenter="0" verticalCenter="-4" />
+</mx:Canvas>

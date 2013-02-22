@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   borderStyle="solid" borderThickness="0" cornerRadius="5" 
+		   horizontalScrollPolicy="off" 
+		   verticalScrollPolicy="off"
+		   creationComplete="oninit(event)"
+		   >
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			[Bindable]
+			private var isMouseOver:Boolean;
+			
+			[Bindable]
+			public var text:String;
+			
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+				
+			}
+			
+			protected function oninit(event:FlexEvent):void
+			{
+				lb.addEventListener(MouseEvent.MOUSE_DOWN,onButtonClick);
+			}
+			
+			private function onButtonClick(e:*):void
+			{
+				rb.selected = true;
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox>
+		<mx:RadioButton id="rb" label=""/>
+		<mx:Label id="lb" color="0x000000" verticalCenter="0" horizontalCenter="0" textAlign="left" mouseChildren="false"
+				  fontSize="14" text="{text}" paddingLeft="-5" paddingTop="-2" truncateToFit="false" width="{this.width}" />
+	</mx:HBox>
+	
+</mx:Canvas>

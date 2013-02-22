@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="240" height="200" 
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		 xmlns:common="common.*" xmlns:controls="controls.*">
+	<mx:Metadata>
+		[Event(name="recordDelete",type="common.RecordEvent")]
+		[Event(name="change",type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.NoteRecord;
+			import common.RecordEvent;
+			import mx.managers.CursorManager;
+			import mx.utils.StringUtil;
+			
+			private var mouseDownPoint:Point;
+			private var mouseUpPoint:Point;
+			
+			[Bindable]
+			public var title:String = "Note";
+			
+			[Bindable]
+			public var record:NoteRecord;
+			
+			[Bindable]
+			private var deleting:Boolean = false;
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				mouseDownPoint = new Point(event.stageX,event.stageY);
+				
+				RunTime.MouseState = RunTime.MOUSE_STATE_NOTE_DETAIL_MOVING;
+				RunTime.CurrentMovingObject = this;
+			}
+			
+			private function onMouseUp(event:MouseEvent):void
+			{
+				if(mouseDownPoint == null) return;
+				
+				RunTime.setNormal();
+				mouseUpPoint = new Point(event.stageX,event.stageY);
+				mouseDownPoint = null;
+			}
+			
+			private function onSave():void
+			{
+				var txt:String = StringUtil.trim(this.txtNote.text);
+				record.content = txt;
+				record.detailVisible = false;
+				record.update();
+			}
+			
+			private function onDelete():void
+			{
+				deleting = true;
+				RunTime.MouseState = RunTime.MOUSE_STATE_NOTE_DELETING;
+			}
+			
+			private function stopMouseClickPropagation(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number,
+														  unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+				drawBorderAndBg();
+			}
+			
+			private var bgColor:uint = 0xFFFF00;
+			private var bgAlpha:Number = 1;
+			private var borderColor:uint = 0x000000;
+			private var borderThickness:Number = 2;
+			private var borderAlpha:Number = 1;
+			
+			private function drawBorderAndBg():void
+			{
+				var g:Graphics = this.graphics;
+				g.clear();
+				g.beginFill(this.bgColor,this.bgAlpha);
+				g.drawRoundRect(0,0,this.width,this.height,5,5);
+				g.endFill();
+				g.lineStyle(borderThickness,borderColor);
+				g.drawRoundRect(0,0,this.width,this.height,5,5);
+				
+				var x0:Number = this.x;
+				var x1:Number = this.x + this.width;
+				var y0:Number = this.y;
+				var y1:Number = this.y + this.height;
+				var root:Point = new Point(10,10);
+
+				if(root.x < x0 || root.x > x1 || root.y < y0 || root.y > y1)
+				{
+					var ww:Number = width*width;
+					var hh:Number = height*height;
+					
+					var points:Array = [];
+					points.push({x:x0,y:y0,d:0.0});
+					points.push({x:x0,y:y1,d:0.0});
+					points.push({x:x1,y:y0,d:0.0});
+					points.push({x:x1,y:y1,d:0.0});
+					
+					for each(var item:Object in points)
+					{
+						item.d = (item.x-root.x)*(item.x-root.x)/ww + (item.y-root.y)*(item.y-root.y)/hh;  
+					}
+					
+					points.sort(function(a:Object,b:Object):int
+					{
+						if(a.d < b.d) return -1;
+						else if(a.d == b.d) return 0;
+						else return 1;
+					});
+					
+					var p0:Object = points[0]; // 最近的点
+					var p1:Object = points[1]; // 第二近的点
+					
+					const coeff1:Number = 0.1;
+					const coeff2:Number = 0.3;
+					
+					var xLineOffset:Number = p1.x - p0.x;
+					var yLineOffset:Number = p1.y - p0.y;
+					
+					var anchor0:Point = new Point(p0.x + coeff1 * xLineOffset, p0.y + coeff1 * yLineOffset);
+					var anchor1:Point = new Point(p0.x + coeff2 * xLineOffset, p0.y + coeff2 * yLineOffset);
+					
+					g.lineStyle(borderThickness,borderColor,borderAlpha);
+					g.moveTo(root.x - x,root.y-y);
+					g.beginFill(this.bgColor,this.bgAlpha);
+					g.moveTo(root.x - x,root.y-y);
+					g.lineTo(anchor0.x - x,anchor0.y -y);
+					g.lineTo(anchor1.x - x,anchor1.y - y);
+					g.endFill();
+
+					g.lineStyle(borderThickness,bgColor,borderAlpha);
+					g.moveTo(anchor0.x - x,anchor0.y -y);
+					g.lineTo(anchor1.x - x,anchor1.y - y);
+
+					g.lineStyle(borderThickness,borderColor,borderAlpha);
+					g.moveTo(root.x - x,root.y-y);
+					g.lineTo(anchor0.x - x,anchor0.y -y);
+					g.moveTo(root.x - x,root.y - y);
+					g.lineTo(anchor1.x - x,anchor1.y - y);
+				}
+			}
+			
+			private function isBoxConformVisible(mouseState:int,deleting:Boolean):Boolean
+			{
+				return (mouseState == RunTime.MOUSE_STATE_NOTE_DELETING && deleting == true);
+			}
+			
+			private function toTimeString(time:Date):String
+			{
+				// 4/23/2011 03:36:49 AM
+				return (time.month+1).toString() + "/" + time.date.toString()
+					+"/" + time.fullYear.toString() + " " + time.hours.toString() 
+					+ ":" + time.minutes.toString() + ":" + time.seconds.toString();
+			}
+			
+			public function moveTo(xx:Number,yy:Number):void
+			{
+				var offSetX:Number = xx - x;
+				var offSetY:Number = yy - y;
+				this.x = xx;
+				this.y = yy;
+				
+				record.detailX += offSetX;
+				record.detailY += offSetY;
+				
+				invalidateDisplayList();
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:HBox top="0" left="0" right="0" height="24"
+			 useHandCursor="true"
+			 buttonMode="true"
+			 verticalAlign="middle"
+			 backgroundColor="#000000"
+			 backgroundAlpha="0.8" 
+			 paddingLeft="5"
+			 paddingRight="5"
+			 mouseDown="onMouseDown(event)"
+			 mouseUp="onMouseUp(event)"
+			 >
+		<mx:Label width="100%" 
+				  color="0xFFFFFF" mouseChildren="false"
+				  text="{record==null?'':toTimeString(record.time)}" />
+		<controls:ImageButton id="btnSave" 
+							toolTip="{l.i.s('Save')}" 
+							icon="@Embed(source='assets/btnSaveNote.png')"
+							click="{onSave()}"
+							/>
+		<controls:ImageButton id="btnDelete" 
+							toolTip="{l.i.s('Delete')}" 
+							icon="@Embed(source='assets/blackStyle/btnCloseBox.png')"
+							click="{onDelete()}"
+							/>
+	</mx:HBox>
+	<mx:TextArea  wordWrap="true" top="24" left="1" right="1" bottom="1"
+				  id="txtNote" color="#000000" click="stopMouseClickPropagation(event)"
+				  borderStyle="none" backgroundAlpha="0"
+				  focusThickness="0" text="{record ? record.content : ''}"
+				  />
+	<mx:VBox top="24" left="1" right="1" bottom="1" id="boxConform"
+			 backgroundColor="{bgColor}" 
+			 verticalAlign="middle" horizontalAlign="center"
+			 visible = "{isBoxConformVisible(RunTime.MouseState,deleting)}">
+		<mx:Label text="{l.i.s('DeleteNoteConfirm','Delete this note?')}"
+				  />
+		<mx:HBox >
+			<mx:Button label="{l.i.s('Yes')}"
+					   click="{
+					   deleting=false;
+					   dispatchEvent(new RecordEvent('recordDelete',record));
+					   RunTime.setNormal();}" />
+			<mx:Button label="{l.i.s('No')}"
+					   click="{
+					   deleting=false;
+					   boxConform.visible = false;
+					   RunTime.setNormal();}" />
+		</mx:HBox>
+	</mx:VBox>
+</mx:Canvas>

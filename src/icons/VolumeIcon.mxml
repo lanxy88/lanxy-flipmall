@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   mouseOver="onMouseOver()" mouseOut="onMouseOut()"
+		   buttonMode="true" useHandCursor="true" click="onClick(event)" mouseChildren="false">
+	<mx:Metadata>
+		[Event(name="change", type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			[Embed(source="assets/blackStyle/volumeNormal.swf")]
+			[Bindable]
+			private var volumeNormal:Class;
+			[Embed(source="assets/blackStyle/volumeActive.swf")]
+			[Bindable]
+			private var volumeActive:Class;
+			[Embed(source="assets/blackStyle/volumeClose.swf")]
+			[Bindable]
+			private var volumeClose:Class;
+			
+			[Bindable]
+			private var isMouseOver:Boolean;
+			
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+			}
+			
+			[Bindable]
+			public var volume:Number;
+			public var oldVolume:Number;
+			
+			private function onClick(event:Event):void
+			{
+				if(volume == 0)
+				{
+					volume = oldVolume;
+					oldVolume = 0;
+				}
+				else
+				{
+					oldVolume = volume;
+					volume = 0;
+				}
+				this.dispatchEvent(new Event("change"));
+				event.stopPropagation();
+			}
+		]]>
+	</mx:Script>
+	<mx:Image source="{isMouseOver ? volumeActive : volumeNormal}" />
+	<mx:Image source="{volumeClose}" visible="{volume == 0}" />
+</mx:Canvas>

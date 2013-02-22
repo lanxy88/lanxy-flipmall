@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:common="common.*"
+		 useHandCursor="true" buttonMode="true" 
+		 maxWidth="120"
+		 verticalScrollPolicy="off" horizontalScrollPolicy="off"
+		 height="32" 
+		 verticalAlign="middle"
+		 color="0xFFFFFF"
+		 click="onClick()"
+		 >
+	<mx:Script>
+		<![CDATA[
+			import common.ShareSite;
+			
+			[Bindable]
+			public var site:ShareSite;
+			
+			private function onClick():void
+			{
+				RunTime.clickHref(site.href);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Image source="{site.logoUrl}" mouseChildren="false" />
+	<mx:Label text="{site.name}" mouseChildren="false" />  
+</mx:HBox>

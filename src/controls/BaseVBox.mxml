@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="400" height="300"
+		 mouseDown="onMouseDown(event)"
+		 mouseMove="onMouseMove(event)" 
+		 mouseUp="onMouseUp(event)"
+		 mouseOut="onMouseOut(event)"
+		 click="onClick(event)"
+		 >
+
+	<mx:Script>
+		<![CDATA[
+			import utils.Helper;
+			protected var moving:Boolean = false;
+			
+			protected var start:Point = null;
+			
+			protected function onMouseDown(event:MouseEvent):void
+			{
+				var root:Point = this.localToGlobal(new Point());
+				if(event.stageY - root.y <= 25)
+				{
+					RunTime.CurrentMovingObject = this;
+				}
+				event.stopPropagation();
+			}
+
+			protected function onClick(event:MouseEvent):void
+			{ 
+				Helper.bringTop(this);
+				RunTime.removeHighlightOn();
+//				event.stopPropagation();
+			}
+			
+			protected function onMouseMove(event:MouseEvent):void
+			{
+//				event.stopPropagation();				
+			}
+			
+			protected function onMouseUp(event:MouseEvent):void
+			{
+//				RunTime.CurrentMovingObject = null;
+//				event.stopPropagation();
+			}
+			
+			protected function onMouseOut(event:MouseEvent):void
+			{
+//				RunTime.CurrentMovingObject = null;
+//				event.stopPropagation();
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

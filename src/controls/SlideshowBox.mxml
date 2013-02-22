@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		width="50" height="50" 
+		creationComplete="onInit()" 
+		horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		addedEffect="fade" 
+		removedEffect="fade" 
+		backgroundColor="0x000000" 
+		xmlns:controls="controls.*" 
+		mouseOver="mouseOver(event)"
+		mouseOut="mouseOut(event)"
+		>
+	<mx:Script>
+		<![CDATA[
+			import common.Prefetch;
+			import common.SlideshowInfo;
+			import common.SlideshowItem;
+			
+			import mx.controls.Button;
+			import mx.controls.Image;
+			import mx.core.UIComponent;
+
+			
+			[Bindable]
+			public var slideshowInfo:SlideshowInfo;
+			
+			
+			
+			/**
+			 * 切换模式。slide和single
+			 */
+			[Inspectable(category="General", enumeration="single,multi", defaultValue="single")]
+			public var switchType:String = "single";
+			
+			[Bindable]
+			public var pos:int = 0;
+			
+			private var timer:Timer;
+			
+			private var triggerCount:int = int.MAX_VALUE;
+			
+			private var currentIdx:int = 0;
+			
+			private var slideLayer:UIComponent = new UIComponent();
+			
+			private var playing:Boolean = true;
+			
+			private function onSlideshowBox(e:MouseEvent):void
+			{
+				e.stopPropagation();
+			}
+			
+			private function onInit():void
+			{
+				addChildAt(slideLayer,0);
+				
+				this.addEventListener(MouseEvent.MOUSE_DOWN, onSlideshowBox);
+				this.width = slideshowInfo.width;
+				this.height = slideshowInfo.height;
+				this.x = slideshowInfo.x;
+				this.y = slideshowInfo.y;
+				
+				trace(this.width + "," + this.height);
+				
+				this.setStyle("backgroundColor",slideshowInfo.color);
+				
+				currentIdx = 0;
+				//reset();
+				addNextPage();
+			
+				if(timer != null)
+				{
+					timer.removeEventListener(TimerEvent.TIMER, onTimer);
+					timer.stop();
+				}
+				
+				timer = new Timer(slideshowInfo.time*1000, int.MAX_VALUE);
+				timer.addEventListener(TimerEvent.TIMER, onTimer);
+				timer.start();
+				
+			}
+			
+			private function get pageable():Boolean
+			{
+				return switchType == "single";
+			}
+			
+			private function onTimer(e:TimerEvent):void
+			{
+				if(!playing) return;
+				
+				currentIdx++;
+				if(currentIdx >= slideshowInfo.slideshows.length)
+				{
+					currentIdx = 0;
+					
+				}
+
+				switchPage();
+			}
+			var pic:Image = new Image();
+			var nextPic:Image = new Image();
+			private function reset(useFirstItemPosAsPos:Boolean = true):void
+			{
+				//this.removeAllChildren();
+
+				if(slideLayer.numChildren > 0)	slideLayer.removeChildAt(slideLayer.numChildren-1);
+				return;
+
+				
+			}
+			
+			private function addNextPage():void{
+				//trace("addNextPage");
+				var currentItem:SlideshowItem =  slideshowInfo.slideshows[currentIdx];
+				pic= currentItem.createImageControl(slideshowInfo.width,slideshowInfo.height);
+				//pic.x = (this.width -pic.width)/2;
+				slideLayer.addChildAt(pic,0);
+				
+				pageIndex.text = (currentIdx+1) + "/" + slideshowInfo.slideshows.length;
+			}
+			
+			private function turnLeft(e:*):void{
+				currentIdx--;
+				if(currentIdx < 0)
+				{
+					currentIdx = slideshowInfo.slideshows.length-1;
+					
+				}
+				reset();
+				addNextPage();
+			}
+			private function turnRight(e:*):void{
+				currentIdx++;
+				if(currentIdx >= slideshowInfo.slideshows.length)
+				{
+					currentIdx = 0;
+					
+				}
+				reset();
+				addNextPage();
+			}
+			
+			private function switchPage():void
+			{
+				addNextPage();	
+
+				if(slideshowInfo.transition == "fade"){
+					fadeOut.play([slideLayer.getChildAt(slideLayer.numChildren-1)]);
+				}
+				else if(slideshowInfo.transition == "blur"){
+					blurOut.play([slideLayer.getChildAt(slideLayer.numChildren-1)]);
+				}
+				else if(slideshowInfo.transition == "zoom"){
+					zoomOut.play([slideLayer.getChildAt(slideLayer.numChildren-1)]);
+				}
+			}
+
+			
+			protected function mouseOver(event:MouseEvent):void
+			{
+				event.preventDefault();
+				controlBar.visible = true;
+			}
+			
+			protected function mouseOut(event:MouseEvent):void
+			{
+				event.preventDefault();
+				controlBar.visible = false;
+			}
+			
+			protected function play(event:MouseEvent):void
+			{
+				event.preventDefault();
+				
+				playing = !playing;
+				if(!playing){
+					playControl.icon = "content/images/btnPlay.png";
+				}
+				else{
+					playControl.icon = "content/images/btnPause.png";
+				}
+			}
+			
+			protected function gotoFirst(event:MouseEvent):void
+			{
+				currentIdx=0;
+				
+				reset();
+				addNextPage();
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Label id="pageIndex" color="0xffffff" x="20" y="0" fontSize="14" width="100%" truncateToFit="false" height="20" bottom="30" />
+
+	<mx:HBox id="controlBar"
+			 width="100%" 
+			 horizontalGap="30"
+			 bottom="0"
+			 height="45" 
+			 verticalAlign="middle" 
+			 horizontalAlign="center"
+			 backgroundColor="0x000000" 
+			 backgroundAlpha="{slideshowInfo.ctrlBarAlpha}"
+			 visible="false">
+		<controls:ImageButton icon="content/images/btnTurnLeft.png" width="32" height="32" mouseDown="{turnLeft(event);}" />
+		<controls:ImageButton id="playControl" icon="content/images/btnPause.png" width="32" height="32" mouseDown="play(event)" />
+		<controls:ImageButton icon="content/images/btnTurnRight.png" width="32" height="32" mouseDown="{turnRight(event);}"/>
+		<controls:ImageButton icon="content/images/btnRefresh.png" width="32" height="32" mouseDown="gotoFirst(event)"/>
+		
+	</mx:HBox>
+	
+	<mx:Fade id="fadeIn" alphaFrom="0" alphaTo="1" />
+	<mx:Fade id="fadeOut" alphaFrom="1" alphaTo="0" duration="1000" effectEnd="{reset(false);}" />
+	<mx:Blur id="blurIn" blurXFrom="10"  blurXTo="0" blurYFrom="10" blurYTo="0"  />
+	<mx:Blur id="blurOut" blurXFrom="0"  blurXTo="10" blurYFrom="0" blurYTo="10" effectEnd="{reset(false);}" />
+	<mx:Zoom id="zoomIn" zoomWidthFrom="0.2" zoomWidthTo="1" zoomHeightFrom="0.2" zoomHeightTo="1"  />
+	<mx:Zoom id="zoomOut" zoomWidthFrom="1" zoomWidthTo="0.2" zoomHeightFrom="1" zoomHeightTo="0.2"  effectEnd="{reset(false);zoomOut.reverse();}" />
+</mx:Canvas>

@@ -1,0 +1,86 @@
+ToolTip {
+	backgroundColor: black;
+	backgroundAlpha: 1.0;
+	cornerRadius: 0;
+	color: white;
+
+}
+
+Application {
+	color: #F1F1CC;
+	textRollOverColor: 	#FFFFFF;
+	backgroundGradientColors: #ffffff, #ffffff;
+	backgroundColor: #ffffff;
+}
+
+SuperImage {
+	border-thickness: 0;
+	border-style: none;
+}
+
+Canvas {
+}
+
+Label{
+	truncateToFit:false;
+}
+
+.volumnSkin{
+	trackHighlightSkin: Embed(source="assets/blackStyle/volumnFront.swf");
+	trackSkin :  Embed(source="assets/blackStyle/volumnBg.swf");
+	thumbSkin : ClassReference("mx.skins.ProgrammaticSkin");
+	showTrackHighlight:true;
+}
+
+.videoSliderSkin{
+	trackHighlightSkin: ClassReference("controls.SkinClasses.HightlightTrack");
+	trackSkin :  Embed(source="assets/blackStyle/trackSkin.png");
+	thumbSkin : ClassReference("mx.skins.ProgrammaticSkin");
+	showTrackHighlight:true;
+}
+
+FlexBook {
+	horizontalCenter:0; 
+	verticalCenter:0;
+	showCornerTease: true;
+	pageShadowStrength: 0.3; 
+
+	color: #000000;
+	textRollOverColor: 	#000000;
+	
+	border-thickness: 0;
+	border-style: none;
+	page-slope: .6;
+	active-grab-area: page;
+	page-shadow-strength: 1;
+	curve-shadow-strength: 1;
+	auto-turn-duration: 1500;
+	
+	drop-shadow-color: #ff0000;
+	drop-shadow-enabled: true;
+	shadow-color:#ff0000;
+}
+
+.customScrollbarStyle{
+	downArrowSkin:ClassReference(null);
+	upArrowSkin:ClassReference(null);
+	
+	
+	thumbSkin:
+		Embed(source="content/images/thumbSkin.png",
+		scaleGridLeft="1", 
+		scaleGridRight="5",
+		scaleGridTop="1", 
+		scaleGridBottom="19");
+	
+	
+	trackSkin:
+		Embed(source="content/images/scrolltrack.png",
+		scaleGridLeft="1", 
+		scaleGridRight="7",
+		scaleGridTop="1", 
+		scaleGridBottom="49");
+	
+	
+}
+

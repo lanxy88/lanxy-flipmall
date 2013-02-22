@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		   xmlns:controls="controls.*" xmlns:icons="icons.*"
+		   x="{videoInfo.x}" y="{videoInfo.y}"
+		   width="{videoInfo.width}" height="{videoInfo.height}" 
+		   mouseOver="{isMouseOver = true;}"
+		   mouseOut="checkMouseOut(event)"
+		   mouseDown="onMouseDown(event)"
+		   creationComplete="init()" xmlns:local="*"
+		   >
+	<mx:Script>
+		<![CDATA[
+			import common.VideoInfo;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.VideoEvent;
+			
+			import utils.ContentHelper;
+			
+			[Bindable]
+			public var isMouseOver:Boolean;
+			
+			[Bindable]
+			public var videoInfo:VideoInfo;
+			
+			//[Embed(source="assets/blackStyle/btnPlay.swf")]
+			//[Bindable]
+			//private var buttonSwfPlay:Class;
+			
+			//[Embed(source="assets/blackStyle/iconPlayStart36.png")]
+			//[Bindable]
+			//private var buttonForwardPlay36:Class;
+			
+			//[Embed(source="assets/blackStyle/iconPlayPause36.png")]
+			//[Bindable]
+			//private var buttonPausePlayer36:Class;
+			
+			//[Embed(source="assets/blackStyle/btnPlayFront.swf")]
+			//[Bindable]
+			//private var buttonForwardPlay128:Class;
+			
+			//[Embed(source="assets/blackStyle/iconPlayPause.png")]
+			//[Bindable]
+			//private var buttonPausePlayer128:Class;
+			
+			private var loader:Loader = new Loader();
+			
+			[Bindable]
+			protected var player:Object;
+			
+			private var logged:Boolean;
+			
+			private function get isYoutube():Boolean
+			{
+				if(videoInfo == null) return false;
+				else return videoInfo.youtubeId != "" && videoInfo.youtubeId != null;
+			}
+			
+			private function get isNormalVideo():Boolean
+			{
+				if(videoInfo == null) return false;
+				else return videoInfo.url != "" && videoInfo.url != null;
+			}
+			
+			private function pauseNormalVideo():void
+			{
+
+				if(isNormalVideo == true)
+				{
+					try
+					{
+						if(!videoInfo.stopWhenFlip)
+						{
+							this.swf.unloadAndStop(true);
+							this.video.pause();
+							
+							//this.swf.unloadAndStop();
+							
+							
+							//this.swf.source=null;
+							//this.swf.load(buttonSwfPlay);
+						}else{
+							this.swf.unloadAndStop(true);
+							this.video.stop();
+							//this.swf.unloadAndStop();
+							
+							//this.swf.source=null;
+							//this.swf.load(buttonSwfPlay);
+						}
+					}
+					catch(e:Error)
+					{
+						//trace("ERROR:->>>>>>" + e.getStackTrace());
+					}
+				}
+			}
+			
+			private function onSWFClick():void{
+				//trace("onSWFClick()........");
+				//this.swf.content.loaderInfo.loader.unloadAndStop(true);
+			}
+			
+			
+			private function onSWFLoaded():void
+			{
+				//trace("swf loaded.");
+			}
+			private function playNormalVideo():void
+			{
+				if(isNormalVideo == true)
+				{
+					this.video.play();
+					this.swf.load(this.swf.source);
+				}
+				
+			}
+			
+			private function playTubeVideo(flashMode:Boolean = false):void
+			{
+				if(isYoutube == true && player != null)
+				{
+					if(flashMode == false)
+					{
+						player.playVideo();
+					}
+				}
+			}
+			
+			private function pauseTubeVideo(justHide:Boolean = false):void
+			{
+				if(isYoutube == true && player != null)
+				{
+					if(justHide == false)
+					{
+						player.pauseVideo();
+					}
+					
+					this.tubeContainer.visible = false;
+					if(this.tubeContainer.numChildren == 1)
+					{
+						this.tubeContainer.removeChildAt(0);
+					}
+				}
+			}
+			
+			private function stopTubeVideo():void
+			{
+				if(isYoutube == true && player != null)
+				{
+					player.stopVideo();
+				}
+			}
+			
+			private function init():void
+			{
+				if(isYoutube == true)
+				{
+					loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaderInit);
+					loader.load(new URLRequest("http://www.youtube.com/v/" + videoInfo.youtubeId + "?version=3&fs=0&autohide=0"));
+				}
+				
+				if(videoInfo != null && visible == true)
+				{
+					if(videoInfo.autoPlay == true 
+						|| videoInfo.url.indexOf(".swf") > 0)
+					{
+						if(logged == false)
+						{
+							logged = true;
+							RunTime.logVideoView(videoInfo.url, videoInfo.youtubeId);
+						}
+					}
+				}
+			}
+			
+			private function onLoaderInit(event:Event):void {
+				var ui:DisplayObject = loader.content as DisplayObject;
+				ui.addEventListener("onReady", onPlayerReady);
+				ui.addEventListener("onError", onPlayerError);
+				ui.addEventListener("onStateChange", onPlayerStateChange);
+				ui.addEventListener("onPlaybackQualityChange", onVideoPlaybackQualityChange);
+				ui.addEventListener(Event.RESIZE, onPlayerResize);
+				tubeContainer.addChild(ui);
+			}
+			
+			private function onPlayerResize(event:Event):void
+			{
+				event.stopImmediatePropagation();
+			}
+			
+			protected function onPlayerReady(event:Event):void {
+				player = loader.content;
+				player.setSize(videoInfo.width, videoInfo.height);
+				player.cueVideoById(videoInfo.youtubeId);
+				if(videoInfo.autoPlay == true)
+				{
+					this.playTubeVideo();
+				}
+			}
+			
+			protected function onPlayerError(event:Event):void {
+				trace("Player error:", Object(event).data);
+			}
+			
+			protected function onPlayerStateChange(event:Event):void {
+				var state:Number = player.getPlayerState();
+				switch(state) // 未开始 (-1)、已结束 (0)、正在播放 (1)、已暂停 (2)、正在缓冲 (3)、已插入视频 (5)。
+				{
+					case -1:
+						break;
+					case 0:
+						onPlayComplete();
+						break;
+					case 1:
+						if(logged == false)
+						{
+							logged = true;
+							RunTime.logVideoView(videoInfo.url, videoInfo.youtubeId);
+						}
+						break;
+					case 2:
+						break;
+					case 3:
+						break;
+					case 5:
+						break;
+				}
+			}
+			
+			protected function onVideoPlaybackQualityChange(event:Event):void {
+			}
+			
+			protected function onSWFLoaderIoError(event:IOErrorEvent):void {
+			}
+			
+			public function pause(flashMode:Boolean = false):void
+			{
+				if(flashMode == false)
+				{
+					pauseNormalVideo();
+				}
+				
+				pauseTubeVideo(flashMode);
+			}
+			
+			/**
+			 * 关闭视频播放器
+			 */	
+			public function closeVideoBox(flashMode:Boolean = false):void
+			{
+				if(flashMode == false)
+				{
+					try
+					{
+						this.swf.content.loaderInfo.loader.unloadAndStop(true);
+						
+						//this.swf.unloadAndStop();
+					}
+					catch(e:Error)
+					{
+						trace("stop video error:++++++" + e.getStackTrace());
+					}
+					
+					try{
+						this.video.stop();
+					}
+					catch(e:Error)
+					{
+						trace("stop video error:++++++" + e.getStackTrace());
+					}
+				}
+				
+				pauseTubeVideo(flashMode);
+			}
+			
+			public function enterPage(flashMode:Boolean = false):void
+			{
+				if(videoInfo.url.indexOf('.swf') > 0) {
+					//this.swf.load(videoInfo.url);
+					//trace("enterpage...");
+					this.swf.unloadAndStop(true);
+					this.swf.load(videoInfo.url);
+					return;
+				}
+				
+				if(player!= null && this.tubeContainer.numChildren == 0)
+				{
+					this.tubeContainer.addChild(player as DisplayObject);
+					this.tubeContainer.visible = true;
+				}
+
+				if(this.videoInfo.autoPlay == true)
+				{
+					if(flashMode == false)
+					{
+						
+						playNormalVideo();
+
+					}
+					boxButton.visible = false;
+					playTubeVideo(flashMode);
+				}
+				else
+				{
+					boxButton.visible = true;
+				}
+			}
+			
+			private function onButtonClick():void
+			{
+				
+				switch(video.state)
+				{
+					case VideoEvent.PAUSED:
+					case VideoEvent.STOPPED:
+					case VideoEvent.DISCONNECTED:
+						playNormalVideo();
+						boxButton.visible = false;
+						if(logged == false)
+						{
+							logged = true;
+							RunTime.logVideoView(videoInfo.url, videoInfo.youtubeId);
+						}
+						break;
+
+					default:
+						pauseNormalVideo();
+						boxButton.visible = true;
+						break;
+				}
+			}
+			
+			private function onButtonBoxClick():void
+			{
+				if(this.video.playing == true)
+				{
+					pauseNormalVideo();
+					boxButton.visible = true;
+				}
+			}
+			
+			private function onMouseOut():void
+			{
+				switch(video.state)
+				{
+					case VideoEvent.PAUSED:
+					case VideoEvent.STOPPED:
+						this.boxButton.visible = true;
+						break;
+					default:
+						this.boxButton.visible = videoInfo.autoRepeat == true;
+						break;
+				}
+			}
+			
+			private function onMouseOver():void
+			{
+				this.boxButton.visible = true;
+			}
+			
+			private function onPlayComplete():void
+			{
+				if(videoInfo.autoRepeat == true)
+				{
+					playNormalVideo();
+					playTubeVideo();
+					boxButton.visible = false; 
+				}
+				else
+				{
+					boxButton.visible = true; 
+				}
+			}
+			
+			private function formatTime(time:Number):String{ 
+				var min:Number = Math.floor(time/60); 
+				var sec:Number = Math.floor(time%60); 
+				var timeResult:String = (min < 10 ? "0"+min.toString() : min.toString()) + ":" + (sec < 10 ? "0"+sec.toString() : sec.toString()); 
+				return timeResult; 
+			} 
+
+			private function thumbPress():void
+			{ 
+				if(video.state == VideoEvent.PLAYING)
+				{
+					video.pause();
+				}
+			} 
+
+			private function thumbRelease():void{ 
+				video.play(); 
+			} 
+			
+			private function onMouseDown(event:MouseEvent):void
+			{
+				event.stopPropagation();
+			}
+			
+			private function getButtonScale(width:Number):Number
+			{
+				return 1;
+			}
+			
+			private function getFlvUrl(url:String):String
+			{
+				if(!url) return url;
+				else if( ContentHelper.isVideoUrl(url))
+				{
+					return url;
+				}
+				else
+					return null;
+			}
+			
+			private function checkMouseOut(e:MouseEvent):void
+			{
+				if(this.hitTestPoint(e.stageX, e.stageY) == false)
+				{
+					isMouseOver = false;
+				}
+			}
+			
+			private function updateState(event:VideoEvent):void
+			{
+				switch(event.state)
+				{
+					case VideoEvent.BUFFERING:
+					case VideoEvent.LOADING:
+						if(cvsMain.contains(proggy) == false)
+						{
+							proggy.visible = true;
+							cvsMain.addChild(proggy);
+						}
+						break;
+					default:
+						if(cvsMain.contains(proggy))
+						{
+							proggy.visible = false;
+							cvsMain.removeChild(proggy);
+						}
+						video.alpha = 1;
+						boxButton.alpha = 1;
+						ctrlBox.alpha = 0.7;
+						break;
+				}				
+			}
+			
+			[Bindable]
+			public var bgAlpha:Number = 0;
+			
+			private function onFullScreenClick():void
+			{
+				if(RunTime.fullScreenVideoBox == null)
+				{
+					RunTime.enterFullScreenMode(this);
+				}
+				else
+				{
+					RunTime.exitVideoBoxFullScreenMode();
+				}
+			}
+			
+			private function isStoppedOrPaused(state:String):Boolean
+			{
+				switch(state)
+				{
+					case VideoEvent.PAUSED:
+					case VideoEvent.STOPPED:
+					case VideoEvent.DISCONNECTED:
+						return true;
+						break;
+					default:
+						return false;
+						break;
+				}
+			}
+			
+			private function isBigStartButtonVisible(state:String, progVisible:Boolean):Boolean
+			{
+				//var notplaying:Boolean = isStoppedOrPaused(video.state);
+				//trace(progVisible.toString());
+				var result:Boolean = isStoppedOrPaused(video.state) && !progVisible;
+				return result;
+			}
+			
+			private function getControlBoxWidth(parentWidth:Number):Number
+			{
+				return Math.max(parentWidth,640);
+			}
+			
+			private function getControlBoxHeight(parentWidth:Number):Number
+			{
+				return 48;
+			}
+			
+			private function getControlBoxScale(parentWidth:Number):Number
+			{
+				var scale:Number = parentWidth > 640 ? 1 : parentWidth/640.0;
+				return scale;
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas width="100%" height="100%" backgroundColor="0x000000" alpha="{bgAlpha}" >
+	</mx:Canvas>
+	<mx:Canvas id="cvsMain"  top="0" left="0" right="0"
+				bottom="0"
+				mouseOver="onMouseOver()"
+				mouseOut="onMouseOut()"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				visible="{ContentHelper.isVideoUrl(videoInfo.url)}"
+				>
+		<mx:VideoDisplay id="video" 
+						 width="100%"
+						 height="100%" bufferTime="10"
+						 horizontalCenter="0" verticalCenter="0" autoPlay="{videoInfo.autoPlay}"
+						 playheadUpdate="{sliderTime.value = video.playheadTime;}"
+						 source="{getFlvUrl(RunTime.getAbsPath(videoInfo.url))}" 
+						 complete="onPlayComplete()" visible="{video.source}"
+						 creationComplete="{video.load();}" stateChange="{updateState(event)}" alpha="0"
+
+						 />
+		
+
+		
+		<mx:Canvas id="boxButton" width="100%"
+				   height="100%"
+				   horizontalCenter="0" verticalCenter="0"
+				   horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				   visible="{videoInfo.autoPlay == false}"
+				   alpha="1"
+				   >
+			
+			<icons:PlayVideoIcon id="cvsImg" height="128" width="200"
+						horizontalCenter="0" verticalCenter="0"
+					   buttonMode="true" useHandCursor="true"
+					   click="onButtonClick()" 
+					   visible="{isBigStartButtonVisible(video.state, proggy.visible)}" 
+					   scaleX="{getButtonScale(cvsMain.width)}"
+					   scaleY="{getButtonScale(cvsMain.width)}"
+					   >
+			</icons:PlayVideoIcon>
+			<mx:Canvas width="100%" height="100%" 
+					   buttonMode="true" useHandCursor="true" click="onButtonBoxClick()"
+					   visible="{!isStoppedOrPaused(video.state)}">
+			</mx:Canvas>
+		</mx:Canvas>
+		<mx:Canvas id="ctrlBox"
+				   clipContent="false"
+				   width="{getControlBoxWidth(width)}" height="48" 
+				   scaleX="{getControlBoxScale(width)}" scaleY="{getControlBoxScale(width)}"  
+				 bottom="0" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				 paddingLeft="10" backgroundColor="0x666666" 
+				 visible="{isMouseOver ? videoInfo.showControl : false}"
+				 alpha="0">
+			
+
+				
+			<icons:MiniPlayVideoIcon x="5" verticalCenter="0" 
+									 scaleX="0.25" scaleY="0.25" 
+									 isPlaying="{!isStoppedOrPaused(video.state)}"
+									 click="onButtonClick()"
+									 />
+			<mx:HSlider id="sliderTime"
+						x="60" verticalCenter="-5" buttonMode="true" useHandCursor="true"
+						width="{ctrlBox.width - 340}" maximum="{video.totalTime}" minimum="0"
+						change="{
+							video.playheadTime = sliderTime.value;
+						}" snapInterval="0" styleName="videoSliderSkin" sliderThumbClass="{icons.VideoSliderThumb}"
+						   />
+			<mx:Label x="{ctrlBox.width - 290}" verticalCenter="0" textAlign="center" 
+					  fontSize="14" color="0xFFFFFF" width="120"
+					  text="{formatTime(video.playheadTime)}/{formatTime(video.totalTime) }" />
+			<icons:VolumeIcon id="volume" x="{ctrlBox.width - 160}" verticalCenter="1" volume="{sliderVolume.value}"
+							  scaleX="2" scaleY="2" change="{video.volume = volume.volume; }"
+							  />
+			<mx:HSlider id="sliderVolume" buttonMode="true" useHandCursor="true"
+						x="{ctrlBox.width - 130}" verticalCenter="-5" width="80" 
+						value="{video.volume}" maximum="1" minimum="0"
+						change="{video.volume = sliderVolume.value;}" styleName="videoSliderSkin"
+						sliderThumbClass="{icons.VideoSliderThumb}"
+						/>
+			<controls:ImageButton x="{ctrlBox.width - 40}" verticalCenter="0" icon="{RunTime.fullScreen? RunTime.ICON_EXIT_FULL_SCREEN : RunTime.ICON_FULL_SCREEN}"
+							 toolTip="{RunTime.fullScreen
+							 ?l.i.s('ExitFullScreen','Exit Full Screen')
+							 :l.i.s('FullScreen','Full Screen')}"
+							 width="23" click="onFullScreenClick()"/>
+		</mx:Canvas>
+		<local:AppleStylePreloader id="proggy"
+								   sliceColor="0xFFFFFF" timerDelay="200" 
+								   horizontalCenter="0"
+								   verticalCenter="0" progInfoVisible="false"
+								   width="1" height="1"
+								   />
+	</mx:Canvas>
+	<mx:Image width="100%" height="100%" maintainAspectRatio="false"
+			  source="@Embed(source='assets/videoYoutube.png')" scaleContent="true"
+			  visible="{videoInfo.url ? false : tubeContainer.numChildren == 0}" />
+	<mx:UIComponent id="tubeContainer" width="100%" height="100%"
+					visible="{videoInfo.url ? false : true}" 
+					/>
+	<mx:SWFLoader id="swf" width="100%" height="100%" source="{videoInfo.url.indexOf('.swf') > 0 ? RunTime.getAbsPath(videoInfo.url) : null}" maintainAspectRatio="true" 
+				  visible="{videoInfo.url.indexOf('.swf') > 0}" loadForCompatibility="true" click="onSWFClick();" complete="onSWFLoaded()" />
+</mx:Canvas>

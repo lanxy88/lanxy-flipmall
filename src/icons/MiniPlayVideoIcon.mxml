@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:controls="controls.*"
+		   height="128" width="200"  alpha="0.9"
+		   buttonMode="true" useHandCursor="true" mouseChildren="false"
+		   borderStyle="solid" borderThickness="0" cornerRadius="5" 
+		   mouseOver="onMouseOver()" mouseOut="onMouseOut()"
+		   backgroundColor="{isMouseOver ? 0x33666b : 0x2e3131}" backgroundAlpha="{showBgColor ? 1 : 0}"
+		   >
+	<mx:Script>
+		<![CDATA[
+			
+			[Bindable]
+			public var isPlaying:Boolean;
+			
+			[Bindable]
+			private var isMouseOver:Boolean;
+			
+			[Bindable]
+			public var showBgColor:Boolean = true;
+			
+			private function getBgColor(isMouseOver:Boolean):uint
+			{
+				return isMouseOver ? 0x33666b : 0x2e3131;
+			}
+			
+			private function onMouseOver():void
+			{
+				isMouseOver = true;
+			}
+			
+			private function onMouseOut():void
+			{
+				isMouseOver = false;
+			}
+		]]>
+	</mx:Script>
+	<controls:Polygon horizontalCenter="0" verticalCenter="0"
+					  points="{[{x:-20,y:32},{x:30,y:0},{x:-20,y:-32}]}"
+					  color="0xFFFFFF" visible="{!isPlaying}" />
+	<controls:Polygon horizontalCenter="-20" verticalCenter="0"
+					  points="{[{x:-6,y:32},{x:6,y:32},{x:6,y:-32},{x:-6,y:-32}]}"
+					  color="0xFFFFFF" visible="{isPlaying}" />
+	<controls:Polygon horizontalCenter="20" verticalCenter="0"
+					  points="{[{x:-6,y:32},{x:6,y:32},{x:6,y:-32},{x:-6,y:-32}]}"
+					  color="0xFFFFFF" visible="{isPlaying}" />
+</mx:Canvas>

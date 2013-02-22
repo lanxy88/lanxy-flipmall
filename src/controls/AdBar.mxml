@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Box xmlns:mx="http://www.adobe.com/2006/mxml"
+		width="50" height="50" direction="horizontal"
+		creationComplete="onInit()" resize="reset()"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		addedEffect="fade" removedEffect="fade"
+		>
+	<mx:Script>
+		<![CDATA[
+			import common.AdInfo;
+			import common.Prefetch;
+			
+			import mx.controls.Image;
+			
+			private var _dataSource:Vector.<AdInfo> = new Vector.<AdInfo>();
+			
+			private var _prefetch:Prefetch = new Prefetch();
+
+			public function get dataSource():Vector.<AdInfo>
+			{
+				return _dataSource;
+			}
+
+			[Bindable]
+			public function set dataSource(value:Vector.<AdInfo>):void
+			{
+				_dataSource = value;
+				onInit();
+			}
+			
+			public function set nodeConfig(value:*):void
+			{
+				//trace(value.localName());
+				var list:Vector.<AdInfo> = new Vector.<AdInfo>();
+				if(value != null)
+				{
+					if(String(value.@slideShow) == "false")
+					{
+						switchType = "multi";
+					}
+					
+					if(String(value.@position)){
+						
+						if(value.localName() == "topAd"){
+							RunTime.topAdPosition = String(value.@position);
+						}
+						else{
+							RunTime.rightAdPosition = String(value.@position);
+						}
+					}
+					
+					
+				}
+				
+				for each(var node:XML in value.pic)
+				{
+					
+					var adInfo:AdInfo = new AdInfo();
+					adInfo.url = String(node.@url);
+					adInfo.href = String(node.@href);
+					if(String(node.@width)) adInfo.width = int(node.@width);
+					if(String(node.@height)) adInfo.height = int(node.@height);
+					if(String(node.@time)) adInfo.switchSeconds = int(node.@time);
+					list.push(adInfo);
+				}
+				
+				this.dataSource = list;
+			}
+			
+			/**
+			 * 切换模式。slide和single
+			 */
+			[Inspectable(category="General", enumeration="single,multi", defaultValue="single")]
+			public var switchType:String = "single";
+			
+			[Bindable]
+			public var pos:int = 0;
+			
+			private var timer:Timer;
+			
+			private var triggerCount:int = int.MAX_VALUE;
+			
+			private var currentCount:int = 0;
+			
+			private var switchable:Boolean = true;
+			
+			private var currentItems:Vector.<AdInfo>;
+			
+			private function onInit():void
+			{
+				reset();
+				
+				if( dataSource == null || dataSource.length == 0 
+					|| dataSource.length == currentItems.length) return; 
+				if(timer != null)
+				{
+					timer.removeEventListener(TimerEvent.TIMER, onTimer);
+					timer.stop();
+				}
+				
+				if(pageable == true)
+				{
+					timer = new Timer(1000, int.MAX_VALUE);
+					timer.addEventListener(TimerEvent.TIMER, onTimer);
+					timer.start();
+				}
+			}
+			
+			private function get pageable():Boolean
+			{
+				return switchType == "single";
+			}
+			
+			private function onTimer(e:TimerEvent):void
+			{
+				if(switchable == true && pageable == true)
+				{
+					currentCount ++;
+					if(currentCount >= triggerCount)
+					{
+						triggerCount = currentCount + 1;
+						switchPage();
+					}
+				}
+			}
+			
+			private function reset(useFirstItemPosAsPos:Boolean = true):void
+			{
+				if(dataSource == null || dataSource.length < 1) return;
+				if(this.dataSource.length == 1 && this.numChildren == 1) return;
+
+				this.removeAllChildren();
+				switchable = true;
+				
+				if(currentItems != null && currentItems.length > 0 && useFirstItemPosAsPos)
+				{
+					pos = dataSource.indexOf(currentItems[0]);
+				}
+				
+				fetchNextPageItems();
+				
+				for each(var item:AdInfo in currentItems)
+				{
+					var img:Image = item.createImageControl();
+					img.addEventListener(MouseEvent.MOUSE_OVER, 
+						function(... args):void
+						{
+							switchable = false;
+						});
+					img.addEventListener(MouseEvent.MOUSE_OUT, 
+						function(... args):void
+						{
+							switchable = true;
+						});
+					this.addChild(img);
+				}
+				
+				var first:AdInfo = currentItems[0];
+				var delay:int = first.switchSeconds;
+				if(delay <= 0) delay = 5;
+				triggerCount = currentCount + delay;
+			}
+			
+			private function fetchNextPageItems():Vector.<AdInfo>
+			{
+				currentItems = new Vector.<AdInfo>();
+				
+				if(dataSource != null && dataSource.length > 0)
+				{
+					pos = pos % dataSource.length;
+					
+					if(switchType == "single")
+					{
+						currentItems.push(dataSource[pos]);
+					}
+					else
+					{
+						var maxIndex:int = pos + dataSource.length;
+						var sizeLimit:Number = this.maxSize;
+						var sizeMetric:Number = 0;
+						for(var i:int = pos; i< maxIndex; i++)
+						{
+							var index:int = i % dataSource.length;
+							var item:AdInfo = dataSource[index];
+							var size:Number = this.getAdSize(item);
+							if( sizeMetric + size < sizeLimit )
+							{
+								sizeMetric += size;
+								currentItems.push(item);
+							}
+							else
+							{
+								break;
+							}
+						}
+						
+						if(currentItems.length == 0)
+						{
+							currentItems.push(dataSource[pos]);
+						}
+					}
+				}
+				
+				return currentItems;
+			}
+			
+			private function get maxSize():Number
+			{
+				return this.direction == "horizontal" ? this.width : this.height;
+			}
+			
+			private function getAdSize(item:AdInfo):Number
+			{
+				return this.direction == "horizontal" ? item.width + 10 : item.height + 10;
+			}
+			
+			private function switchPage():void
+			{
+				if(currentItems != null && currentItems.length > 0)
+				{
+					var first:AdInfo = currentItems[0];
+					var newPos:int = pos + currentItems.length;
+					pos = newPos%dataSource.length;
+					fadeOut.play([this]);
+				}
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" />
+	<mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" effectEnd="{reset(false);fadeIn.play([this])}" />
+</mx:Box>

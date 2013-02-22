@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="100%" height="120"
+		 horizontalGap="0" verticalGap="0"
+		 verticalScrollPolicy="off"
+		 horizontalScrollPolicy="off"
+		 visible="{box.height > 0}" 
+		 >
+	<mx:Metadata>
+		[Event(name="recordClick",type="common.RecordEvent")]
+		[Event(name="recordEdit",type="common.RecordEvent")]
+		[Event(name="recordDelete",type="common.RecordEvent")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			import common.Record;
+			import common.RecordEvent;
+			import mx.binding.utils.BindingUtils;
+			import mx.containers.GridItem;
+			import mx.containers.GridRow;
+			import mx.controls.Button;
+			import mx.controls.Spacer;
+			import mx.controls.Text;
+			import mx.controls.TextArea;
+			import mx.core.ClassFactory;
+			import mx.core.UIComponent;
+			
+			[Embed(source='assets/blackStyle/btnCloseBox.png')]
+			private var iconDelete:Class;
+			
+			[Bindable]
+			public var rowHeight:int = 20;
+			
+			[Bindable]
+			public var deleteToolTip:String = "Delete";
+			
+			public var editClass:Class = null;
+			
+			public var selectedItem:Record;
+			
+			public var editable:Boolean = false;
+			
+			public var title:String = "";
+			
+			private var _source:Array = null;
+			
+			public function get source():Array
+			{
+				return _source;
+			}
+			
+			public function set source(value:Array):void
+			{
+				_source = value;
+				updateData();
+			}
+			
+			private function updateData():void
+			{
+				box.removeAllChildren();
+				if(_source == null) return;
+				
+				for each(var item:Record in _source)
+				{
+					box.addChild(createGridRow(item));
+				}
+				
+				var lines:int = Math.min(rowHeight,_source.length);
+				
+				this.height = lines * rowHeight + rowHeight;
+				box.height = this.height - rowHeight;
+			}
+			
+			private function createGridRow(obj:Record):HBox
+			{
+				var row:HBox = new HBox();
+				row.percentWidth=100;
+				row.height = rowHeight;
+				var bg:uint = 0xFF222222;
+				var self:VTable = this;
+				
+				row.buttonMode = true;
+				row.useHandCursor = true;
+				
+				row.verticalScrollPolicy="off";
+				row.horizontalScrollPolicy="off";
+				row.setStyle("horizontalGap",0);
+				row.setStyle("verticalGap",0);
+				row.setStyle("borderStyle","solid");
+				row.setStyle("borderColor",0xFFFFFF);
+				row.setStyle("borderThickness",1);
+				row.setStyle("borderSides","top");
+				
+				row.addEventListener(MouseEvent.MOUSE_OVER, 
+					function(... args):void
+					{
+						row.setStyle("backgroundColor",0xFFFF0000);
+						row.setStyle("backgroundAlpha",0.4);
+					});
+				
+				row.addEventListener(MouseEvent.MOUSE_OUT, 
+					function(... args):void
+					{
+						row.setStyle("backgroundColor",0x00000000);
+						row.setStyle("backgroundAlpha",0);
+					});
+				
+				row.addEventListener(MouseEvent.CLICK, 
+					function(e:MouseEvent):void
+					{
+						if(e.target is controls.ImageButton) return;
+						
+						selectedItem = obj;
+						self.dispatchEvent(new RecordEvent("recordClick",selectedItem));
+					});
+				
+				var pageText:Text = new Text();
+				pageText.text = obj.page.toString();
+				pageText.mouseChildren=false;
+				pageText.buttonMode = true;
+				pageText.useHandCursor = true;
+				pageText.setStyle("horizontalCenter",0);
+				pageText.setStyle("verticalCenter",0);
+				
+				var c0:Canvas = new Canvas();
+				c0.width = 50;
+				c0.percentHeight=100;
+				c0.addChild(pageText);
+				c0.buttonMode = true;
+				c0.useHandCursor = true;
+				c0.verticalScrollPolicy="off";
+				c0.horizontalScrollPolicy="off";
+				c0.setStyle("horizontalAlign","center");
+				c0.setStyle("verticalAlign","middle");
+				c0.setStyle("paddingLeft",10);
+				c0.setStyle("borderStyle","solid");
+				c0.setStyle("borderColor",0xFFFFFF);
+				c0.setStyle("borderThickness",1);
+				c0.setStyle("borderSides","right");
+				
+				var contentText:Text = new Text();
+				contentText.htmlText = obj.content;
+				contentText.percentWidth = 100;
+				contentText.mouseChildren=false;
+				contentText.buttonMode = true;
+				contentText.useHandCursor = true;
+				contentText.x = 10;
+				
+				var cvs:Canvas = new Canvas();
+				cvs.percentWidth = 100;
+				cvs.height = rowHeight;
+				cvs.addChild(contentText);
+				
+				var c1:HBox = new HBox();
+				c1.percentWidth= 100;
+				c1.addChild(cvs);
+				c1.buttonMode = true;
+				c1.useHandCursor = true;
+				c1.verticalScrollPolicy="off";
+				c1.horizontalScrollPolicy="off";
+				c1.setStyle("horizontalAlign","center");
+				c1.setStyle("verticalAlign","middle");
+				c1.setStyle("paddingRight",10);
+				
+				if(this.editable == true && obj.editable == true )
+				{
+					if(this.editClass)
+					{
+						var editCvs:Canvas = new ClassFactory(this.editClass).newInstance() as Canvas;
+						editCvs.percentWidth = 100;
+						cvs.addChild(editCvs);
+						editCvs.visible = false;
+						editCvs.height = rowHeight;
+						var imgEdit:EditButton = new EditButton();
+						c1.addChild(imgEdit);
+						imgEdit.addEventListener(MouseEvent.CLICK, 
+							function(...args):void
+							{
+								editCvs.visible = imgEdit.editing;
+								contentText.visible = !imgEdit.editing;
+								if(editCvs.visible == false)
+								{
+									Object(editCvs).save();
+									contentText.text = obj.content;
+								}
+								else
+								{
+									Object(editCvs).loadData();
+									Object(editCvs).focus();
+								}
+							});
+						editCvs.data = {text:contentText,record:obj, editButton:imgEdit};
+					}
+					
+					var imgDelete:ImageButton = new ImageButton();
+					imgDelete.icon = iconDelete;
+					imgDelete.data = row;
+					BindingUtils.bindProperty(imgDelete,"toolTip",this,"deleteToolTip");
+					imgDelete.toolTip = deleteToolTip;
+					imgDelete.addEventListener(MouseEvent.CLICK,function(e:MouseEvent):void
+					{
+						box.removeChild(e.target.data as DisplayObject);
+						box.height -= rowHeight;
+						height -= rowHeight;
+						if(box.height == 0)
+						{
+							height -= rowHeight;
+						}
+						
+						selectedItem = obj;
+						self.dispatchEvent(new RecordEvent("recordDelete",selectedItem));
+					});
+					
+					c1.addChild(imgDelete);
+				}
+				
+				row.addChild(c0);
+				row.addChild(c1);
+				
+				return row;
+			}
+		]]>
+	</mx:Script>
+	<mx:HBox width="100%" horizontalGap="0" height="{rowHeight}"
+			 verticalGap="0" color="0xFFFFFF"
+			 verticalScrollPolicy="off"
+			 horizontalScrollPolicy="off"
+			 borderStyle="solid"
+			 borderColor="0xFFFFFF" 
+			 borderThickness="1" 
+			 borderSides="bottom">
+		<mx:Canvas width="50" height="100%" 
+				   borderStyle="solid"
+				   borderColor="0xFFFFFF" 
+				   borderThickness="1" 
+				   borderSides="right" 
+				   >
+			<mx:Label text="{l.i.s('Page')}" 
+					  horizontalCenter="0" verticalCenter="0" />
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%" >
+			<mx:Label text="{title}" horizontalCenter="0" verticalCenter="0" />
+		</mx:Canvas>
+	</mx:HBox>
+	<mx:VBox id="box" width="100%" 
+			 paddingTop="-1"
+			 horizontalGap="0" verticalGap="0" height="220"
+			 verticalScrollPolicy="auto"
+			 horizontalScrollPolicy="off" >
+	</mx:VBox>
+</mx:VBox>

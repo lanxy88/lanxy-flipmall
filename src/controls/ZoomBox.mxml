@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:BaseVBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="240" height="{btnZoom.minimize ? 30 : 160}"
+		 cornerRadius="3" borderStyle="solid" borderColor="#FFFFFF" borderThickness="2" 
+		 backgroundColor="0x000000" backgroundAlpha="0.8" verticalGap="0"
+		 creationComplete="init();"
+		 show="zoomBoxShow(event)"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:common="common.*" xmlns:controls="controls.*"
+		 hide="hideZoomBox(event)"
+		 >
+	<mx:Metadata>
+		[Event(name="change",type="flash.events.Event")]
+		[Event(name="fitfullpage", type="flash.events.Event")]
+		[Event(name="settingchange", type="flash.events.Event")]
+		[Event(name="fit100", type="flash.events.Event")]
+		[Event(name="fitwidth", type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:Script>
+		<![CDATA[
+			
+			import common.SharedObjectManager;
+			
+			import mx.containers.ControlBar;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			
+			import qs.controls.FlexBook;
+			
+			private var _scale:Number;
+			
+			[Embed(source='assets/blackStyle/btnAutoMove.png')]
+			[Bindable]
+			public static var iconAutoMove: Class;
+			
+			[Embed(source='assets/blackStyle/btnAutoMoveForb.png')]
+			[Bindable]
+			public static var iconAutoMoveForb: Class;
+			
+
+			[Bindable]
+			public var maxZoomScale:Number = 6;
+			
+			public function get scale():Number
+			{
+				return _scale;
+			}
+
+			[Bindable]
+			public function set scale(value:Number):void
+			{
+				_scale = value;
+			}
+			
+			public override function set visible(val:Boolean):void
+			{
+				super.visible = val;
+				if(this.boxRed != null)
+				{
+					this.boxRed.visible = false;
+				}
+			}
+			
+			private var bgObj:DisplayObject = null;
+			
+			private var book:IBook = null;
+			
+			private var sacleFitWindow:Number = 1;
+			
+			private var renderRss:Boolean =true;
+			
+			private function init(){
+				sacleFitWindow = scale;
+				//renderRss = true;
+			}
+			
+			public function resetRss():void{
+				renderRss = true;
+			}
+			
+			public function renderSnapshot(book:IBook, reload:Boolean=true):void
+			{
+
+				this.book = book;
+				var ui:DisplayObject = book as DisplayObject;
+				if(	book == null 
+					|| ui.visible == false 
+					|| ui.width < 10 
+					|| ui.height < 10
+					|| imgSnap == null)
+				{
+					return;
+				}
+				
+				
+				
+				bgObj = ui;
+				
+				var bmp:Bitmap = null;
+				if(reload == true || renderRss){
+					//trace("book.renderSnapshot(imgSnap.maxWidth,imgSnap.maxHeight)");
+					bmp= book.renderSnapshot(imgSnap.maxWidth,imgSnap.maxHeight);
+					imgSnap.source = bmp;
+					renderRss = false;
+				}
+				updateHotArea();
+			}
+			
+			public function updateHotArea():void
+			{
+				if(bgObj == null || book == null) return;
+				//trace("updateHotArea......");
+				var bmp:Bitmap = imgSnap.source as Bitmap;
+				bgObj = book.currentDisplayObject;
+				
+				if(bgObj == null) return;
+				
+//				var leftPage:int = book.getLeftPageNumber();
+//				var rightPage:int = book.getRightPageNumber();
+//				if(leftPage == -1)
+//				{
+//					bgObj = book.leftContentPage.rightRenderer as DisplayObject;
+//				}
+//				else if(rightPage == -1)
+//				{
+//					bgObj = book.rightContentPage.leftRenderer as DisplayObject;
+//				}
+				
+				var lt:Point = bgObj.globalToLocal(new Point(0,0));
+				var rd:Point = bgObj.globalToLocal(new Point(RunTime.mainApp.width, RunTime.mainApp.height));
+				if(lt.x < 0) lt.x = 0;
+				if(lt.y < 0) lt.y = 0;
+				if(rd.x > bgObj.width) rd.x = bgObj.width;
+				if(rd.y > bgObj.height) rd.y = bgObj.height;
+				
+				boxRed.setStyle("horizontalCenter",(lt.x + rd.x - bgObj.width) * 0.5 *  bmp.width / bgObj.width);
+				boxRed.setStyle("verticalCenter",(lt.y + rd.y - bgObj.height) * 0.5 *  bmp.height / bgObj.height);
+				boxRed.width = (rd.x - lt.x) * bmp.width / bgObj.width;
+				boxRed.height = (rd.y - lt.y) * bmp.height / bgObj.height;
+				boxRed.visible = true;
+			}
+			
+			public function get snapMaxWidth():Number
+			{
+				return imgSnap.maxWidth;
+			}
+
+			public function get snapMaxHeight():Number
+			{
+				return imgSnap.maxHeight;	
+			}
+			
+			private function getMaxScale():Number{
+				if(RunTime.limitTo100) {
+					if(RunTime.singlePageMode){
+						maxZoomScale = RunTime.pageWidth/RunTime.initBookPageWidth;
+					}
+					else{
+						maxZoomScale = 2 * RunTime.pageWidth/RunTime.initBookPageWidth;
+					}
+				}
+				return maxZoomScale;
+				
+				
+				
+			}
+			public function zoom(offset:Number):void
+			{
+				var s:Number = scaleSlider.value;
+				s += offset;
+				if(s < scaleSlider.minimum)
+				{
+					s = scaleSlider.minimum;
+				}
+				else if(s > scaleSlider.maximum)
+				{
+					s = scaleSlider.maximum;
+				}
+				
+				scale = s;
+				updateHotArea();
+				dispatchEvent(new Event('change'));
+			}
+			
+			private function saveScale():void
+			{
+				SharedObjectManager.instance.saveDefaultZoomScale(this.scale);
+			}
+			
+			protected function fitFullpage(event:MouseEvent):void
+			{
+				updateHotArea();
+				dispatchEvent(new Event('fitfullpage'));
+			}
+			
+			private function zoom100():void
+			{
+				RunTime.fitScreenAfterZoom = RunTime.configFitScreenAfterZoom;
+
+				if(RunTime.singlePageMode){
+					scale = RunTime.pageWidth/RunTime.initBookPageWidth;
+				}
+				else{
+					scale = 2 * RunTime.pageWidth/RunTime.initBookPageWidth;
+				}
+				
+				updateHotArea();
+				dispatchEvent(new Event('change'));
+			}
+			
+			private function fitWindowWidth(){
+				if(RunTime.limitTo100) {
+					zoom100();
+					return;
+				}
+				
+				
+				updateHotArea();
+				//dispatchEvent(new Event('change'));
+				
+				dispatchEvent(new Event('fitwidth'));
+				
+				RunTime.fitScreenAfterZoom = true;
+				
+			}
+			
+			protected function autoMoveAfterZoom(event:MouseEvent):void
+			{
+				RunTime.autoMoveAfterZoom = !RunTime.autoMoveAfterZoom;
+				upZoomBox();
+				dispatchEvent(new Event('settingchange'));
+			}
+			
+			private function getAutoMoveAfterZoomIcon():Class{
+				
+				if(RunTime.autoMoveAfterZoom) {
+					return ZoomBox.iconAutoMove;
+				}
+				else{
+					return ZoomBox.iconAutoMoveForb;
+				}
+					
+					
+			}
+			
+			protected function zoomBoxShow(event:FlexEvent):void
+			{
+				renderRss = true;
+				scaleSlider.maximum = getMaxScale();
+
+				if(!RunTime.showZoomBox) this.visible = false;
+				
+				btnAutoMoveAfterZoom.icon =  RunTime.autoMoveAfterZoom ==true ?
+					ZoomBox.iconAutoMove : 
+					ZoomBox.iconAutoMoveForb;
+				
+				btnAutoMoveAfterZoom.toolTip= (RunTime.autoMoveAfterZoom==false) ?
+					l.i.s('AutoMove','Auto move'):
+					l.i.s('ForbiddenAutoMove','Forbidden auto move');
+			}
+			
+			public function upZoomBox():void{
+				btnAutoMoveAfterZoom.icon =  RunTime.autoMoveAfterZoom ==true ?
+					ZoomBox.iconAutoMove : 
+					ZoomBox.iconAutoMoveForb;
+				
+				btnAutoMoveAfterZoom.toolTip= (RunTime.autoMoveAfterZoom==false) ?
+					l.i.s('AutoMove','Auto move'):
+					l.i.s('ForbiddenAutoMove','Forbidden auto move');
+			}
+			
+			protected function hideZoomBox(event:FlexEvent):void
+			{
+				//trace("hideZoomBox");
+				//renderRss = true;
+				//imgSnap.source = null;
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Canvas width="100%" height="30">
+		<mx:HBox id="menuZoomControl" 
+				 width="200" 
+				 paddingLeft="10"  
+				 horizontalGap="0" 
+				 horizontalCenter="0"  
+				 verticalCenter="0"
+				 visible="true">
+			<controls:ImageButton icon="@Embed(source='assets/blackStyle/btnZoom100.png')"
+				toolTip="{l.i.s('Fit100','Fit to 100%')}"
+				width="24"
+				click="{zoom100();}"/>
+			<mx:Spacer width="10" />
+			
+			<controls:ImageButton icon="@Embed(source='assets/blackStyle/btnFitWindowWidth.png')"
+								  toolTip="{l.i.s('FitWindowWidth','Fit to window width')}"
+								  width="24"
+								  click="{fitWindowWidth();}"/>
+			<mx:Spacer width="10" />
+			
+			<controls:ImageButton icon="@Embed(source='assets/blackStyle/btnFitZoomOut.png')"
+								  toolTip="{(RunTime.zoomedIn == false) ? 
+								  l.i.s('ZoomIn','Zoom In') 
+								  : l.i.s('ZoomOut','Zoom Out')}"
+								  smoothBitmapContent="true"
+								  width="24"
+								  click="{fitFullpage(event)}"/>
+			<mx:Spacer width="10" />
+			
+			<controls:ImageButton id="btnAutoMoveAfterZoom" 
+								  icon="{getAutoMoveAfterZoomIcon()}"
+								  toolTip="{(RunTime.autoMoveAfterZoom==true) ?
+								  l.i.s('AutoMove','Auto move'):
+								  l.i.s('ForbiddenAutoMove','Forbidden auto move')}"
+								  width="24"
+								  click="autoMoveAfterZoom(event)"/>
+			<mx:Spacer width="10" />
+			
+
+		</mx:HBox>
+		<controls:MinButton id="btnZoom" verticalCenter="0" right="8">
+		</controls:MinButton>
+	</mx:Canvas>
+	<mx:Canvas width="100%" height="1" backgroundColor="0xFFFFFF" />
+	<mx:Canvas width="100%" height="100%">
+		<mx:Image id="imgSnap" horizontalCenter="0" verticalCenter="0" maxWidth="150" alpha="0.7" maxHeight="120" scaleContent="true"/>
+		<mx:Canvas id="boxRed" 
+				   horizontalCenter="0" verticalCenter="0" 
+				   borderColor="0xFF0000" 
+				   borderStyle="solid" 
+				   borderThickness="3" />
+	</mx:Canvas>
+	<mx:Canvas width="100%" height="1" backgroundColor="0xFFFFFF" />
+	<mx:Canvas width="100%" height="20" horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+		<mx:Image y="5" horizontalCenter="-90" 
+				  buttonMode="true" useHandCursor="true" click="{zoom(-0.1);saveScale();}"
+				  source="@Embed(source='assets/iconZoomOut.png')" />
+		<mx:HSlider y="-8" height="30"  horizontalCenter="0"
+					id="scaleSlider"
+					buttonMode="true"
+					useHandCursor="true" 
+					liveDragging="true"
+					value="{scale}"
+					minimum="0.5" maximum="{getMaxScale()}" valueCommit=""
+					change="{
+						scale = scaleSlider.value; 
+						updateHotArea();
+						dispatchEvent(new Event('change'));
+						saveScale();
+					}" />
+		<mx:Image  y="5" horizontalCenter="90"  buttonMode="true" useHandCursor="true" click="{zoom(0.1);saveScale();}"
+				   source="@Embed(source='assets/iconZoomIn.png')" /> 
+	</mx:Canvas>
+</controls:BaseVBox>

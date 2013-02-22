@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<controls:ImageButton xmlns:mx="http://www.adobe.com/2006/mxml"
+					xmlns:common="common.*"
+					icon="{minimize ? iconArrowUp : iconArrowDown}"
+					click="{onClick()}"
+					toolTip="{minimize?l.i.s('Restore'):l.i.s('Minimize')}" 
+					xmlns:controls="controls.*"
+					>
+	<mx:Script>
+		<![CDATA[
+			import common.events.BookEvent;
+			
+			[Embed(source='assets/blackStyle/btnArrowDown.png')]
+			private var iconArrowDown: Class;
+			
+			[Embed(source='assets/blackStyle/btnArrowUp.png')]
+			private var iconArrowUp: Class;
+			
+			[Bindable]
+			public var minimize:Boolean = false;
+			
+			private function onClick():void
+			{
+				minimize = ! minimize;
+			}
+			
+		]]>
+	</mx:Script>
+</controls:ImageButton>

@@ -1,0 +1,14 @@
+<forms>
+	<form page="6" x="20" y="280" width="800" height="550" url="http://m.gamecool8.com" background="0xffffff" labelWidth="120">
+		<field type="textbox" name="firstname" label="First Name:" prevalue="kyle" />
+		<field type="textbox" name="lastname" label="Last Name:" prevalue="fly"/>
+		<field type="combobox" name="country" label="Country:" datasource="USA,CHINA,UK,JP" prevalue="USA"/>
+		<field type="checkbox" name="reg" label="Registered" prevalue="true" />
+		<field type="radiobutton" name="sex" label="Select Sex:" datasource="man,female,女士女士女士" prevalue="0" />
+	</form>
+	<form page="18" x="20" y="280" width="800" height="550" url="http://m.gamecool8.com">
+		<field type="textbox" name="firstname" label="First Name:" prevalue="bill" />
+		<field type="textbox" name="lastname" label="Last Name:" prevalue="gate"/>
+		<field type="combobox" name="country" label="Country:" datasource="CHINA,USA,UK,JP"/>
+	</form>
+</forms>
