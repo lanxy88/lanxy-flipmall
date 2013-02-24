@@ -1,0 +1,1 @@
+copy bin\html5.js C:\xampp\htdocs\flip\html5pc.js

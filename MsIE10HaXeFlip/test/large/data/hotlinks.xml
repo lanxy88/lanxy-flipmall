@@ -1,0 +1,41 @@
+<hotlinks>
+		<hotlink page="1" title="HOTLINK TITLE"
+			 x="30" y="60" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" opacity="0.8" rolloverOpacity="0.5"
+			 rolloverText="tool tip" rolloverColor="0xAA0000"
+			  />
+<!-- 
+ 		<hotlink page="2" title="HOTLINK TITLE"
+			 x="30" y="60" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" opacity="0.8" 
+			 rolloverText="tool tip" rolloverColor="0xAA0000"
+			  /> 
+		<hotlink page="2" title="HOTLINK TITLE" pageText="20-23"
+			 x="30" y="1600" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" destination="page:20"
+			  />
+--> 
+		<hotlink page="3"
+			 x="30" y="60" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" opacity="0.8" 
+			 rolloverText="tool tip" rolloverColor="0xAA0000" destination="page:3"
+			  /> 
+		<hotlink page="3"
+			 x="30" y="120" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" destination="hotlink.html"
+			  />
+		<hotlink page="3" title="HOTLINK TITLE" pageText="20-23"
+			 x="30" y="150" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" destination="http://www.geblab.com/hotlink.html"
+			  />
+		<hotlink page="3"
+			 x="30" y="180" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" destination="mailto:xiaotie@geblab.com"
+			  />
+		<hotlink page="5"
+			 x="30" y="60" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12"
+		>
+		<![CDATA[About Us: <font color="#0000FF"><a href="http://www.geblab.com" target="_black">www.geblab.com</a></font> , Email: <font color="#0000FF"><a href="mailto:xiaotie@geblab.com">xiaotie@geblab.com</a></font>]]>
+		</hotlink>
+</hotlinks>

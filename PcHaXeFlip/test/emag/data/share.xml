@@ -1,0 +1,16 @@
+<sites logoWidth="200" logoHeight="40">
+	<site logoUrl="content/images/iconFacebook.png" name="Facebook" href="gotoFacebookUrl" />
+	<site logoUrl="content/images/iconMyspace.png" name="Myspace" href="gotoMyspaceUrl?site=myspace" />
+	<site logoUrl="content/images/iconFacebook.png" name="Facebook" href="gotoFacebookUrl" />
+	<site logoUrl="content/images/iconMyspace.png" name="Myspace" href="gotoMyspaceUrl" />
+	<site logoUrl="content/images/iconFacebook.png" name="Facebook" href="gotoFacebookUrl" />
+	<site logoUrl="content/images/iconMyspace.png" name="Myspace" href="gotoMyspaceUrl" />
+	<site logoUrl="content/images/iconFacebook.png" name="Facebook" href="gotoFacebookUrl" />
+	<site logoUrl="content/images/iconMyspace.png" name="Myspace" href="gotoMyspaceUrl" />
+	<site logoUrl="content/images/iconFacebook.png" name="Facebook" href="gotoFacebookUrl" />
+	<site logoUrl="content/images/iconMyspace.png" name="Myspace" href="gotoMyspaceUrl" />
+	<site logoUrl="content/images/iconFacebook.png" name="Facebook" href="gotoFacebookUrl" />
+	<site logoUrl="content/images/iconMyspace.png" name="Myspace" href="gotoMyspaceUrl" />
+	<site logoUrl="content/images/iconFacebook.png" name="Facebook" href="gotoFacebookUrl" />
+	<site logoUrl="content/images/iconMyspace.png" name="Myspace" href="gotoMyspaceUrl" />
+</sites>

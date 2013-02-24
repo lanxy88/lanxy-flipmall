@@ -1,0 +1,47 @@
+﻿<!--
+	 flipSpeedBoost: 调整电子杂志翻页动画的速度。默认为100. 该值越高，则翻页速度越快。
+ -->
+<bookinfo id="test_02" autoFlipSeconds="5" autoMoveAfterZoom="false"
+	bgColor="#454545" bgImage="" shadow="false" pageWidth="1241" pageHeight="1123"
+	flipSpeedBoost="80" title="" author="" zipUrl="offline/.zip" 
+	shareUrl="http://www.flipmall.net/test/wide/index.html"
+	zipIcon="content/images/iconZip.gif" exeUrl="offline/.exe"
+	exeIcon="content/images/iconExe.gif" companyLogo="" companyName=""
+	companyAddress="company Address company Address company Address company Address company Address company Address"
+	companyUrl="http://www.flipmall.net"
+	email="xiaotie@geblab.com" tel="111-11111111"
+	gateway="email.php" loadingLogo="data/logoRd.jpg"
+	bookmarkWidth="24"
+	bookmarkHeight="280"
+	bookmarkFontSize="14"
+	defaultZoomScale="2.5"
+	>
+	<leftmenu>
+		<issues visible="false"/>
+		<toc visible="true"/>
+		<thumbs visible="true"/>
+		<email visible="true"/>
+		<sns visible="true"/>
+		<print visible="true"/>
+		<pdf visible="true"/>
+		<download visible="true"/>
+		<setting visible="true"/>
+		<about visible="true"/>
+	</leftmenu>
+	<bottommenu background="content/images/menuBackground.png">
+		<help visible="true" url="help.htm"/>
+		<info visible="true" url="info.htm"/>
+		<zoom visible="true"/>
+		<autoflip visible="true"/>
+		<search visible="true"/>
+		<highlight visible="true"/>
+		<bookmark visible="true"/>
+		<notes visible="true"/>
+		<fullscreen visible="true"/>
+	</bottommenu>
+	<!-- 右键菜单 -->
+	<contextmenu>
+		<menu title="Flipbook" url="flipbook.html"/>
+	</contextmenu>
+	<bookLogo url="data/logoRd.jpg" href="http://www.flipmall.net"/>
+</bookinfo>
