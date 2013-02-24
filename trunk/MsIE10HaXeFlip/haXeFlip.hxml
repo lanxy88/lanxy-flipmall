@@ -1,0 +1,4 @@
+-cp src
+-js bin/html5.js
+-main Main
+-lib html5
