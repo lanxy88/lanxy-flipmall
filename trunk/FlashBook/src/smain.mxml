@@ -101,7 +101,7 @@
 				stage.addEventListener(KeyboardEvent.KEY_DOWN,onKeyDown);
 				var pageParsed:Boolean = false;
 				var queryString:String = "";
-				stage.frameRate = 60;
+				stage.frameRate = 24;
 				try
 				{
 					if(ExternalInterface.available)
@@ -283,7 +283,7 @@
 				_initTimer.start();
 //				preloadInfo.source = Setting.logo;
 				
-				trace(RunTime.encrypt("global"));
+
 			}
 			
 			private function initAppCore(e:TimerEvent):void
@@ -1827,9 +1827,10 @@
 				//return 36;
 				var limitVal:Number = adTop.height;
 				if(!RunTime.bottomMenuFixTop){
-					limitVal = 36;
+//					limitVal = 36;
+					return 40;
 				}
-				
+				return 0;
 				return limitVal;
 			}
 			
@@ -2974,7 +2975,7 @@
 				   width="{getRightAdWidth(adRight.dataSource,RunTime.fullScreen)}"
 				   direction="vertical" horizontalAlign="center" nodeConfig="{bookConfig.rightAd}"
 				   paddingLeft="3" paddingRight="3" paddingTop="3"/>
-		<containers:Landscape id="landscape" top="0" bottom="0" width="100%" cachePolicy="off"
+		<containers:Landscape id="landscape" top="{adTop.height}" bottom="0" width="100%" cachePolicy="off"
 							  clipContent="true" mouseListener="{book}"
 							  mouseWheel="onMouseWheel(event)"
 							  paddingBottom="{getBookPaddingBottom()}"
@@ -3064,7 +3065,7 @@
 		</HBox>
 	</Canvas>
 	
-	<Canvas id="menuBottom"  top="{RunTime.bottomMenuFixTop?0:''}"
+	<Canvas id="menuBottom"  top="{RunTime.bottomMenuFixTop?adTop.height:''}"
 			bottom="{RunTime.bottomMenuFixTop == false?0:''}" width="100%" height="46"
 			horizontalCenter="0" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 			visible = "{!RunTime.hideBottomMenu}">
