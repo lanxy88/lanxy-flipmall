@@ -138,7 +138,7 @@
 				stage.addEventListener(KeyboardEvent.KEY_DOWN,onKeyDown);
 				var pageParsed:Boolean = false;
 				var queryString:String = "";
-				stage.frameRate = 60;
+				stage.frameRate = 24;
 				try
 				{
 					if(ExternalInterface.available)
@@ -2601,9 +2601,10 @@
 				
 				var limitVal:Number = adTop.height;
 				if(!RunTime.bottomMenuFixTop){
-					limitVal = 36;
+//					limitVal = 36;
+					return 40;
 				}
-				
+				return 0;
 				return limitVal;
 			}
 			
@@ -3922,8 +3923,7 @@
 				   left="0" right="0"
 				   nodeConfig="{bookConfig.topAd}"
 				   visible="{RunTime.fullScreen == false}"
-				   top="{RunTime.bottomMenuFixTop==false?0:''}"
-				   bottom="{RunTime.bottomMenuFixTop?0:''}"
+				   top="0" 
 				   horizontalAlign="{RunTime.topAdPosition}"
 				   />
 		<fbc:AdBar id="adRight"
@@ -3936,7 +3936,7 @@
 				   verticalAlign="{RunTime.rightAdPosition }"
 				   />
 		<containers:Landscape id="landscape" 
-							  top="0" 
+							  top="{adTop.height}"
 							  bottom="0"
 							  left="0" right="0"
 							  paddingTop="{getBookPaddingTop(RunTime.fullScreen,adTop.height)}"
@@ -4136,7 +4136,7 @@
 		</HBox>
 	</Canvas>
 	<Canvas id="menuBottom" left="0" right="0"
-			top="{RunTime.bottomMenuFixTop?0:''}"
+			top="{RunTime.bottomMenuFixTop?adTop.height:''}"
 			bottom="{RunTime.bottomMenuFixTop == false?0:''}"
 			height="46"
 			horizontalScrollPolicy="off"

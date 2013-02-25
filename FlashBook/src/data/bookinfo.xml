@@ -88,7 +88,7 @@ global: mK6go5Js -->
  tel="" 
  email="" 
  exeUrl="" 
- fullScreen="true" 
+ fullScreen="false" 
  hardCover="false" 
  pdfUrl="pdf/test.pdf"
  thickness="15"
@@ -117,7 +117,7 @@ global: mK6go5Js -->
 		<close visible="true" icon="content/images/btnclose.png"/>
 	</leftmenu>
 	<bottommenu visible="true"
-				position="top" 
+				position="bottom" 
 				background="content/images/menuBackground.png" 
 				showBackground="false" 
 				autoHideOnFullScreen="false" 
@@ -178,10 +178,10 @@ global: mK6go5Js -->
   	  <pic url="content/images/ad10.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
   	   -->
 	</rightAd>
-	<!-- 
-	<mainAd url="content/images/4_logos_green_border.gif" href="http://www.flipmall.net"/>
-	<mainAd url="content/images/adtop.gif" href="page:4" hideWhenOpened="true"/>
-	 -->
+	 
+<!-- 	<mainAd url="content/images/4_logos_green_border.gif" href="http://www.flipmall.net"/> -->
+<!-- 	<mainAd url="content/images/adtop.gif" href="page:4" hideWhenOpened="true"/> -->
+	
 	<!-- 右键菜单 -->
 	<contextmenu>
 		<menu title="Flipbook" url="flipbook.html"/>
