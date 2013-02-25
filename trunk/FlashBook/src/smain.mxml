@@ -7,7 +7,6 @@
 			 xmlns:itemRenderers="fcat.view.itemRenderers.*"
 			 xmlns:common="common.*"
 			 xmlns:fbc="controls.*"
-			 frameRate="10"
 			 width="100%" height="100%" minWidth="500" minHeight="300"
 			 applicationComplete="onApplicationComplete()" backgroundColor="0x454545"
 			 backgroundGradientAlphas="0,0" creationComplete="initApp()"
