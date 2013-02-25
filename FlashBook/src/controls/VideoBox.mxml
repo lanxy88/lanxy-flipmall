@@ -104,6 +104,7 @@
 			
 			private function onSWFLoaded():void
 			{
+				swf.stage.frameRate = 24;
 				//trace("swf loaded.");
 			}
 			private function playNormalVideo():void
