@@ -58,6 +58,7 @@
 					var adInfo:AdInfo = new AdInfo();
 					adInfo.url = String(node.@url);
 					adInfo.href = String(node.@href);
+					adInfo.target = String(node.@target==null?"_self":node.@target);
 					if(String(node.@width)) adInfo.width = int(node.@width);
 					if(String(node.@height)) adInfo.height = int(node.@height);
 					if(String(node.@time)) adInfo.switchSeconds = int(node.@time);

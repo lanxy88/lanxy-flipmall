@@ -146,7 +146,8 @@ global: mK6go5Js -->
 	</bottommenu>
 	
 	<topAd slideShow="false" position="left"> 
-	  <pic url="content/images/adtop.gif" href="page:4" width="400" height="50" time="5" />
+	  <pic url="content/images/adtop.gif" href="page:4" target="_blank" width="400" height="50" time="5" />
+	   <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" target="_blank" width="300" height="50" time="5" />
 	  <!--
   	  <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
   	  <pic url="content/images/ad2.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
@@ -162,7 +163,8 @@ global: mK6go5Js -->
 	</topAd>
 	
 	<rightAd slideShow="false" position="bottom"> 
-	  <pic url="content/images/adtop.gif" href="page:4" width="150" height="50" time="5" />
+	  <pic url="content/images/adtop.gif" href="page:4"  target="_blank" width="150" height="50" time="5" />
+	  <pic url="content/images/ad1.jpg" href="http://www.flipmall.net"   target="_blank" width="150" height="150" time="5" />
 	  <!-- 
   	  <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />
   	  <pic url="content/images/ad2.jpg" href="http://www.flipmall.net" width="150" height="150" time="5" />

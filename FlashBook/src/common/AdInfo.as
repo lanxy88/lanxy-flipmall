@@ -17,6 +17,8 @@ package common
 		
 		public var href:String;
 		
+		public var target:String = "_self";
+		
 		public var width:int = 200;
 		
 		public var height:int = 200;
@@ -44,7 +46,7 @@ package common
 			img.addEventListener(MouseEvent.CLICK, 
 				function(... args):void
 				{
-					RunTime.clickHref(href);
+					RunTime.clickHref(href,target);
 				});
 			
 			return img;
