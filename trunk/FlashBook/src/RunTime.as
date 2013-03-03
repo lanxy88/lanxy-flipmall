@@ -613,7 +613,7 @@ package
 		[Bindable]
 		public static var zoomAfterLoaded:Boolean = false;
 		
-		public static function clickHref(dest:String,target:String="_self"):void
+		public static function clickHref(dest:String,target:String="_blank"):void
 		{
 			if(!dest) return;
 			if(dest.indexOf("page:") == 0)

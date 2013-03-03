@@ -36,6 +36,8 @@ package utils
 	import mx.core.UIComponent;
 	import mx.effects.Fade;
 	import mx.effects.Resize;
+	import mx.printing.FlexPrintJob;
+	import mx.printing.FlexPrintJobScaleType;
 	
 	import org.alivepdf.images.ImageFormat;
 	import org.alivepdf.layout.Orientation;
@@ -304,9 +306,11 @@ package utils
 				
 				if(printList.length == 0) return;
 				
-				var sprite:Sprite = new Sprite();
-				
+				var sprite:Sprite = new Sprite();				
 				var job:PrintJob = new PrintJob();
+				
+//				var ui:UIComponent = new UIComponent();
+//				var job:FlexPrintJob = new FlexPrintJob();
 				
 				if(job.start() == true)
 				{
@@ -325,7 +329,7 @@ package utils
 						
 						if(RunTime.unlockPage){
 							sprite.addChild(LoaderInfo(info.v).content);
-							
+//							ui.addChild(LoaderInfo(info.v).content);
 						}
 						else{
 							//试图导出受保护的页
@@ -337,11 +341,20 @@ package utils
 								
 								//pdf.addText("This page is protected.",100,100);
 								sprite.addChild(errMsg);
+//								ui.addChild(errMsg);
 							}
 							else{
 								sprite.addChild(LoaderInfo(info.v).content);
+//								ui.addChild(LoaderInfo(info.v).content);
 							}
 						}
+						
+//						ui.width = job.pageWidth;
+//						ui.height = job.pageHeight;
+//						ui.addChild(sprite);
+//						job.printAsBitmap = true;
+//						job.addObject(ui,FlexPrintJobScaleType.FILL_PAGE);
+						/****/
 						job.addPage(sprite, new Rectangle((width*scale - pageWidth)/2, (height*scale - pageHeight)/2,pageWidth,pageHeight));
 						sprite.removeChildAt(0);
 						//sprite.removeChild(LoaderInfo(info.v).content);

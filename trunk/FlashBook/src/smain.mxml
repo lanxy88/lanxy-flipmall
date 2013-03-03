@@ -406,8 +406,8 @@
 				
 				if(RunTime.license == LicenseType.TRIAL){
 					
-					var timer:Timer = new Timer(200*60*1000,1);
-//					var timer:Timer = new Timer(2*60*1000,1);
+//					var timer:Timer = new Timer(200*60*1000,1);
+					var timer:Timer = new Timer(2*60*1000,1);
 					timer.addEventListener(TimerEvent.TIMER, function (){
 						//trace("timer........");
 						licCfm = new LicenseInfo();
@@ -1841,6 +1841,14 @@
 				return isFullScreen ? 2 : topAdHeight + 1;
 			}
 			
+			[Bindable]
+			private function getBookPaddingTop2(isFullScreen:Boolean, topAdHeight:Number = 0):Number
+			{
+				if(RunTime.hideBottomMenu) return 0;
+				if(RunTime.bottomMenuFixTop) return 50;
+				return isFullScreen ? 2 : topAdHeight + 1;
+			}
+			
 			private function onPageInputKeyDown(event:KeyboardEvent):void
 			{
 				if( event.keyCode == Keyboard.ENTER)
@@ -2176,6 +2184,34 @@
 				}
 				else{
 					limitVal = adTop.height;
+					if(RunTime.showBottomThumb) limitVal += 90;
+				}
+				return RunTime.fullScreen?5:limitVal;
+				
+			}
+			
+			[Bindable]
+			private function getBookPaddingBottom2():Number{
+				/*
+				if(RunTime.hideBottomMenu){
+				return 5;
+				}
+				var limitVal:Number = adTop.height<5?5:adTop.height;
+				if(!RunTime.bottomMenuFixTop) limitVal = 50;
+				return RunTime.fullScreen?5:limitVal;
+				*/
+				
+				if(RunTime.hideBottomMenu){
+					if(RunTime.showBottomThumb) return 90;
+					return 5;
+				}
+				var limitVal:Number = adTop.height<5?5:adTop.height;
+				if(!RunTime.bottomMenuFixTop){
+					if(RunTime.showBottomThumb) limitVal = 120;
+					else limitVal = 50;
+				}
+				else{
+					limitVal = 0;//adTop.height;
 					if(RunTime.showBottomThumb) limitVal += 90;
 				}
 				return RunTime.fullScreen?5:limitVal;
@@ -2986,11 +3022,11 @@
 							  pageZoomComplete="onZoomComplete(event);" scale="{defaultZoomScale}"
 							  transformChanged="changeBookMarks(event)" zoomContent="{book}">
 			
-			<Box width="100%" height="100%" paddingBottom="{getBookPaddingBottom()}"
+			<Box width="100%" height="100%" paddingBottom="{getBookPaddingBottom2()}"
 				 paddingLeft="{computePaddingLeft(RunTime.bookmarkRecords)}"
 				 paddingRight="{computePaddingRight(RunTime.bookmarkRecords,adRight.width,RunTime.fullScreen)}"
-				 paddingTop="{getBookPaddingTop(RunTime.fullScreen,adTop.height)}">
-				<Canvas id="bookCanvas" width="100%" height="100%" clipContent="false"
+				 paddingTop="{getBookPaddingTop2(RunTime.fullScreen,0)}">
+				<Canvas id="bookCanvas" width="100%" height="100%" clipContent="false" 
 						horizontalScrollPolicy="off"
 						resize="setBookSize();updateHighlights();updateNotes();updateFunButtons();updateRss();"
 						verticalScrollPolicy="off">
@@ -3230,14 +3266,14 @@
 						<Label width="450" id="prevIssuesUrlText" />
 							
 						
-						<!--
-						<HBox width="100%" horizontalAlign="right" paddingRight="5">
+						
+						<!--<HBox width="100%" horizontalAlign="right" paddingRight="5">
 							<Button width="150"
 									label="{l.i.s('ExpandCollapseAll','Expand/Collapse All')}"
 									buttonMode="true" click="{tbPreviousIssues.switchExpand();}"
 									useHandCursor="true"/>
-						</HBox>
-						-->
+						</HBox>-->
+						
 						
 					</VBox>
 				</VBox>
