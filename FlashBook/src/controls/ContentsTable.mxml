@@ -535,7 +535,7 @@
 					
 					//trace("handleRecord(obj:TreeNodeRecord, index:int)");
 					if(!showThumNode) 
-					addTreeNode(obj,index);
+						addTreeNode(obj,index);
 					else addTreeThumbNode(obj,index);
 				}
 				

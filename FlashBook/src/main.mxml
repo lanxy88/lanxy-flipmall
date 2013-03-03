@@ -2614,6 +2614,15 @@
 				if(RunTime.bottomMenuFixTop) return 50;
 				return isFullScreen ? 2 : topAdHeight + 1;
 			}
+			
+			[Bindable]
+			private function getBookPaddingTop2(isFullScreen:Boolean, topAdHeight:Number = 0):Number
+			{
+				if(RunTime.hideBottomMenu) return 0;
+				if(RunTime.bottomMenuFixTop) return 50;
+				return isFullScreen ? 2 : topAdHeight + 1;
+			}
+			
 			[Bindable]
 			private function getBookPaddingBottom():Number{
 
@@ -2631,6 +2640,34 @@
 					if(RunTime.showBottomThumb) limitVal += 90;
 				}
 				return RunTime.fullScreen?5:limitVal;
+			}
+			
+			[Bindable]
+			private function getBookPaddingBottom2():Number{
+				/*
+				if(RunTime.hideBottomMenu){
+				return 5;
+				}
+				var limitVal:Number = adTop.height<5?5:adTop.height;
+				if(!RunTime.bottomMenuFixTop) limitVal = 50;
+				return RunTime.fullScreen?5:limitVal;
+				*/
+				
+				if(RunTime.hideBottomMenu){
+					if(RunTime.showBottomThumb) return 90;
+					return 5;
+				}
+				var limitVal:Number = adTop.height<5?5:adTop.height;
+				if(!RunTime.bottomMenuFixTop){
+					if(RunTime.showBottomThumb) limitVal = 120;
+					else limitVal = 50;
+				}
+				else{
+					limitVal = 0;//adTop.height;
+					if(RunTime.showBottomThumb) limitVal += 90;
+				}
+				return RunTime.fullScreen?5:limitVal;
+				
 			}
 			
 			private function onPageInputKeyDown(event:KeyboardEvent):void
@@ -3954,10 +3991,10 @@
 							  transformChanged="changeBookMarks(event)" >
 			
 			<Box width="100%" height="100%"
-				 paddingTop="{getBookPaddingTop(RunTime.fullScreen,adTop.height)}"
+				 paddingTop="{getBookPaddingTop2(RunTime.fullScreen,0)}"
 				 paddingLeft="{computePaddingLeft(RunTime.bookmarkRecords)}" 
 				 paddingRight="{computePaddingRight(RunTime.bookmarkRecords,adRight.width,RunTime.fullScreen)}" 
-				 paddingBottom="{getBookPaddingBottom()}"
+				 paddingBottom="{getBookPaddingBottom2()}"
 				 >
 				
 				<Canvas id="bookCanvas" width="100%" height="100%" clipContent="false"

@@ -116,8 +116,8 @@ global: mK6go5Js -->
 		<about visible="true"  icon=""/>
 		<close visible="true" icon="content/images/btnclose.png"/>
 	</leftmenu>
-	<bottommenu visible="true"
-				position="bottom" 
+	<bottommenu visible="false"
+				position="top" 
 				background="content/images/menuBackground.png" 
 				showBackground="false" 
 				autoHideOnFullScreen="false" 
