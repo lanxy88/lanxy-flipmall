@@ -515,13 +515,13 @@
 			
 			private function addTreeThumbNode(obj:TreeNodeRecord, index:int):void{
 								
-				//if(obj.level == 0){
-					//addHeader(obj,index);
-				//}
-				//else{
+				if(obj.level == 0){
+					addHeader(obj,index);
+				}
+				else{
 					
 					addThumb(obj,index);
-				//}
+				}
 			}
 			
 			public function handleRecord(obj:TreeNodeRecord, index:int):void
@@ -531,7 +531,7 @@
 				
 				if(obj != null){
 					//trace("obj:TreeNodeRecord index=" + index);
-					addTreeThumbNode(obj,index);
+//					addTreeThumbNode(obj,index);
 					
 					//trace("handleRecord(obj:TreeNodeRecord, index:int)");
 					if(!showThumNode) 
