@@ -31,8 +31,11 @@ package utils
 	import flash.utils.Timer;
 	
 	import mx.containers.Canvas;
+	import mx.containers.Panel;
+	import mx.containers.VBox;
 	import mx.controls.Image;
 	import mx.controls.SWFLoader;
+	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.effects.Fade;
 	import mx.effects.Resize;
@@ -309,11 +312,13 @@ package utils
 				var sprite:Sprite = new Sprite();				
 				var job:PrintJob = new PrintJob();
 				
-//				var ui:UIComponent = new UIComponent();
-//				var job:FlexPrintJob = new FlexPrintJob();
-				
 				if(job.start() == true)
 				{
+					/**
+					 * 加入stage否则无法再新版chrome下打印
+					 * */
+					Application.application.stage.addChild(sprite);
+					
 					var pageWidth:Number = job.pageWidth;
 					var pageHeight:Number = job.pageHeight;
 					
@@ -329,7 +334,6 @@ package utils
 						
 						if(RunTime.unlockPage){
 							sprite.addChild(LoaderInfo(info.v).content);
-//							ui.addChild(LoaderInfo(info.v).content);
 						}
 						else{
 							//试图导出受保护的页
@@ -341,20 +345,16 @@ package utils
 								
 								//pdf.addText("This page is protected.",100,100);
 								sprite.addChild(errMsg);
-//								ui.addChild(errMsg);
 							}
 							else{
 								sprite.addChild(LoaderInfo(info.v).content);
-//								ui.addChild(LoaderInfo(info.v).content);
 							}
 						}
 						
-//						ui.width = job.pageWidth;
-//						ui.height = job.pageHeight;
-//						ui.addChild(sprite);
-//						job.printAsBitmap = true;
-//						job.addObject(ui,FlexPrintJobScaleType.FILL_PAGE);
 						/****/
+						//
+						
+						//
 						job.addPage(sprite, new Rectangle((width*scale - pageWidth)/2, (height*scale - pageHeight)/2,pageWidth,pageHeight));
 						sprite.removeChildAt(0);
 						//sprite.removeChild(LoaderInfo(info.v).content);
@@ -362,6 +362,7 @@ package utils
 					}
 					job.send();
 					if(successCallback != null) successCallback();
+					Application.application.stage.removeChild(sprite);
 				}
 				else
 				{
