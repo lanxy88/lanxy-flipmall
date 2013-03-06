@@ -3259,7 +3259,7 @@
 					<VBox width="100%" paddingBottom="0" paddingLeft="0" paddingRight="0"
 						  paddingTop="0">
 						<fbc:ContentsTable id="tbPreviousIssues" width="100%"
-										   height="{vsLeft.height-60}"
+										   height="{vsLeft.height-60}" contentType="issue"
 										   recordClick="onPreviousIssuesClick(event)"
 										   recordOver="onPreviousIssuesOver(event)"
 										   showPage="false" source="{RunTime.prevIssues}" showThumNode="{RunTime.showIssueThumb}"/>

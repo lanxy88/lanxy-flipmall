@@ -17,7 +17,7 @@ package common
 		
 		public var href:String;
 		
-		public var target:String = "_self";
+		public var target:String = "_blank";
 		
 		public var width:int = 200;
 		

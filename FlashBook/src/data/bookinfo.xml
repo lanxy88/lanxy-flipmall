@@ -116,14 +116,14 @@ global: mK6go5Js -->
 		<about visible="true"  icon=""/>
 		<close visible="true" icon="content/images/btnclose.png"/>
 	</leftmenu>
-	<bottommenu visible="false"
+	<bottommenu visible="true"
 				position="top" 
 				background="content/images/menuBackground.png" 
 				showBackground="false" 
 				autoHideOnFullScreen="false" 
 				hideAfterZoom="false"
 				iconSameSize="false">
-		<help visible="true" url="help.htm"  icon=""/>
+		<help visible="true" url="help.html"  icon=""/>
 		<info visible="true" url="info.htm"  icon=""/>
 		<back visible="true"  icon=""/>
 		<forward visible="true"  icon=""/>
@@ -147,7 +147,7 @@ global: mK6go5Js -->
 	
 	<topAd slideShow="false" position="left"> 
 	  <pic url="content/images/adtop.gif" href="page:4" target="_blank" width="400" height="50" time="5" />
-	   <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" target="_blank" width="300" height="50" time="5" />
+	   <pic url="content/images/ad1.jpg" href="http://www.flipmall.net"   width="300" height="50" time="5" />
 	  <!--
   	  <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
   	  <pic url="content/images/ad2.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />

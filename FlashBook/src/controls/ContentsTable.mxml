@@ -51,6 +51,12 @@
 			[Bindable]
 			public var startExpend:Boolean = true;
 			
+			/**
+			 * content or issue
+			 * */
+			public var contentType:String = 'content';
+			
+			
 			public function switchExpand():void
 			{
 				expanded = !expanded;
@@ -105,7 +111,10 @@
 				
 				updateHeight();
 				
-				switchExpand();
+				if(contentType=='content'){
+					switchExpand();
+				}
+//				switchExpand();
 			}
 			
 			private function updateHeight():void
@@ -515,13 +524,13 @@
 			
 			private function addTreeThumbNode(obj:TreeNodeRecord, index:int):void{
 								
-				if(obj.level == 0){
-					addHeader(obj,index);
-				}
-				else{
+//				if(obj.level == 0){
+//					addHeader(obj,index);
+//				}
+//				else{
 					
 					addThumb(obj,index);
-				}
+//				}
 			}
 			
 			public function handleRecord(obj:TreeNodeRecord, index:int):void
@@ -534,9 +543,15 @@
 //					addTreeThumbNode(obj,index);
 					
 					//trace("handleRecord(obj:TreeNodeRecord, index:int)");
-					if(!showThumNode) 
-						addTreeNode(obj,index);
-					else addTreeThumbNode(obj,index);
+					
+					if(contentType=='content'){
+						if(!showThumNode) 
+							addTreeNode(obj,index);
+						else addTreeThumbNode(obj,index);
+					}else if(contentType=='issue'){
+						addTreeThumbNode(obj,index);
+					}
+					
 				}
 				
 				
