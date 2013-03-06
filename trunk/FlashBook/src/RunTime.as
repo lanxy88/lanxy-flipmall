@@ -616,15 +616,17 @@ package
 		public static function clickHref(dest:String,target:String="_blank"):void
 		{
 			if(!dest) return;
+			
 			if(dest.indexOf("page:") == 0)
 			{
 				RunTime.mainPage.gotoPage(int(dest.substr("page:".length)));
 			}
 			else
 			{
+//				Alert.show(dest+"\n"+target);
 				if(!RunTime.isLocal){
 					flash.net.navigateToURL(new URLRequest(RunTime.getAbsPath(dest)),target);
-
+//					Alert.show("!local");
 				}
 				else{
 					flash.net.navigateToURL(new URLRequest(dest),target);

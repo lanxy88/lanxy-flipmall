@@ -4462,7 +4462,7 @@
 						  paddingTop="0" paddingBottom="0"
 						  
 						 >
-						<fbc:ContentsTable width="100%"
+						<fbc:ContentsTable width="100%" contentType="issue"
 										   height="{vsLeft.height-60}"
 										     id="tbPreviousIssues" 
 											  recordClick="onPreviousIssuesClick(event)"

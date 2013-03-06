@@ -90,6 +90,12 @@
 				confirm.visible = true;
 				
 				tiptext.text = l.i.s('PdfCreated','PDF is generated.');
+				
+				//
+//				if(pdfPage == null) return;
+//				var bytes:ByteArray = pdfPage.save( Method.LOCAL );
+//				var f:FileReference = new FileReference();
+//				f.save(bytes, "output.pdf");
 			}
 			
 		]]>
