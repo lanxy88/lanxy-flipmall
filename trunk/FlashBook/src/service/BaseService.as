@@ -449,8 +449,8 @@ package service
 		private function parseIssues(xmlData: Object, level:int = 0):Array
 		{
 			var root:XML = new XML(xmlData);
-//			if(String(root.@thumbnail))  
-				RunTime.showIssueThumb = String(root.@thumbnail).toLowerCase()=="true" || String(root.@thumbnail)=='';
+			if(String(root.@thumbnail) || root.localName()=='issues')  
+				RunTime.showIssueThumb = String(root.@thumbnail).toLowerCase()=="true" || (root.localName()=='issues' && String(root.@thumbnail)=='');
 			var issues:Array = [];
 			for each(var inode:XML in root.issue)
 			{
