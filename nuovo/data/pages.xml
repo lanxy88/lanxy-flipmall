@@ -1,0 +1,10 @@
+<pages preload="true">
+<page id="1" shadow="true" source="content/vector/page1.swf" thumb="content/thumbs/thumb1.jpg"/>
+<page id="2" shadow="true" source="content/vector/page2.swf" thumb="content/thumbs/thumb2.jpg"/>
+<page id="3" shadow="true" source="content/vector/page3.swf" thumb="content/thumbs/thumb3.jpg"/>
+<page id="4" shadow="true" source="content/vector/page4.swf" thumb="content/thumbs/thumb4.jpg"/>
+<page id="5" shadow="true" source="content/vector/page5.swf" thumb="content/thumbs/thumb5.jpg"/>
+<page id="6" shadow="true" source="content/vector/page6.swf" thumb="content/thumbs/thumb6.jpg"/>
+<page id="7" shadow="true" source="content/vector/page7.swf" thumb="content/thumbs/thumb7.jpg"/>
+<page id="8" shadow="true" source="content/vector/page8.swf" thumb="content/thumbs/thumb8.jpg"/>
+</pages>

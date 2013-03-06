@@ -1,0 +1,38 @@
+<bookinfo id="Nuovo_Documento_di_Microsoft_Word" autoFlipSeconds="5" autoMoveAfterZoom="false" bgColor="#454545 " bgImage="content/images/book-icon-gif.gif" shadow="true" pageWidth="1232" pageHeight="1754" flipSpeedBoost="80" title="Nuovo Documento di Microsoft Word" author="" zipIcon="content/images/iconZip.gif" exeIcon="content/images/iconExe.gif" companyUrl="http://www.ePageCreator.net" gateway="http://www.flipmall.net/sendmail/email.php" shareUrl="index.html" bookmarkWidth="18" bookmarkHeight="150" bookmarkFontSize="10" defaultZoomScale="2" clickToZoom="singleclick" rightToLeft="false" autoFlip="false" fitScreenAfterZoom="false" zoomAfterLoaded="false" limitTo100="false" showZoomBox="true" mouseWheelZoom="true" bgPosition="center" bookSize="10" thickness="0" companyName="" companyAddress="" tel="" email="" loadingLogo="" zipUrl="" exeUrl="" fullScreen="false" hardCover="false" pdfUrl="content/AMERICASINGOLA-links.pdf" lic="pbWammw=" password="gbqVZnawoa15" analyticsUA="">
+	<leftmenu visible="true" hideAfterZoom="false">
+		<issues visible="true"/>
+		<toc visible="true"/>
+		<thumbs visible="true"/>
+		<email visible="true"/>
+		<sns visible="false"/>
+		<print visible="true"/>
+		<pdf visible="true" singlePage="true" doublePage="true" entirePDF="true"/>
+		<download visible="false"/>
+		<setting visible="true"/>
+		<about visible="false"/>
+		<close visible="false"/></leftmenu>
+	<bottommenu background="content/images/menuBackground.png" visible="true" position="top" hideAfterZoom="false" showBackground="false" autoHideOnFullScreen="true">
+		<help visible="true" url="http://www.ePageCreator.net/readerhelp/index.html"/>
+		<info visible="true" url="http://www.ePageCreator.net"/>
+		<zoom visible="false"/>
+		<autoflip visible="true"/>
+		<search visible="true"/>
+		<highlight visible="true"/>
+		<bookmark visible="true"/>
+		<notes visible="true"/>
+		<fullscreen visible="true"/>
+		<sound visible="false"/><back visible="true"/><forward visible="true"/></bottommenu>
+	<contextmenu>
+	</contextmenu>
+	<tks>
+		<tk begin="1" end="2" value="1"/>
+		<tk begin="3" end="5" value="2"/>
+		<tk begin="6" end="10" value="3"/>
+		<tk begin="11" end="20" value="4"/>
+		<tk begin="21" end="30" value="5"/>
+		<tk begin="31" end="40" value="6"/>
+		<tk begin="41" end="60" value="7"/>
+		<tk begin="61" end="120" value="8"/>
+		<tk begin="121" end="0" value="9"/>
+	</tks>
+	<bottomthumb bgAlpha="0" bgColor="#000000" visible="true"/><tooltip bgColor="#80FF00 " fgColor="#FF0000 " showZoomTip="true" showFlipTip="true" visible="true"/><bookLogo url="content/images/logo-poweredby.png" href="http://www.ePageCreator.net"/><topAd slideShow="false" position="center"><pic url="content/images/topad/HORIZONTAL - PHRCC_banner.swf" href="http://www.flipcreator.net" width="468" height="60" time="5"/></topAd></bookinfo>
