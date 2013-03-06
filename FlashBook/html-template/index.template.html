@@ -21,25 +21,15 @@ Learn more about Flex at http://flex.org
 <title>${title}</title>
 <script src="AC_OETags.js" language="javascript"></script>
 
-<script src="ajax.js" language="javascript"></script>
-
 <!--  BEGIN Browser History required section -->
 <script src="history/history.js" language="javascript"></script>
-
 <!--  END Browser History required section -->
 
 <style>
 body { margin: 0px; overflow:hidden }
 </style>
 <script language="JavaScript" type="text/javascript">
-
-var oninit = function(){
-	//alert(document.getElementById('${application}'));
-	document.getElementById('${application}').tabIndex = 0;
-	document.getElementById('${application}').focus();
-}
-
-//<!--
+<!--
 // -----------------------------------------------------------------------------
 // Globals
 // Major version of Flash required
@@ -53,29 +43,9 @@ var requiredRevision = ${version_revision};
 </script>
 </head>
 
-<body scroll="no" onLoad="oninit();">
+<body scroll="no">
 <script language="JavaScript" type="text/javascript">
-//<!--
-
-function closeMe() {
-
-	window.open('', '_self');
-	window.close();
-
-} 
-
-var gotoPage = function(page){
-	if (navigator.appName.indexOf("Microsoft") != -1) {
-		return window['${application}'].gotoPage(page);
-	}
-	else {
-		return document['${application}'].gotoPage(page);
-	}
-}
-
-
-
-
+<!--
 // Version check for the Flash Player that has the ability to start Player Product Install (6.0r65)
 var hasProductInstall = DetectFlashVer(6, 0, 65);
 
@@ -95,15 +65,12 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 		"FlashVars", "MMredirectURL="+MMredirectURL+'&MMplayerType='+MMPlayerType+'&MMdoctitle='+MMdoctitle+"",
 		"width", "${width}",
 		"height", "${height}",
-		"wmode","opaque",
 		"align", "middle",
 		"id", "${application}",
 		"quality", "high",
 		"bgcolor", "${bgcolor}",
 		"name", "${application}",
 		"allowScriptAccess","sameDomain",
-		"allowFullScreen","true", 
-		"allowFullscreenInteractive","true",
 		"type", "application/x-shockwave-flash",
 		"pluginspage", "http://www.adobe.com/go/getflashplayer"
 	);
@@ -114,15 +81,12 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 			"src", "${swf}",
 			"width", "${width}",
 			"height", "${height}",
-			"wmode","opaque",
 			"align", "middle",
 			"id", "${application}",
 			"quality", "high",
 			"bgcolor", "${bgcolor}",
 			"name", "${application}",
 			"allowScriptAccess","sameDomain",
-			"allowFullScreen","true", 
-			"allowFullscreenInteractive","true",
 			"type", "application/x-shockwave-flash",
 			"pluginspage", "http://www.adobe.com/go/getflashplayer"
 	);
@@ -148,8 +112,6 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 				loop="false"
 				quality="high"
 				allowScriptAccess="sameDomain"
-				allowFullScreen="true" 
-				allowFullscreenInteractive ="true"
 				type="application/x-shockwave-flash"
 				pluginspage="http://www.adobe.com/go/getflashplayer">
 			</embed>

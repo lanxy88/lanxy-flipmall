@@ -113,6 +113,10 @@
 				
 				if(contentType=='content'){
 					switchExpand();
+				} else if(contentType=='issue' && !showThumNode)
+				{
+					switchExpand();
+					switchExpand();
 				}
 //				switchExpand();
 			}
@@ -549,7 +553,10 @@
 							addTreeNode(obj,index);
 						else addTreeThumbNode(obj,index);
 					}else if(contentType=='issue'){
-						addTreeThumbNode(obj,index);
+//						addTreeThumbNode(obj,index);
+						if(!showThumNode) 
+							addTreeNode(obj,index);
+						else addTreeThumbNode(obj,index);
 					}
 					
 				}
