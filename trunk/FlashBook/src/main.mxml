@@ -600,6 +600,10 @@
 					preloadInfo.setStyle("backgroundColor", String(bookConfig.@bgColor).replace( /0x/gi, '#' ) );
 				}
 				
+				if(String(bookConfig.@windowColor)){
+					RunTime.windowColor = Number(String(bookConfig.@windowColor).replace(/#/gi,'0x') as String);
+				}
+				
 				if(String(bookConfig.@autoFlip))
 				{
 					autoFlip = String(bookConfig.@autoFlip) == "true";
@@ -4440,7 +4444,7 @@
 				borderThickness="2" 
 				cornerRadius="3"
 				backgroundAlpha="0.85" 
-				backgroundColor="0x222222"
+				backgroundColor="{RunTime.windowColor}"
 				visible="{menuLeft.width > 40}" id="cvsLeftMenu"
 				>
 			<ViewStack id="vsLeft" 

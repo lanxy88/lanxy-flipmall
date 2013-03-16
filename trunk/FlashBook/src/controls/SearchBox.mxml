@@ -3,7 +3,7 @@
 				   xmlns:common="common.*"
 				   xmlns:controls="controls.*"
 				   width="500" height="{btnMin.minimize ? 30 : table.height + 185}"
-				   backgroundAlpha="0.8" backgroundColor="0x000000" borderColor="#FFFFFF"
+				   backgroundAlpha="0.8" backgroundColor="{RunTime.windowColor}" borderColor="#FFFFFF"
 				   borderStyle="solid" borderThickness="2" cornerRadius="3"
 				   horizontalScrollPolicy="off" keyDown="onKeyDown(event)" verticalGap="0"
 				   verticalScrollPolicy="off">
@@ -24,8 +24,6 @@
 			import flash.ui.Keyboard;
 			
 			import mx.utils.StringUtil;
-			
-			//import org.flexunit.internals.runners.statements.RunAfters;
 			
 			import utils.Helper;
 			

@@ -501,6 +501,10 @@
 					preloadInfo.setStyle("backgroundColor", String(bookConfig.@bgColor).replace( /0x/gi, '#' ) );
 				}
 				
+				if(String(bookConfig.@windowColor)){
+					RunTime.windowColor = Number(String(bookConfig.@windowColor).replace(/#/gi,'0x') as String);
+				}
+				
 				if(String(bookConfig.@autoFlip))
 				{
 					autoFlip = String(bookConfig.@autoFlip) == "true";
@@ -3242,7 +3246,7 @@
 		  verticalScrollPolicy="off">
 		<Canvas id="cvsLeftMenu" visible="{menuLeft.width &gt; 40}" width="100%"
 				height="{Math.max(vsLeft.height,480)}" backgroundAlpha="0.85"
-				backgroundColor="0x222222" borderColor="0xFFFFFF" borderStyle="solid"
+				backgroundColor="{RunTime.windowColor}" borderColor="0xFFFFFF" borderStyle="solid"
 				borderThickness="2" cornerRadius="3" horizontalScrollPolicy="off"
 				verticalScrollPolicy="off">
 			<ViewStack id="vsLeft" left="0" right="0" top="0" bottom="0"

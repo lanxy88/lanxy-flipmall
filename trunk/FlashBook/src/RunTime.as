@@ -122,6 +122,9 @@ package
 		public static var showBottomThumb:Boolean = false;
 		
 		[Bindable]
+		public static var windowColor:Number = 0x222222;
+		
+		[Bindable]
 		public static var bottomThumbBgColor:Number = 0x000000;
 		[Bindable]
 		public static var bottomThumbAlpha:Number = 0.5;
