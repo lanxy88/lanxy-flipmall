@@ -2,7 +2,7 @@
 <controls:BaseVBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 width="500" height="{btnMin.minimize ? 30 : table.height + 200}"
 		 cornerRadius="3" borderStyle="solid" borderColor="#FFFFFF" borderThickness="2" 
-		 backgroundColor="0x000000" backgroundAlpha="0.8" verticalGap="0"
+		 backgroundColor="{RunTime.windowColor}" backgroundAlpha="0.8" verticalGap="0"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:common="common.*" xmlns:controls="controls.*">
 	<mx:Metadata>
 		[Event(name="recordClick",type="common.RecordEvent")]

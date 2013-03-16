@@ -17,7 +17,8 @@
 			
 			public var bgAlphaSelected:Number = 1;
 			public var bgAlphaUnSelected:Number = 0.7;
-			public var bgColor:uint = 0x333333;
+			
+			public var bgColor:uint = RunTime.windowColor;//0x333333;
 			
 			private var _selected:Boolean = false;
 
@@ -97,7 +98,7 @@
 				g.clear();
 				
 				if(RunTime.showTabBackground == false) return;
-				g.beginFill(bgColor,(selected || _isMouseOver)?bgAlphaSelected:bgAlphaUnSelected);
+				g.beginFill(RunTime.windowColor,(selected || _isMouseOver)?bgAlphaSelected:bgAlphaUnSelected);
 				g.moveTo(0,0);
 				g.lineTo(unscaledWidth ,0);
 				g.lineTo(unscaledWidth,unscaledHeight - 10);
