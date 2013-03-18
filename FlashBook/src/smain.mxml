@@ -3292,7 +3292,7 @@
 					</HBox>
 					<VBox width="100%" paddingBottom="0" paddingLeft="0" paddingRight="0"
 						  paddingTop="0">
-						<fbc:ContentsTable id="tbContents" width="100%"
+						<fbc:ContentsTable id="tbContents" width="100%" 
 										   recordClick="onContentClick(event)"
 										   source="{RunTime.tableOfContents}"/>
 						<HBox width="100%" height="30" horizontalAlign="right" paddingRight="5">

@@ -109,16 +109,29 @@
 					handleRecord(item, this.numChildren);
 				}
 				
-				updateHeight();
+				
 				
 				if(contentType=='content'){
 					switchExpand();
 				} else if(contentType=='issue' && !showThumNode)
 				{
-					switchExpand();
-					switchExpand();
+					for each(var item:TreeNodeRecord in _source)
+					{
+//						if(expanded == true)
+//						{						
+							item.expendChilds(true);
+//						}
+//						else
+//						{
+//							item.collapseChilds();
+//						}
+					}
+//					switchExpand();
+//					switchExpand();
 				}
 //				switchExpand();
+				
+				updateHeight();
 			}
 			
 			private function updateHeight():void
@@ -127,7 +140,7 @@
 				if(showThumNode) lines = 20;
 				
 				
-				//height = lines * rowHeight + 1;
+				height = lines * rowHeight + 1;
 				
 				
 			}
@@ -201,7 +214,7 @@
 						c0.setStyle("verticalAlign","middle");
 						c0.setStyle("paddingLeft",10);
 						c0.setStyle("borderStyle","solid");
-						c0.setStyle("borderColor",0xFFFFFF);
+						c0.setStyle("borderColor",0xffffff);
 						c0.setStyle("borderThickness",1);
 						c0.setStyle("borderSides","left");
 					}

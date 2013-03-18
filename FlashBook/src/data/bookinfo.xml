@@ -56,6 +56,7 @@ global: mK6go5Js -->
 <bookinfo id="Software_License_Agreement"
  autoFlipSeconds="5" 
  autoMoveAfterZoom="false" 
+ windowColor="#0066cc"
  bgColor="#454545 " 
  bgImage="content/images/fondor.jpg"
  shadow="true" 
@@ -179,7 +180,8 @@ global: mK6go5Js -->
   	   -->
 	</rightAd>
 	 
-<!-- 	<mainAd url="content/images/4_logos_green_border.gif" href="http://www.flipmall.net"/> -->
+	 <!-- halfpage/halfscreen -->
+	<mainAd url="content/images/4_logos_green_border.gif" href="http://www.flipmall.net" dockPos="halfpage" layout="center"/>
 <!-- 	<mainAd url="content/images/adtop.gif" href="page:4" hideWhenOpened="true"/> -->
 	
 	<!-- 右键菜单 -->
