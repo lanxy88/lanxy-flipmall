@@ -78,6 +78,12 @@
 			public var mainAdUrl:String = "";
 			
 			[Bindable]
+			public var mainAdDockPos:String = 'halfpage';
+			
+			[Bindable]
+			public var mainAdLayout:String = 'center';
+			
+			[Bindable]
 			public var mainAdHref:String = "";
 			
 			[Bindable]
@@ -758,6 +764,64 @@
 					{
 						this.isMainAdHideWhenOpened = String(bookConfig.mainAd.@hideWhenOpened).toLowerCase() == "true";
 					}
+					
+					if(bookConfig.mainAd.@dockPos){
+						this.mainAdDockPos = String(bookConfig.mainAd.@dockPos);
+					}
+					if(bookConfig.mainAd.@layout){
+						this.mainAdLayout = String(bookConfig.mainAd.@layout);
+						//
+					}
+					
+					/* if(this.mainAdUrl){
+						if(mainAdLayout == "center"){	
+							mainAdBox.setStyle("backgroundImage", RunTime.getAbsPath(mainAdUrl));
+						}
+						else if(mainAdLayout == "stretch"){	
+							mainAdBox.setStyle("backgroundImage", RunTime.getAbsPath(mainAdUrl ));
+							mainAdBox.setStyle("backgroundSize","100%");
+						}
+						else{
+							
+							if(mainAdLayout == "tile"){
+								mainAdBox.setStyle("backgroundSize","100%");
+							}
+							
+//							mainAd.addEventListener(Event.COMPLETE, onMainAdImageLoaded);							
+//							mainAd.source = mainAdUrl;
+							//
+							function onMainAdImageLoaded(e:*){
+								
+								if(mainAd.content == null) return;
+								
+								var width:Number = mainAd.content.width;
+								var height:Number = mainAd.content.height;
+								
+								if(mainAdLayout == "fill"){
+									mainAd.height = mainAdBox.height;
+									mainAd.width = width / height * mainAdBox.height;
+									mainAd.x =  (mainAdBox.width - mainAd.width )/2;
+								}
+								else if(mainAdLayout == "fit"){
+									mainAdBox.width = mainAd.width;
+									mainAdBox.height = height /width  * mainAd.width;
+									
+									mainAdBox.y =  (mainAd.height - mainAdBox.height )/2;
+								}
+								else if(mainAdLayout == "tile"){
+									var srcBmp:BitmapData = new BitmapData(width,height);
+									srcBmp.draw(mainAd);
+//									mainAdBox.source = null;
+									
+									mainAdBox.setStyle("backgroundSize","100%");
+									mainAdBox.graphics.beginBitmapFill(srcBmp);
+									mainAdBox.graphics.drawRect(0,0,bookBg.width,bookBg.height);
+									mainAdBox.graphics.endFill();
+								}
+								
+							}
+						} 
+					}*/
 					
 					prefetchSource(mainAdUrl);
 				}
@@ -4087,15 +4151,16 @@
 			</Box>
 		</containers:Landscape>
 		<Canvas id="mainAdBox"
-				right="{ RunTime.rightToLeft == false ? adRight.width + bookCanvas.width/2 + 100 : NaN }"
-				left="{ RunTime.rightToLeft == false ? NaN : bookCanvas.width/2 + 100 }"
+				right="{ RunTime.rightToLeft == false ? adRight.width + bookCanvas.width/2 +20 : NaN }"
+				left="{ RunTime.rightToLeft == false ? NaN : bookCanvas.width/2 +20 }"
 				verticalCenter="0"
-				height="100%" 
+				width="{mainAdDockPos=='halfscreen'?this.width/2-120:book.width/2}"
+				height="{bookCanvas.height}" 
 				horizontalScrollPolicy="off"
 				verticalScrollPolicy="off"
 				>
 			<fbc:AdDisplay id="mainAd" 
-				   verticalCenter="0"
+				   verticalCenter="0" horizontalCenter="0"
 				   verticalAlign="middle"
 				   horizontalAlign="center"
 				   maxHeight="{bookCanvas.height}" minWidth="100" minHeight="100" 
