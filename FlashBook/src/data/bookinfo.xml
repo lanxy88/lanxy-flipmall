@@ -181,8 +181,19 @@ global: mK6go5Js -->
 	</rightAd>
 	 
 	 <!-- halfpage/halfscreen -->
-	<mainAd url="content/images/4_logos_green_border.gif" href="http://www.flipmall.net" dockPos="halfpage" layout="center"/>
-<!-- 	<mainAd url="content/images/adtop.gif" href="page:4" hideWhenOpened="true"/> -->
+<!-- 	<mainAd url="content/images/4_logos_green_border.gif" href="http://www.flipmall.net" dockPos="halfpage" layout="center"> -->
+<!-- 		<![CDATA[ -->
+<!-- 		<p align="center"><font size="15" color="#3399ff">this is a html code</font></p> -->
+<!-- 		]]> -->
+<!-- 	</mainAd> -->
+	<mainAd href="page:4" hideWhenOpened="true" height="200" width="300" layout="stretch" dockPos="halfpage">
+		<![CDATA[
+			<p align="center"><font size="25" color="#3399ff">this is a html code</font></p>
+			<p color="#17b6e3"><a href="http://www.google.com">link</a></p>
+			<p><img src="http://s1.dwstatic.com/group1/M00/CA/07/87082be8e1c9f9d9cfdd3f051294c261.gif"></p>
+			<p><img src="http://www.google.com.hk/images/srpr/logo4w.png"></p>
+		]]>
+	</mainAd>
 	
 	<!-- 右键菜单 -->
 	<contextmenu>
