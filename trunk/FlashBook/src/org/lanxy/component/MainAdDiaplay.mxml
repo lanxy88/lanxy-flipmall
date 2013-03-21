@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:flexiframe="com.google.code.flexiframe.*"
+		 xmlns:controls="controls.*" backgroundAlpha="0"
+		 creationComplete="vbox1_creationCompleteHandler(event)">
+	<mx:Script>
+		<![CDATA[
+			import common.RpcRequest;
+			
+			import mx.containers.Canvas;
+			import mx.events.FlexEvent;
+			
+			private const FILL:String = "fill";
+			private const FIT:String = "fit";
+			private const STRETCH:String = "stretch";
+			private const CENTER:String = "center";
+			
+			private var _htmlContent:String;
+			
+			private var _imgUrl:String;
+			[Bindable]
+			private var imgHref:String;
+			
+			[Bindable]
+			public var hideAdWBookOpen:Boolean = false;
+			
+			[Bindable]
+			public var dockPos:String = 'halfpage';
+			
+			[Bindable]
+			public var layout:String = 'center';
+			
+			private var _mainAdXML:XML;
+			
+			public var outBox:Canvas;
+			
+			protected function vbox1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+
+			[Bindable]
+			public function get htmlContent():String
+			{
+				return _htmlContent;
+			}
+
+			public function set htmlContent(value:String):void
+			{
+				_htmlContent = value;
+			}
+
+			[Bindable]
+			public function get imgUrl():String
+			{
+				return _imgUrl;
+			}
+
+			public function set imgUrl(value:String):void
+			{
+				_imgUrl = value;
+			}
+
+			public function set mainAdXML(value:XML):void
+			{
+				_mainAdXML = value;
+				parseMainAd();
+			}
+			
+			private function parseMainAd():void
+			{
+				if(String(_mainAdXML.@url)){
+					this.imgUrl = RunTime.getAbsPath(String(_mainAdXML.@url));
+					if(_mainAdXML.@href)
+					{
+						this.imgHref = String(_mainAdXML.@href);
+					}
+					
+					if(_mainAdXML.@hideWhenOpened)
+					{
+						this.hideAdWBookOpen = String(_mainAdXML.@hideWhenOpened).toLowerCase() == "true";
+					}
+					
+					prefetchSource(imgUrl);
+				}else if(String(_mainAdXML)){
+					htmlContent = String(_mainAdXML);
+					this.width = Number(_mainAdXML.@width);
+					this.height = Number(_mainAdXML.@height);
+//					this.percentHeight = 100;
+//					this.percentWidth = 100;
+				}
+				
+				if(_mainAdXML.@dockPos){
+					this.dockPos = String(_mainAdXML.@dockPos);
+				}
+				if(_mainAdXML.@layout){
+					this.layout = String(_mainAdXML.@layout);
+					updateLayout();
+				}
+				
+			}
+			
+			private function updateLayout():void
+			{
+				switch(this.layout)
+				{
+					case STRETCH:
+						//
+						this.width = outBox.width;
+						this.height = outBox.height;
+						break;
+//					case FILL:
+//						var rw:Number = this.width/outBox.width;
+//						var rh:Number = this.height/outBox.height;
+//						var r:Number = Math.min(rw,rh);
+//						this.height = this.height*1/r;
+//						this.width = this.width*1/r;
+//						break;
+//					case FIT:
+//						var rw:Number = this.width/outBox.width;
+//						var rh:Number = this.height/outBox.height;
+//						var r:Number = Math.max(rw,rh);
+//						this.height = this.height*1/r;
+//						this.width = this.width*1/r;
+//						break;
+						
+				}
+			}
+
+			private function prefetchSource(url:String, callback:Function = null, fail:Function = null):void
+			{
+				if(url)
+				{
+					RunTime.cfgFileCount++;
+					new RpcRequest(url, null,
+						function(...args):void
+						{
+							RunTime.cfgFileLoadedCount++;
+//							updateProloadInfo();
+							if(callback != null) callback();
+						},
+						function(...args):void
+						{
+							RunTime.cfgFileLoadedCount++;
+//							updateProloadInfo();
+							if(fail != null) fail();
+						}
+					);
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:TextArea id="html" backgroundAlpha="0.3" includeInLayout="{htmlContent?true:false}" width="100%" height="100%"
+				 htmlText="{htmlContent}" focusEnabled="false" focusAlpha="0"  >		
+	</mx:TextArea>
+	<!--<flexiframe:IFrame id="html" width="100%" height="100%" includeInLayout="{htmlContent?true:false}" 
+					   content="{htmlContent}"/>-->
+	<controls:AdDisplay width="100%" height="100%" buttonMode="{imgHref?true:false}"
+						click="RunTime.clickHref(imgHref);" includeInLayout="{imgUrl?true:false}"
+						source="{imgUrl}"/>
+</mx:VBox>

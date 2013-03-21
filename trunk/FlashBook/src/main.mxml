@@ -14,7 +14,7 @@
 			 creationComplete="initApp()"
 			 applicationComplete="onApplicationComplete()" 
 			 implements="IMainApp"
-			 verticalScrollPolicy="off" horizontalScrollPolicy="off"
+			 verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:component="org.lanxy.component.*"
 			 >
 	<Style source="default.css" />
 	<Metadata>
@@ -85,6 +85,9 @@
 			
 			[Bindable]
 			public var mainAdHref:String = "";
+			
+			[Bindable]
+			private var mainAdContent:String;
 			
 			[Bindable]
 			public var defaultZoomScale:Number = 3;
@@ -752,9 +755,10 @@
 					this.contextMenu = cmenu;
 				}
 				
-				if(bookConfig.mainAd && bookConfig.mainAd.@url)
+				if(bookConfig.mainAd)
 				{
-					this.mainAdUrl = RunTime.getAbsPath(String(bookConfig.mainAd.@url));
+					this.mainAd.mainAdXML = bookConfig.mainAd[0];
+					/* this.mainAdUrl = RunTime.getAbsPath(String(bookConfig.mainAd.@url));
 					if(bookConfig.mainAd.@href)
 					{
 						this.mainAdHref = String(bookConfig.mainAd.@href);
@@ -772,6 +776,9 @@
 						this.mainAdLayout = String(bookConfig.mainAd.@layout);
 						//
 					}
+					if(bookConfig.mainAd){
+						mainAdContent = String(bookConfig.mainAd);
+					} */
 					
 					/* if(this.mainAdUrl){
 						if(mainAdLayout == "center"){	
@@ -823,7 +830,7 @@
 						} 
 					}*/
 					
-					prefetchSource(mainAdUrl);
+					/* prefetchSource(mainAdUrl); */
 				}
 				
 				if(bookConfig.bookLogo)
@@ -4154,12 +4161,16 @@
 				right="{ RunTime.rightToLeft == false ? adRight.width + bookCanvas.width/2 +20 : NaN }"
 				left="{ RunTime.rightToLeft == false ? NaN : bookCanvas.width/2 +20 }"
 				verticalCenter="0"
-				width="{mainAdDockPos=='halfscreen'?this.width/2-120:book.width/2}"
+				width="{mainAd.dockPos=='halfscreen'?this.width/2-120:book.width/2}"
 				height="{bookCanvas.height}" 
 				horizontalScrollPolicy="off"
 				verticalScrollPolicy="off"
 				>
-			<fbc:AdDisplay id="mainAd" 
+			<component:MainAdDiaplay id="mainAd" verticalCenter="0" horizontalCenter="0"
+									 verticalAlign="middle" outBox="{mainAdBox}"
+									 horizontalAlign="center" maxHeight="{bookCanvas.height}" minWidth="100" minHeight="100" 
+									 maxWidth="{Math.max(10,bookCanvas.width/2 - 100)}"/>
+			<!--<fbc:AdDisplay id="mainAd" 
 				   verticalCenter="0" horizontalCenter="0"
 				   verticalAlign="middle"
 				   horizontalAlign="center"
@@ -4169,7 +4180,7 @@
 				   buttonMode="{mainAdHref}" 
 				   useHandCursor="{mainAdHref}"
 				   click="{RunTime.clickHref(mainAdHref);}"
-				   />
+				   />-->
 		</Canvas>
 		<Canvas id="bookmarksArea" clipContent="false" 
 				verticalScrollPolicy="off" horizontalScrollPolicy="off" />
