@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns:flexiframe="com.google.code.flexiframe.*"
-		 xmlns:controls="controls.*" backgroundAlpha="0"
-		 creationComplete="vbox1_creationCompleteHandler(event)">
+		 xmlns:controls="controls.*"
+		 backgroundAlpha="0" creationComplete="vbox1_creationCompleteHandler(event)"
+		 updateComplete="vbox1_updateCompleteHandler(event)">
 	<mx:Script>
 		<![CDATA[
 			import common.RpcRequest;
 			
 			import mx.containers.Canvas;
+			import mx.events.DragEvent;
 			import mx.events.FlexEvent;
 			
 			private const FILL:String = "fill";
@@ -21,8 +23,7 @@
 			[Bindable]
 			private var imgHref:String;
 			
-			[Bindable]
-			public var hideAdWBookOpen:Boolean = false;
+			private var _hideAdWBookOpen:Boolean = false;
 			
 			[Bindable]
 			public var dockPos:String = 'halfpage';
@@ -34,10 +35,20 @@
 			
 			public var outBox:Canvas;
 			
+			
+			
 			protected function vbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				
+				updateLayout();
+				adImg.addEventListener(Event.COMPLETE,onImgLoaded);
+				function onImgLoaded(evt:Event):void
+				{
+					if(layout==STRETCH){
+						adImg.width = Bitmap(adImg.content).bitmapData.width;
+						adImg.height = Bitmap(adImg.content).bitmapData.height;
+					}
+				}
 			}
 
 			[Bindable]
@@ -77,11 +88,6 @@
 						this.imgHref = String(_mainAdXML.@href);
 					}
 					
-					if(_mainAdXML.@hideWhenOpened)
-					{
-						this.hideAdWBookOpen = String(_mainAdXML.@hideWhenOpened).toLowerCase() == "true";
-					}
-					
 					prefetchSource(imgUrl);
 				}else if(String(_mainAdXML)){
 					htmlContent = String(_mainAdXML);
@@ -91,12 +97,17 @@
 //					this.percentWidth = 100;
 				}
 				
+				if(_mainAdXML.@hideWhenOpened)
+				{
+					this.hideAdWBookOpen = String(_mainAdXML.@hideWhenOpened).toLowerCase() == "true";
+				}
+				
 				if(_mainAdXML.@dockPos){
 					this.dockPos = String(_mainAdXML.@dockPos);
 				}
 				if(_mainAdXML.@layout){
 					this.layout = String(_mainAdXML.@layout);
-					updateLayout();
+//					updateLayout();
 				}
 				
 			}
@@ -109,21 +120,31 @@
 						//
 						this.width = outBox.width;
 						this.height = outBox.height;
+						if(imgUrl){
+							adImg.scaleContent = true;
+							adImg.width = this.width;
+							adImg.height = this.height;
+							adImg.maintainAspectRatio = false;
+						}
 						break;
-//					case FILL:
-//						var rw:Number = this.width/outBox.width;
-//						var rh:Number = this.height/outBox.height;
-//						var r:Number = Math.min(rw,rh);
-//						this.height = this.height*1/r;
-//						this.width = this.width*1/r;
-//						break;
-//					case FIT:
-//						var rw:Number = this.width/outBox.width;
-//						var rh:Number = this.height/outBox.height;
-//						var r:Number = Math.max(rw,rh);
-//						this.height = this.height*1/r;
-//						this.width = this.width*1/r;
-//						break;
+					case FILL:
+						var rw:Number = this.width/outBox.width;
+						var rh:Number = this.height/outBox.height;
+						var r:Number = Math.min(rw,rh);
+						this.height = this.height*1/r;
+						this.width = this.width*1/r;
+						break;
+					case FIT:
+						var rw:Number = this.width/outBox.width;
+						var rh:Number = this.height/outBox.height;
+						var r:Number = Math.max(rw,rh);
+						this.height = this.height*1/r;
+						this.width = this.width*1/r;
+						break;
+					case CENTER:
+						this.width = outBox.width;
+						this.height = outBox.height;
+						break;
 						
 				}
 			}
@@ -149,15 +170,44 @@
 					);
 				}
 			}
+
+			[Bindable]
+			public function get hideAdWBookOpen():Boolean
+			{
+				return _hideAdWBookOpen;
+			}
+
+			public function set hideAdWBookOpen(value:Boolean):void
+			{
+				_hideAdWBookOpen = value;
+			}
+
+			public function toggleHtmlVisible(value:Boolean=false):void
+			{
+				if(value){
+					html.includeInLayout = true;
+					html.visible = true;
+				}else{
+					html.includeInLayout = false;
+					html.visible = false;
+				}
+			}
+			
+			protected function vbox1_updateCompleteHandler(event:FlexEvent):void
+			{
+				updateLayout();
+			}
 			
 		]]>
 	</mx:Script>
-	<mx:TextArea id="html" backgroundAlpha="0.3" includeInLayout="{htmlContent?true:false}" width="100%" height="100%"
-				 htmlText="{htmlContent}" focusEnabled="false" focusAlpha="0"  >		
+	<mx:TextArea id="html" width="100%" height="100%" backgroundAlpha="0.3" focusAlpha="0"
+				 focusEnabled="false" htmlText="{htmlContent}"
+				 includeInLayout="{htmlContent?true:false}">		
 	</mx:TextArea>
-	<!--<flexiframe:IFrame id="html" width="100%" height="100%" includeInLayout="{htmlContent?true:false}" 
+	<!--<flexiframe:IFrame id="html" width="100%" height="100%" includeInLayout="{(htmlContent?true:false)}" 
 					   content="{htmlContent}"/>-->
-	<controls:AdDisplay width="100%" height="100%" buttonMode="{imgHref?true:false}"
-						click="RunTime.clickHref(imgHref);" includeInLayout="{imgUrl?true:false}"
-						source="{imgUrl}"/>
+	<controls:AdDisplay id="adImg" width="100%" height="100%" buttonMode="{imgHref?true:false}"
+						click="RunTime.clickHref(imgHref);" horizontalAlign="center"
+						includeInLayout="{imgUrl?true:false}" maintainAspectRatio="true"
+						scaleContent="true" source="{imgUrl}" verticalAlign="middle"/>
 </mx:VBox>

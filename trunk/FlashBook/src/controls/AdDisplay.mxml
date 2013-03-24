@@ -44,6 +44,8 @@
 			protected function imageLoaded(event:Event):void
 			{
 				// TODO Auto-generated method stub
+//				this.width = Bitmap(this.content).bitmapData.width;
+//				this.height = Bitmap(this.content).bitmapData.height;
 				dispatchEvent(new Event("imageLoaded"));
 			}
 	

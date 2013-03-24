@@ -65,8 +65,8 @@
 			private var stageMouseListener:StageMouseListener;
 			private var isBookResizeOk:Boolean = false;
 			
-			[Bindable]
-			private var isMainAdHideWhenOpened:Boolean = false;
+//			[Bindable]
+//			private var isMainAdHideWhenOpened:Boolean = false;
 
 			public var defaultPage:int = 1;
 			
@@ -74,20 +74,20 @@
 			
 			public var prefetch:Prefetch = new Prefetch();
 			
-			[Bindable]
-			public var mainAdUrl:String = "";
+//			[Bindable]
+//			public var mainAdUrl:String = "";
 			
-			[Bindable]
-			public var mainAdDockPos:String = 'halfpage';
+//			[Bindable]
+//			public var mainAdDockPos:String = 'halfpage';
 			
-			[Bindable]
-			public var mainAdLayout:String = 'center';
+//			[Bindable]
+//			public var mainAdLayout:String = 'center';
 			
-			[Bindable]
-			public var mainAdHref:String = "";
+//			[Bindable]
+//			public var mainAdHref:String = "";
 			
-			[Bindable]
-			private var mainAdContent:String;
+//			[Bindable]
+//			private var mainAdContent:String;
 			
 			[Bindable]
 			public var defaultZoomScale:Number = 3;
@@ -3207,7 +3207,7 @@
 				else
 				{
 					Helper.ensureTop(landscape,mainAdBox);
-					mainAdBox.visible = !isMainAdHideWhenOpened;
+					mainAdBox.visible = !mainAd.hideAdWBookOpen;
 				}
 			}
 			
@@ -4168,7 +4168,7 @@
 				>
 			<component:MainAdDiaplay id="mainAd" verticalCenter="0" horizontalCenter="0"
 									 verticalAlign="middle" outBox="{mainAdBox}"
-									 horizontalAlign="center" maxHeight="{bookCanvas.height}" minWidth="100" minHeight="100" 
+									 horizontalAlign="center" maxHeight="{bookCanvas.height}" minWidth="10" minHeight="10" 
 									 maxWidth="{Math.max(10,bookCanvas.width/2 - 100)}"/>
 			<!--<fbc:AdDisplay id="mainAd" 
 				   verticalCenter="0" horizontalCenter="0"
