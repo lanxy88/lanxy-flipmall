@@ -51,7 +51,8 @@ class RunTime
 	public static var urlSearch:String =urlRoot + "data/search.xml";
 	public static var urlVideos:String = urlRoot +"data/videos.xml";
 	public static var urlButtons:String = urlRoot + "data/buttons.xml";
-	public static var urlAudios:String =urlRoot + "data/sounds.xml";
+	public static var urlAudios:String = urlRoot + "data/sounds.xml";
+	public static var urlBookmarks:String = urlRoot + "data/bookmarks.xml";
 	public static var urlLang:String = urlRoot + "data/languages/languages.xml";
 	
 	public static var urlSlideshow:String = urlRoot +"data/slideshow.xml";
@@ -72,6 +73,7 @@ class RunTime
 	public static var videoInfo:Xml;
 	public static var audioInfo:Xml;
 	public static var buttonInfo:Xml;
+	public static var bookmarkInfo:Xml;
 	public static var bgImageData:ImageData;
 	
 	public static var slideshow:HtmlDom;
@@ -511,6 +513,7 @@ class RunTime
 				requestButtons();
 				readLocalHighLights();
 				readLocalNotes();
+				requestBookmark();
 				readLocalBookmarks();
 			});
 	}
@@ -630,6 +633,37 @@ class RunTime
 				}
 			});
 	}
+	
+	//bookmarkInfo
+	public static function requestBookmark():Void
+	{
+		Util.request(urlBookmarks,
+			function(data:Dynamic):Void
+			{
+				bookmarkInfo = Xml.parse(data);
+				var it:Iterator<Xml> = bookmarkInfo.firstElement().elementsNamed("bookmark");		
+				do {
+					var node:Xml = it.next();
+					//Lib.alert(node);
+					var bk:Bookmark = new Bookmark();
+					bk.pageNum = untyped node.get("page");
+					bk.text = node.get("content");
+					bk.onlyread = true;
+					book.bookmarks.push(bk);				
+					
+				}while (it.hasNext());
+				
+				//var it:Iterator<Xml> = buttonInfo.firstElement().elementsNamed("bookmark");
+				//Lib.alert(it.hasNext());
+				//while (it.hasNext() == true)
+				//{
+					//var node:Xml = it.next();
+					//var pageNumVal:String = node.get("page");
+					//Lib.alert(pageNumVal);
+				//}
+			});
+	}
+	
 	
 	public static function invokePageContentsAction(invoke:Array<Page>->Void ):Void
 	{
@@ -827,14 +861,22 @@ class RunTime
 		setMenuVisible(RunTime.flipBook.btnShowTxt, book.menuTxtVisible);
 		setMenuVisible(RunTime.flipBook.btnZoom, false/* book.menuZoomVisible*/);
 		
-		//setMenuVisible(RunTime.flipBook.btnDownload, book.menuDownloadVisible);
-		//setMenuVisible(RunTime.flipBook.btnEmail, book.menuEmailVisible);
-		//setMenuVisible(RunTime.flipBook.btnSns, book.menuSnsVisible);
+		var deviceWidth = RunTime.clientWidth;
+		if (deviceWidth > 480) {
+			setMenuVisible(RunTime.flipBook.btnDownload, book.menuDownloadVisible);
+			setMenuVisible(RunTime.flipBook.btnEmail, book.menuEmailVisible);
+			setMenuVisible(RunTime.flipBook.btnSns, book.menuSnsVisible);
+		}else {
+			setMenuVisible(RunTime.flipBook.btnSns, false);
+			setMenuVisible(RunTime.flipBook.btnEmail, false);
+			setMenuVisible(RunTime.flipBook.btnSns, false);
+		}
 		
-		setMenuVisible(RunTime.flipBook.btnDownload,false);
-		setMenuVisible(RunTime.flipBook.btnEmail, false);
-		setMenuVisible(RunTime.flipBook.btnSns, false);
+		//setMenuVisible(RunTime.flipBook.btnDownload,false);
+		//setMenuVisible(RunTime.flipBook.btnEmail, false);
+		//setMenuVisible(RunTime.flipBook.btnSns, false);
 		
+		//Lib.alert(Lib.window.document.body.clientWidth);
 		
 		var menuCount:Int = 0;
 		if (book.menuTocVisible) menuCount += 1;
@@ -1746,13 +1788,14 @@ class RunTime
 		var i:Int = 0;
 		for (i in 0 ... LocalStorage.length) {
 			var szKey = LocalStorage.key(i);
-			if(szKey.indexOf(kvPrex) == 0){
+			if (szKey.indexOf(kvPrex) == 0) {
+				Lib.alert(szKey);
 				if (szKey.indexOf("@$bm$@") != -1) {
 					var bookmark:Bookmark = new Bookmark();
 					bookmark.fillData(szKey, LocalStorage.getItem(szKey));
 					bookmarks.push(bookmark);
 					book.bookmarks.push(bookmark);
-					//trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum);
+					trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum);
 				}
 			}
 		}

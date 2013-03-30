@@ -11,6 +11,7 @@ class Bookmark
 	public var pageNum:Int;
 	public var text:String;
 	public var guid:String;
+	public var onlyread:Bool = false;
 		
 	public function new() 
 	{

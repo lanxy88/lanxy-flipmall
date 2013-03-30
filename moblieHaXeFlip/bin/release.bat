@@ -1,1 +1,1 @@
-copy bin\html5.js C:\xampp\htdocs\flip\html5.js
+copy bin\html5.js G:\Applications\nuovo\html5forwebkit.js
