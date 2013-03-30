@@ -1612,7 +1612,7 @@ class FlipBook
 		//Lib.alert("getCurrentPageNum():" + bookmark.pageNum);
 		
 		bookmark.text = text;
-		//Lib.alert(bookmark.pageNum);
+		Lib.alert(bookmark.pageNum);
 		bookmark.save();
 		RunTime.book.bookmarks.push(bookmark.clone());
 		

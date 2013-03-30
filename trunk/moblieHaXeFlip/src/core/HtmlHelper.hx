@@ -160,13 +160,16 @@ class HtmlHelper
 	}
 	
 	private static function toBookmarkNodeHtml(bookmark:Bookmark):String {
+		//Lib.alert(bookmark.onlyread);
 		var s:String = "";
 		s += "<li class=\"bookmarkrow\" >";
 		s += "<p class=\"p1\" onclick=\"gotoPage(" + Std.string(bookmark.pageNum-1) + ")\" > P" + bookmark.pageNum + "</p>";
-		s += "<p class=\"p2\" onclick=\"gotoPage(" + Std.string(bookmark.pageNum-1) + ")\">" + bookmark.text + "</p>";
-		s += "<button onclick=\"removeBookmark(" + Std.string(bookmark.pageNum - 1) 
+		s += "<p class=\"p2\" onclick=\"gotoPage(" + Std.string(bookmark.pageNum - 1) + ")\">" + bookmark.text + "</p>";
+		if (!bookmark.onlyread) {
+			s += "<button onclick=\"removeBookmark(" + Std.string(bookmark.pageNum - 1) 
 											+")\" style=\"float:right;margin:0px -2px;\">" 
 											+ L.s("RemoveBookmark","Remove") +"</button>";
+		}
 		s += "</li>";
 		return s;
 	}
