@@ -191,15 +191,13 @@ FlipBook.prototype = {
 		this.bookContext.highlights = highlights;
 	}
 	,loadCurrentBookmark: function() {
-		js.Lib.alert(RunTime.book.bookmarks.length);
 		var bms = new Array();
 		if(RunTime.book != null && RunTime.book.bookmarks != null) {
 			var _g1 = 0, _g = RunTime.book.bookmarks.length;
 			while(_g1 < _g) {
 				var i = _g1++;
 				var bm = RunTime.book.bookmarks[i];
-				js.Lib.alert(bm.text);
-				if(bm.pageNum == this.currentPageNum) bms.push(bm);
+				if(bm.pageNum == this.currentPageNum + 1) bms.push(bm);
 			}
 		}
 		this.bookContext.bookmarks = bms;
@@ -2981,7 +2979,7 @@ RunTime.readLocalBookmarks = function() {
 				bookmark.fillData(szKey,localStorage.getItem(szKey));
 				bookmarks.push(bookmark);
 				RunTime.book.bookmarks.push(bookmark);
-				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1804, className : "RunTime", methodName : "readLocalBookmarks"});
+				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1803, className : "RunTime", methodName : "readLocalBookmarks"});
 			}
 		}
 	}
@@ -3797,7 +3795,6 @@ core.BookContext.prototype = {
 			}
 		}
 		if(this.bookmarks != null && this.bookmarks.length > 0) {
-			js.Lib.alert(this.bookmarks);
 			var _g1 = 0, _g = this.bookmarks.length;
 			while(_g1 < _g) {
 				var i = _g1++;
@@ -3852,14 +3849,19 @@ core.BookContext.prototype = {
 }
 core.Bookmark = function() {
 	this.onlyread = false;
+	var _g = this;
+	this.bookmarkImg = js.Lib.document.createElement("img");
+	this.bookmarkImg.onload = function() {
+		_g.bookImgLoaded = true;
+	};
+	this.bookmarkImg.src = RunTime.urlRoot + "content/images/btnBookMark.png";
 };
 core.Bookmark.__name__ = true;
 core.Bookmark.prototype = {
 	loadToContext2D: function(ctx) {
-		if(ctx != null) {
+		if(ctx != null && this.bookImgLoaded) {
 			ctx.save();
-			ctx.fillStyle = "#ff0000";
-			ctx.fillRect(0,0,200,200);
+			ctx.drawImage(this.bookmarkImg,RunTime.imagePageWidth | 0,42);
 			ctx.restore();
 		}
 	}

@@ -2038,13 +2038,13 @@ class FlipBook
 	}
 	
 	public function loadCurrentBookmark() {
-		Lib.alert( RunTime.book.bookmarks.length);
+		//Lib.alert( RunTime.book.bookmarks.length);
 		var bms:Array<Bookmark> = new Array<Bookmark>();
 		if (RunTime.book != null && RunTime.book.bookmarks != null) {
 			for (i in 0 ... RunTime.book.bookmarks.length) {
 				var bm:Bookmark = RunTime.book.bookmarks[i];
-				Lib.alert(bm.text);
-				if (bm.pageNum == currentPageNum) {
+				//Lib.alert("cp="+currentPageNum+";i="+i+";bm.pn="+bm.pageNum);
+				if (bm.pageNum == currentPageNum+1) {
 					bms.push(bm);
 				}
 			}

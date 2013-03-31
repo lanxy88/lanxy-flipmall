@@ -198,7 +198,7 @@ class BookContext
 		}
 		
 		if (this.bookmarks != null && bookmarks.length > 0) {
-			Lib.alert(bookmarks);
+			//Lib.alert(bookmarks);
 			for (i in 0 ... bookmarks.length) {
 				var item:Bookmark = bookmarks[i];
 				item.loadToContext2D(ctxBookmark);

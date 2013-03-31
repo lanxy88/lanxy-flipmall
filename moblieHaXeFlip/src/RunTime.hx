@@ -384,7 +384,6 @@ class RunTime
 				cvsBookmark.width = RunTime.clientWidth;
 				cvsBookmark.height = RunTime.clientHeight;
 				
-				
 				RunTime.flipBook.zoom.style.width = RunTime.clientWidth +"px";
 				RunTime.flipBook.zoom.style.height = RunTime.clientHeight +"px";
 				
