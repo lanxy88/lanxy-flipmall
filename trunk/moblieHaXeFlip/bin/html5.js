@@ -190,6 +190,20 @@ FlipBook.prototype = {
 		}
 		this.bookContext.highlights = highlights;
 	}
+	,loadCurrentBookmark: function() {
+		js.Lib.alert(RunTime.book.bookmarks.length);
+		var bms = new Array();
+		if(RunTime.book != null && RunTime.book.bookmarks != null) {
+			var _g1 = 0, _g = RunTime.book.bookmarks.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				var bm = RunTime.book.bookmarks[i];
+				js.Lib.alert(bm.text);
+				if(bm.pageNum == this.currentPageNum) bms.push(bm);
+			}
+		}
+		this.bookContext.bookmarks = bms;
+	}
 	,loadCtxButtons: function() {
 		var buttons = new Array();
 		if(RunTime.book != null && RunTime.book.buttons != null) {
@@ -435,7 +449,7 @@ FlipBook.prototype = {
 		var _g1 = 0, _g = RunTime.book.bookmarks.length;
 		while(_g1 < _g) {
 			var i1 = _g1++;
-			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 1550, className : "FlipBook", methodName : "removeBookmark"});
+			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 1558, className : "FlipBook", methodName : "removeBookmark"});
 			if(pageNum + 1 != RunTime.book.bookmarks[i1].pageNum) tmp.push(RunTime.book.bookmarks[i1]); else currentBookmark = RunTime.book.bookmarks[i1];
 		}
 		if(currentBookmark != null) currentBookmark.remove();
@@ -999,6 +1013,7 @@ FlipBook.prototype = {
 		this.loadCtxButtons();
 		this.loadCtxHighLights();
 		this.loadCtxNotes();
+		this.loadCurrentBookmark();
 		this.clearVideos();
 		this.bookContext.removeAllPages();
 		this.bookContext.resetLayoutParams();
@@ -1038,6 +1053,7 @@ FlipBook.prototype = {
 				self.loadCtxButtons();
 				self.loadCtxHighLights();
 				self.loadCtxNotes();
+				self.loadCurrentBookmark();
 				self.updateVideos();
 				RunTime.flipBook.rightPageLock.style.display = "none";
 				RunTime.flipBook.leftPageLock.style.display = "none";
@@ -1100,6 +1116,7 @@ FlipBook.prototype = {
 		this.currentPageNum = index;
 		this.loadCtxHotlinks();
 		this.loadCtxSlideshow();
+		this.loadCurrentBookmark();
 		var page = RunTime.getPage(this.currentPageNum);
 		this.bookContext.addPage(page);
 		if(page != null && page.locked && RunTime.bLocked) RunTime.flipBook.leftPageLock.style.display = "block";
@@ -1164,6 +1181,9 @@ FlipBook.prototype = {
 		this.btnMask.ontouchstart = $bind(this,this.onButtonMaskClick);
 		this.btnBookMark.ontouchstart = $bind(this,this.onButtonBookmark);
 		this.btnNote.ontouchstart = $bind(this,this.onButtonNoteClick);
+	}
+	,getBookmarkContext: function() {
+		return this.cvsBookmark.getContext("2d");
 	}
 	,getNoteContext: function() {
 		return this.cvsNote.getContext("2d");
@@ -2028,6 +2048,10 @@ RunTime.preRequestBookInfo = function() {
 		RunTime.flipBook.cvsNote = cvsNote;
 		cvsNote.width = RunTime.clientWidth;
 		cvsNote.height = RunTime.clientHeight;
+		var cvsBookmark = js.Lib.document.getElementById("cvsBookmark");
+		RunTime.flipBook.cvsBookmark = cvsBookmark;
+		cvsBookmark.width = RunTime.clientWidth;
+		cvsBookmark.height = RunTime.clientHeight;
 		RunTime.flipBook.zoom.style.width = RunTime.clientWidth + "px";
 		RunTime.flipBook.zoom.style.height = RunTime.clientHeight + "px";
 		RunTime.flipBook.afterInit();
@@ -2035,6 +2059,7 @@ RunTime.preRequestBookInfo = function() {
 		RunTime.flipBook.bookContext.ctxButton = RunTime.flipBook.getButtonContext();
 		RunTime.flipBook.bookContext.ctxHighLight = RunTime.flipBook.getHighLightContext();
 		RunTime.flipBook.bookContext.ctxNote = RunTime.flipBook.getNoteContext();
+		RunTime.flipBook.bookContext.ctxBookmark = RunTime.flipBook.getBookmarkContext();
 		RunTime.requestLanguages(RunTime.requestBookInfo);
 	});
 }
@@ -2956,7 +2981,7 @@ RunTime.readLocalBookmarks = function() {
 				bookmark.fillData(szKey,localStorage.getItem(szKey));
 				bookmarks.push(bookmark);
 				RunTime.book.bookmarks.push(bookmark);
-				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1798, className : "RunTime", methodName : "readLocalBookmarks"});
+				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1804, className : "RunTime", methodName : "readLocalBookmarks"});
 			}
 		}
 	}
@@ -3771,6 +3796,15 @@ core.BookContext.prototype = {
 				item.loadToContext2D(this.ctxNote);
 			}
 		}
+		if(this.bookmarks != null && this.bookmarks.length > 0) {
+			js.Lib.alert(this.bookmarks);
+			var _g1 = 0, _g = this.bookmarks.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				var item = this.bookmarks[i];
+				item.loadToContext2D(this.ctxBookmark);
+			}
+		}
 	}
 	,addPage: function(page) {
 		if(page == null) return;
@@ -3793,6 +3827,7 @@ core.BookContext.prototype = {
 		if(this.ctxButton != null) this.ctxButton.clearRect(0,0,this.ctxButton.canvas.width,this.ctxButton.canvas.height);
 		if(this.ctxHighLight != null) this.ctxHighLight.clearRect(0,0,this.ctxHighLight.canvas.width,this.ctxHighLight.canvas.height);
 		if(this.ctxNote != null) this.ctxNote.clearRect(0,0,this.ctxNote.canvas.width,this.ctxNote.canvas.height);
+		if(this.ctxBookmark != null) this.ctxBookmark.clearRect(0,0,this.ctxBookmark.canvas.width,this.ctxBookmark.canvas.height);
 	}
 	,removeAllPages: function() {
 		if(this.pages != null) {
@@ -3820,7 +3855,15 @@ core.Bookmark = function() {
 };
 core.Bookmark.__name__ = true;
 core.Bookmark.prototype = {
-	clone: function() {
+	loadToContext2D: function(ctx) {
+		if(ctx != null) {
+			ctx.save();
+			ctx.fillStyle = "#ff0000";
+			ctx.fillRect(0,0,200,200);
+			ctx.restore();
+		}
+	}
+	,clone: function() {
 		var bookmark = new core.Bookmark();
 		bookmark.guid = this.guid;
 		bookmark.pageNum = this.pageNum;

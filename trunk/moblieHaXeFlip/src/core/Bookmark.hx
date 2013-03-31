@@ -47,4 +47,16 @@ class Bookmark
 		bookmark.text = this.text;
 		return bookmark;
 	}
+	
+	public function loadToContext2D(ctx:CanvasRenderingContext2D) {
+		if (ctx != null) {
+			ctx.save();
+			ctx.fillStyle = "#ff0000";
+			ctx.fillRect(0, 0, 200, 200);
+			ctx.restore();
+		}
+		
+	}
+	
+	
 }
