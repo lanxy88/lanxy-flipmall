@@ -379,6 +379,11 @@ class RunTime
 				cvsNote.width = RunTime.clientWidth;
 				cvsNote.height = RunTime.clientHeight;
 				
+				var cvsBookmark:Dynamic = Lib.document.getElementById("cvsBookmark");
+				RunTime.flipBook.cvsBookmark = cvsBookmark;
+				cvsBookmark.width = RunTime.clientWidth;
+				cvsBookmark.height = RunTime.clientHeight;
+				
 				
 				RunTime.flipBook.zoom.style.width = RunTime.clientWidth +"px";
 				RunTime.flipBook.zoom.style.height = RunTime.clientHeight +"px";
@@ -388,6 +393,7 @@ class RunTime
 				RunTime.flipBook.bookContext.ctxButton = RunTime.flipBook.getButtonContext();
 				RunTime.flipBook.bookContext.ctxHighLight = RunTime.flipBook.getHighLightContext();
 				RunTime.flipBook.bookContext.ctxNote = RunTime.flipBook.getNoteContext();
+				RunTime.flipBook.bookContext.ctxBookmark = RunTime.flipBook.getBookmarkContext();
 				RunTime.requestLanguages(RunTime.requestBookInfo);
 				//RunTime.requestBookInfo();
 		

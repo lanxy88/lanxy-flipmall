@@ -17,6 +17,9 @@ class BookContext
 	//笔记层
 	public var ctxNote:CanvasRenderingContext2D;
 	
+	//书签
+	public var ctxBookmark:CanvasRenderingContext2D;
+	
 	
 	private var pages:Array<Page>;
 	
@@ -29,6 +32,8 @@ class BookContext
 	public var videos:Array<VideoInfo>;
 	
 	public var buttons:Array<ButtonInfo>;
+	
+	public var bookmarks:Array<Bookmark>;
 	
 	public var highlights:Array<HighLight>;
 	public var notes:Array<NoteIcon>;
@@ -111,6 +116,9 @@ class BookContext
 			ctxNote.clearRect(0, 0, ctxNote.canvas.width, ctxNote.canvas.height);
 			
 		}
+		if (ctxBookmark != null) {
+			ctxBookmark.clearRect(0, 0, ctxBookmark.canvas.width, ctxBookmark.canvas.height);
+		}
 	}
 	
 	public function addPage(page:Page):Void
@@ -186,6 +194,14 @@ class BookContext
 				item.offsetX = this.offsetX;
 				item.offsetY = this.offsetY;
 				item.loadToContext2D(ctxNote);
+			}
+		}
+		
+		if (this.bookmarks != null && bookmarks.length > 0) {
+			Lib.alert(bookmarks);
+			for (i in 0 ... bookmarks.length) {
+				var item:Bookmark = bookmarks[i];
+				item.loadToContext2D(ctxBookmark);
 			}
 		}
 		
