@@ -12,10 +12,17 @@ class Bookmark
 	public var text:String;
 	public var guid:String;
 	public var onlyread:Bool = false;
+	private var bookmarkImg:Image;
+	private var bookImgLoaded:Bool;
 		
 	public function new() 
 	{
-
+		bookmarkImg = untyped Lib.document.createElement("img");		
+		bookmarkImg.onload = function():Void {
+			//Lib.alert("loaded");
+			bookImgLoaded = true;
+		};
+		bookmarkImg.src = RunTime.urlRoot + "content/images/btnBookMark.png";
 	}
 	
 	private function toJSONString():String {
@@ -49,13 +56,15 @@ class Bookmark
 	}
 	
 	public function loadToContext2D(ctx:CanvasRenderingContext2D) {
-		if (ctx != null) {
+		if (ctx != null && bookImgLoaded) {
+			//Lib.alert(RunTime.bookRight+";"+RunTime.book.pageWidth);
 			ctx.save();
-			ctx.fillStyle = "#ff0000";
-			ctx.fillRect(0, 0, 200, 200);
+			ctx.drawImage(bookmarkImg, Std.int(RunTime.imagePageWidth), 42);
+			//ctx.fillStyle = "#ff0000";
+			//ctx.fillRect(Std.int(RunTime.imagePageWidth), 50, 32, 32);
 			ctx.restore();
 		}
-		
+		//Lib.alert(bookmarkImg.src);
 	}
 	
 	
