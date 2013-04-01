@@ -15,6 +15,7 @@ import core.VideoInfo;
 import core.ButtonInfo;
 import core.HtmlHelper;
 import core.ZoomStatus;
+import core.Bookmark;
 /**
  * ...
  * @author 
@@ -55,6 +56,7 @@ class DoubleFlipBook extends FlipBook
 		loadCtxButtons();
 		loadCtxHighLights();
 		loadCtxNotes();
+		loadCurrentBookmark();
 		updateVideos();
 		var p:PagePair = this.getCurrentPair();
 		bookContext.addPage(p.leftPage);			
@@ -427,6 +429,7 @@ class DoubleFlipBook extends FlipBook
 				self.loadCtxButtons();
 				self.loadCtxHighLights();
 				self.loadCtxNotes();
+				self.loadCurrentBookmark();
 				self.updateVideos();
 				self.onEnterPage();
 				RunTime.flipBook.rightPageLock.style.display = "none";
@@ -762,6 +765,7 @@ class DoubleFlipBook extends FlipBook
 		}
 		this.bookContext.buttons = buttons;
 	}
+	
 	
 	public override function loadCtxHighLights():Void {
 		var pair:PagePair = this.getCurrentPair();
