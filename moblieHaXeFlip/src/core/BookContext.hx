@@ -196,7 +196,7 @@ class BookContext
 				item.loadToContext2D(ctxNote);
 			}
 		}
-		
+		//Lib.alert(bookmarks.length);
 		if (this.bookmarks != null && bookmarks.length > 0) {
 			//Lib.alert(bookmarks);
 			for (i in 0 ... bookmarks.length) {

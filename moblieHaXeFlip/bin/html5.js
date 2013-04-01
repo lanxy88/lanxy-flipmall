@@ -1491,6 +1491,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 				self.loadCtxButtons();
 				self.loadCtxHighLights();
 				self.loadCtxNotes();
+				self.loadCurrentBookmark();
 				self.updateVideos();
 				self.onEnterPage();
 				RunTime.flipBook.rightPageLock.style.display = "none";
@@ -1572,6 +1573,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		this.loadCtxButtons();
 		this.loadCtxHighLights();
 		this.loadCtxNotes();
+		this.loadCurrentBookmark();
 		this.updateVideos();
 		var p = this.getCurrentPair();
 		this.bookContext.addPage(p.leftPage);
@@ -2406,7 +2408,10 @@ RunTime.loadBookInfo = function() {
 	RunTime.loadState();
 }
 RunTime.setMenuVisible = function(menu,visible) {
-	if(visible == true) menu.style.display = "inline"; else RunTime.flipBook.menuParent.removeChild(menu);
+	if(visible == true) menu.style.display = "inline"; else try {
+		RunTime.flipBook.menuParent.removeChild(menu);
+	} catch( e ) {
+	}
 }
 RunTime.getMenuVisible = function(parent,nodeName) {
 	var li = parent.elementsNamed(nodeName);
@@ -2979,7 +2984,7 @@ RunTime.readLocalBookmarks = function() {
 				bookmark.fillData(szKey,localStorage.getItem(szKey));
 				bookmarks.push(bookmark);
 				RunTime.book.bookmarks.push(bookmark);
-				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1803, className : "RunTime", methodName : "readLocalBookmarks"});
+				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1802, className : "RunTime", methodName : "readLocalBookmarks"});
 			}
 		}
 	}
@@ -3854,14 +3859,14 @@ core.Bookmark = function() {
 	this.bookmarkImg.onload = function() {
 		_g.bookImgLoaded = true;
 	};
-	this.bookmarkImg.src = RunTime.urlRoot + "content/images/btnBookMark.png";
+	this.bookmarkImg.src = RunTime.urlRoot + "content/images/bookmark.png";
 };
 core.Bookmark.__name__ = true;
 core.Bookmark.prototype = {
 	loadToContext2D: function(ctx) {
 		if(ctx != null && this.bookImgLoaded) {
 			ctx.save();
-			ctx.drawImage(this.bookmarkImg,RunTime.imagePageWidth | 0,42);
+			ctx.drawImage(this.bookmarkImg,(RunTime.clientWidth | 0) - 40,52);
 			ctx.restore();
 		}
 	}

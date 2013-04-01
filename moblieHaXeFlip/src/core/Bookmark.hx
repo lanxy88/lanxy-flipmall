@@ -22,7 +22,7 @@ class Bookmark
 			//Lib.alert("loaded");
 			bookImgLoaded = true;
 		};
-		bookmarkImg.src = RunTime.urlRoot + "content/images/btnBookMark.png";
+		bookmarkImg.src = RunTime.urlRoot + "content/images/bookmark.png";
 	}
 	
 	private function toJSONString():String {
@@ -57,9 +57,10 @@ class Bookmark
 	
 	public function loadToContext2D(ctx:CanvasRenderingContext2D) {
 		if (ctx != null && bookImgLoaded) {
-			//Lib.alert(RunTime.bookRight+";"+RunTime.book.pageWidth);
+			//Lib.alert(RunTime.imagePageWidth+";"+RunTime.clientWidth);
 			ctx.save();
-			ctx.drawImage(bookmarkImg, Std.int(RunTime.imagePageWidth), 42);
+			ctx.drawImage(bookmarkImg,Std.int(RunTime.clientWidth)-40 , 52);
+			//Std.int(RunTime.imagePageWidth)+10
 			//ctx.fillStyle = "#ff0000";
 			//ctx.fillRect(Std.int(RunTime.imagePageWidth), 50, 32, 32);
 			ctx.restore();

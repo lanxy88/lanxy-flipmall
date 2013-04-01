@@ -658,14 +658,8 @@ class RunTime
 					
 				}while (it.hasNext());
 				
-				//var it:Iterator<Xml> = buttonInfo.firstElement().elementsNamed("bookmark");
-				//Lib.alert(it.hasNext());
-				//while (it.hasNext() == true)
-				//{
-					//var node:Xml = it.next();
-					//var pageNumVal:String = node.get("page");
-					//Lib.alert(pageNumVal);
-				//}
+				//Lib.alert(book.bookmarks.length);
+				
 			});
 	}
 	
@@ -955,13 +949,18 @@ class RunTime
 	
 	private static function setMenuVisible(menu:HtmlDom, visible:Bool):Void
 	{
-		if (visible == true)
+		if (visible == true )
 		{
 			menu.style.display = "inline";
 		}
 		else
 		{
-			RunTime.flipBook.menuParent.removeChild(menu);
+			try {
+				RunTime.flipBook.menuParent.removeChild(menu);
+			}catch (e:Dynamic) {
+				
+			}
+			
 		}
 	}
 	
