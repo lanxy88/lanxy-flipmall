@@ -75,8 +75,13 @@
 
 			public function set mainAdXML(value:XML):void
 			{
-				_mainAdXML = value;
-				parseMainAd();
+				if(!value) return;
+				_mainAdXML = value;				
+				try{
+					parseMainAd();
+				}catch(e:Error){
+					
+				}
 			}
 			
 			private function parseMainAd():void
@@ -201,7 +206,7 @@
 		]]>
 	</mx:Script>
 	<mx:TextArea id="html" width="100%" height="100%" backgroundAlpha="0.3" focusAlpha="0"
-				 focusEnabled="false" htmlText="{htmlContent}"
+				 focusEnabled="false" htmlText="{htmlContent}" visible="{htmlContent?true:false}"
 				 includeInLayout="{htmlContent?true:false}">		
 	</mx:TextArea>
 	<!--<flexiframe:IFrame id="html" width="100%" height="100%" includeInLayout="{(htmlContent?true:false)}" 
