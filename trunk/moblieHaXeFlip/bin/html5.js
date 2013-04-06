@@ -430,7 +430,6 @@ FlipBook.prototype = {
 			if(RunTime.book.rightToLeft) bookmark.pageNum = this.leftPageNum; else bookmark.pageNum = this.rightPageNum;
 		} else if(layout == 0) bookmark.pageNum = this.getCurrentPageNum() + 1;
 		bookmark.text = text;
-		js.Lib.alert(bookmark.pageNum);
 		bookmark.save();
 		RunTime.book.bookmarks.push(bookmark.clone());
 		var bookmarks = RunTime.book.bookmarks;
@@ -447,7 +446,7 @@ FlipBook.prototype = {
 		var _g1 = 0, _g = RunTime.book.bookmarks.length;
 		while(_g1 < _g) {
 			var i1 = _g1++;
-			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 1558, className : "FlipBook", methodName : "removeBookmark"});
+			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 1573, className : "FlipBook", methodName : "removeBookmark"});
 			if(pageNum + 1 != RunTime.book.bookmarks[i1].pageNum) tmp.push(RunTime.book.bookmarks[i1]); else currentBookmark = RunTime.book.bookmarks[i1];
 		}
 		if(currentBookmark != null) currentBookmark.remove();
@@ -799,7 +798,10 @@ FlipBook.prototype = {
 		var page = RunTime.getPage(num);
 		return page.canZoom;
 	}
+	,onReadyTouchEnd: function(e) {
+	}
 	,onTouchEnd: function(e) {
+		this.onReadyTouchEnd(e);
 		if(this.bStartHighLight && this.gestureLastX != -1 && this.gestureLastY != -1) {
 			var obj = e;
 			e.preventDefault();
@@ -994,6 +996,8 @@ FlipBook.prototype = {
 		this.stopFlip();
 		this.turnPage(1);
 	}
+	,updateAds: function() {
+	}
 	,turnToPage: function(pageNum) {
 		this.clearZoom();
 		this.preloadPages(pageNum);
@@ -1180,6 +1184,8 @@ FlipBook.prototype = {
 		this.btnBookMark.ontouchstart = $bind(this,this.onButtonBookmark);
 		this.btnNote.ontouchstart = $bind(this,this.onButtonNoteClick);
 	}
+	,requestMainAd: function() {
+	}
 	,getBookmarkContext: function() {
 		return this.cvsBookmark.getContext("2d");
 	}
@@ -1198,6 +1204,8 @@ FlipBook.prototype = {
 	,__class__: FlipBook
 }
 var DoubleFlipBook = function() {
+	this.mainAdLayout = "center";
+	this.mainAdDockPos = "halfpage";
 	FlipBook.call(this);
 };
 DoubleFlipBook.__name__ = true;
@@ -1401,7 +1409,63 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		if(this.currentPageNum != null) current = this.currentPageNum;
 		return new core.PagePair(current);
 	}
+	,onReadyTouchEnd: function(e) {
+	}
+	,getRealValue: function(value) {
+		if(value == null || value == "") return 0;
+		return Std.parseInt(value.substring(0,value.lastIndexOf("px")));
+	}
+	,updateAds: function() {
+		if(this.currentPageNum == 0) this.mainAdHtml.style.display = "block"; else this.mainAdHtml.style.display = "none";
+	}
+	,requestMainAd: function() {
+		this.mainAdHtml = js.Lib.document.getElementById("mainAdhtml");
+		var an = js.Lib.document.getElementById("mainAdInner");
+		this.mainAdInner = an;
+		var img = js.Lib.document.getElementById("mainAdimg");
+		this.mainAdImg = img;
+		try {
+			var ad = new haxe.xml.Fast(RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+			if(ad != null) {
+				if(ad.has.resolve("dockPos")) this.mainAdDockPos = ad.att.resolve("dockPos");
+				this.mainAdHtml.style.display = "block";
+				this.mainAdHtml.style.marginRight = 0;
+				this.mainAdHtml.style.height = RunTime.clientHeight + "px";
+				if(this.mainAdDockPos == "halfpage") {
+					this.mainAdHtml.style.width = RunTime.imagePageWidth + "px";
+					this.mainAdHtml.style.left = RunTime.clientWidth / 2 - RunTime.imagePageWidth + "px";
+					this.mainAdHtml.style.right = RunTime.clientWidth / 2 + "px";
+				} else if(this.mainAdDockPos == "halfscreen") {
+					this.mainAdHtml.style.left = "0px";
+					this.mainAdHtml.style.width = RunTime.clientWidth / 2 + "px";
+				}
+				if(ad.getInnerData() != null && StringTools.trim(ad.getInnerData()) != "") {
+					this.mainAdHtml.style.overflow = "hide";
+					this.mainAdHtml.innerHTML = ad.getInnerData();
+				} else if(ad.has.resolve("url")) {
+					this.mainAdInner.style.styleFloat = "right";
+					this.mainAdImg.src = ad.att.resolve("url");
+					if(ad.has.resolve("layout")) this.mainAdLayout = ad.att.resolve("layout");
+					if(ad.has.resolve("href")) {
+						this.mainAdHref = ad.att.resolve("href");
+						this.mainAdInner.href = this.mainAdHref;
+						this.mainAdInner.target = ad.has.resolve("target")?ad.att.resolve("target"):"_blank";
+					}
+					if(this.mainAdLayout == "center") {
+						this.mainAdInner.style.top = (RunTime.clientHeight - this.getRealValue(this.mainAdImg.style.height)) / 4 + "px";
+						this.mainAdInner.style.verticalAlign = "middle";
+						this.mainAdInner.style.textAlign = "right";
+						this.mainAdImg.style.maxHeight = this.mainAdHtml.style.height;
+						this.mainAdImg.style.maxWidth = this.mainAdHtml.style.width;
+					}
+				}
+			}
+		} catch( e ) {
+			js.Lib.alert(e);
+		}
+	}
 	,turnToPage: function(pageNum) {
+		var _g = this;
 		this.preloadPages(pageNum);
 		var current = this.getCurrentPageNum();
 		if(current < 0 || current >= RunTime.book.pages.length) return;
@@ -1500,6 +1564,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 				if(newPair.leftPage != null && newPair.leftPage.locked && RunTime.bLocked) RunTime.flipBook.leftPageLock.style.display = "block";
 			}
 			self.bookContext.render();
+			_g.updateAds();
 		};
 		this.clearCtxHotlinks();
 		this.clearCtxButtons();
@@ -1823,6 +1888,116 @@ L.loadXml = function(xml) {
 		L.instance.set(key,val);
 	}
 }
+var List = function() {
+	this.length = 0;
+};
+List.__name__ = true;
+List.prototype = {
+	map: function(f) {
+		var b = new List();
+		var l = this.h;
+		while(l != null) {
+			var v = l[0];
+			l = l[1];
+			b.add(f(v));
+		}
+		return b;
+	}
+	,filter: function(f) {
+		var l2 = new List();
+		var l = this.h;
+		while(l != null) {
+			var v = l[0];
+			l = l[1];
+			if(f(v)) l2.add(v);
+		}
+		return l2;
+	}
+	,join: function(sep) {
+		var s = new StringBuf();
+		var first = true;
+		var l = this.h;
+		while(l != null) {
+			if(first) first = false; else s.b += Std.string(sep);
+			s.b += Std.string(l[0]);
+			l = l[1];
+		}
+		return s.b;
+	}
+	,toString: function() {
+		var s = new StringBuf();
+		var first = true;
+		var l = this.h;
+		s.b += Std.string("{");
+		while(l != null) {
+			if(first) first = false; else s.b += Std.string(", ");
+			s.b += Std.string(Std.string(l[0]));
+			l = l[1];
+		}
+		s.b += Std.string("}");
+		return s.b;
+	}
+	,iterator: function() {
+		return { h : this.h, hasNext : function() {
+			return this.h != null;
+		}, next : function() {
+			if(this.h == null) return null;
+			var x = this.h[0];
+			this.h = this.h[1];
+			return x;
+		}};
+	}
+	,remove: function(v) {
+		var prev = null;
+		var l = this.h;
+		while(l != null) {
+			if(l[0] == v) {
+				if(prev == null) this.h = l[1]; else prev[1] = l[1];
+				if(this.q == l) this.q = prev;
+				this.length--;
+				return true;
+			}
+			prev = l;
+			l = l[1];
+		}
+		return false;
+	}
+	,clear: function() {
+		this.h = null;
+		this.q = null;
+		this.length = 0;
+	}
+	,isEmpty: function() {
+		return this.h == null;
+	}
+	,pop: function() {
+		if(this.h == null) return null;
+		var x = this.h[0];
+		this.h = this.h[1];
+		if(this.h == null) this.q = null;
+		this.length--;
+		return x;
+	}
+	,last: function() {
+		return this.q == null?null:this.q[0];
+	}
+	,first: function() {
+		return this.h == null?null:this.h[0];
+	}
+	,push: function(item) {
+		var x = [item,this.h];
+		this.h = x;
+		if(this.q == null) this.q = x;
+		this.length++;
+	}
+	,add: function(item) {
+		var x = [item];
+		if(this.h == null) this.h = x; else this.q[1] = x;
+		this.q = x;
+		this.length++;
+	}
+	,__class__: List
+}
 var Main = function() { }
 Main.__name__ = true;
 Main.main = function() {
@@ -2080,6 +2255,7 @@ RunTime.requestBookInfo = function() {
 				RunTime.afterRequestBookInfo();
 			}
 		} else RunTime.InputPwd();
+		if(!RunTime.singlePage) RunTime.flipBook.requestMainAd();
 	});
 }
 RunTime.InputPwd = function() {
@@ -2978,13 +3154,12 @@ RunTime.readLocalBookmarks = function() {
 		var i1 = _g1++;
 		var szKey = localStorage.key(i1);
 		if(szKey.indexOf(RunTime.kvPrex) == 0) {
-			js.Lib.alert(szKey);
 			if(szKey.indexOf("@$bm$@") != -1) {
 				var bookmark = new core.Bookmark();
 				bookmark.fillData(szKey,localStorage.getItem(szKey));
 				bookmarks.push(bookmark);
 				RunTime.book.bookmarks.push(bookmark);
-				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1802, className : "RunTime", methodName : "readLocalBookmarks"});
+				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1805, className : "RunTime", methodName : "readLocalBookmarks"});
 			}
 		}
 	}
@@ -5695,6 +5870,120 @@ haxe.web.Request.getURI = function() {
 	return window.location.pathname;
 }
 if(!haxe.xml) haxe.xml = {}
+if(!haxe.xml._Fast) haxe.xml._Fast = {}
+haxe.xml._Fast.NodeAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.NodeAccess.__name__ = true;
+haxe.xml._Fast.NodeAccess.prototype = {
+	resolve: function(name) {
+		var x = this.__x.elementsNamed(name).next();
+		if(x == null) {
+			var xname = this.__x.nodeType == Xml.Document?"Document":this.__x.getNodeName();
+			throw xname + " is missing element " + name;
+		}
+		return new haxe.xml.Fast(x);
+	}
+	,__class__: haxe.xml._Fast.NodeAccess
+}
+haxe.xml._Fast.AttribAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.AttribAccess.__name__ = true;
+haxe.xml._Fast.AttribAccess.prototype = {
+	resolve: function(name) {
+		if(this.__x.nodeType == Xml.Document) throw "Cannot access document attribute " + name;
+		var v = this.__x.get(name);
+		if(v == null) throw this.__x.getNodeName() + " is missing attribute " + name;
+		return v;
+	}
+	,__class__: haxe.xml._Fast.AttribAccess
+}
+haxe.xml._Fast.HasAttribAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.HasAttribAccess.__name__ = true;
+haxe.xml._Fast.HasAttribAccess.prototype = {
+	resolve: function(name) {
+		if(this.__x.nodeType == Xml.Document) throw "Cannot access document attribute " + name;
+		return this.__x.exists(name);
+	}
+	,__class__: haxe.xml._Fast.HasAttribAccess
+}
+haxe.xml._Fast.HasNodeAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.HasNodeAccess.__name__ = true;
+haxe.xml._Fast.HasNodeAccess.prototype = {
+	resolve: function(name) {
+		return this.__x.elementsNamed(name).hasNext();
+	}
+	,__class__: haxe.xml._Fast.HasNodeAccess
+}
+haxe.xml._Fast.NodeListAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.NodeListAccess.__name__ = true;
+haxe.xml._Fast.NodeListAccess.prototype = {
+	resolve: function(name) {
+		var l = new List();
+		var $it0 = this.__x.elementsNamed(name);
+		while( $it0.hasNext() ) {
+			var x = $it0.next();
+			l.add(new haxe.xml.Fast(x));
+		}
+		return l;
+	}
+	,__class__: haxe.xml._Fast.NodeListAccess
+}
+haxe.xml.Fast = function(x) {
+	if(x.nodeType != Xml.Document && x.nodeType != Xml.Element) throw "Invalid nodeType " + Std.string(x.nodeType);
+	this.x = x;
+	this.node = new haxe.xml._Fast.NodeAccess(x);
+	this.nodes = new haxe.xml._Fast.NodeListAccess(x);
+	this.att = new haxe.xml._Fast.AttribAccess(x);
+	this.has = new haxe.xml._Fast.HasAttribAccess(x);
+	this.hasNode = new haxe.xml._Fast.HasNodeAccess(x);
+};
+haxe.xml.Fast.__name__ = true;
+haxe.xml.Fast.prototype = {
+	getElements: function() {
+		var it = this.x.elements();
+		return { hasNext : $bind(it,it.hasNext), next : function() {
+			var x = it.next();
+			if(x == null) return null;
+			return new haxe.xml.Fast(x);
+		}};
+	}
+	,getInnerHTML: function() {
+		var s = new StringBuf();
+		var $it0 = this.x.iterator();
+		while( $it0.hasNext() ) {
+			var x = $it0.next();
+			s.b += Std.string(x.toString());
+		}
+		return s.b;
+	}
+	,getInnerData: function() {
+		var it = this.x.iterator();
+		if(!it.hasNext()) throw this.getName() + " does not have data";
+		var v = it.next();
+		var n = it.next();
+		if(n != null) {
+			if(v.nodeType == Xml.PCData && n.nodeType == Xml.CData && StringTools.trim(v.getNodeValue()) == "") {
+				var n2 = it.next();
+				if(n2 == null || n2.nodeType == Xml.PCData && StringTools.trim(n2.getNodeValue()) == "" && it.next() == null) return n.getNodeValue();
+			}
+			throw this.getName() + " does not only have data";
+		}
+		if(v.nodeType != Xml.PCData && v.nodeType != Xml.CData) throw this.getName() + " does not have data";
+		return v.getNodeValue();
+	}
+	,getName: function() {
+		return this.x.nodeType == Xml.Document?"Document":this.x.getNodeName();
+	}
+	,__class__: haxe.xml.Fast
+}
 haxe.xml.Parser = function() { }
 haxe.xml.Parser.__name__ = true;
 haxe.xml.Parser.parse = function(str) {

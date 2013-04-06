@@ -178,6 +178,10 @@ class FlipBook
 		return cvsBookmark.getContext("2d");
 	}
 	
+	public function requestMainAd() {
+		
+	}
+	
 	public function attachActions():Void
 	{
 		if (root == null) return;
@@ -510,6 +514,12 @@ class FlipBook
 		//RunTime.divLoading.style.display = "inline";
 		updateVideos();
 		RunTime.logPageView(pageNum + 1);
+		
+		//updateAds();
+	}
+	
+	public function updateAds():Void {
+		
 	}
 	
 	public function turnToNextPage(e:Dynamic):Void
@@ -853,6 +863,7 @@ class FlipBook
 	
 	public function onTouchEnd(e:Event):Void
 	{
+		onReadyTouchEnd(e);
 		//trace("onTouchEnd");
 		//标记模式
 		if (bStartHighLight && gestureLastX != -1 && gestureLastY !=-1) {
@@ -888,7 +899,6 @@ class FlipBook
 			currentHighLight.tpageNum = getCurrentPageNum();
 			
 			onButtonMaskClick(null);
-			
 			return;
 		}
 		
@@ -956,6 +966,11 @@ class FlipBook
 		
 		return;
 	
+	}
+	
+	public function onReadyTouchEnd(e:Event) 
+	{
+		
 	}
 	
 	public function checkCanZoom():Bool {
@@ -1620,7 +1635,7 @@ class FlipBook
 		//Lib.alert("getCurrentPageNum():" + bookmark.pageNum);
 		
 		bookmark.text = text;
-		Lib.alert(bookmark.pageNum);
+		//Lib.alert(bookmark.pageNum);
 		bookmark.save();
 		RunTime.book.bookmarks.push(bookmark.clone());
 		

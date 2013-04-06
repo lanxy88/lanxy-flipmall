@@ -445,6 +445,11 @@ class RunTime
 					//RunTime.showPopupMaskLayer();
 					//RunTime.flipBook.cvsOthers.innerHTML = HtmlHelper.toInputPwdHtml();
 				}
+				//double flipbook ad
+				if (!singlePage) {
+					flipBook.requestMainAd();
+				}
+				
 			});
 	}
 	
@@ -1403,8 +1408,6 @@ class RunTime
 			RunTime.flipBook.zoomLeftPage.height = Std.int(page.drawParams.dh);
 			RunTime.flipBook.zoomLeftPage.style.left = Std.string(page.drawParams.dx) + "px";
 			RunTime.flipBook.zoomLeftPage.style.top = Std.string(page.drawParams.dy) + "px";
-			
-			
 
 			
 			RunTime.flipBook.leftPageLock.style.width = Std.int(page.drawParams.dw) + "px";
@@ -1793,7 +1796,7 @@ class RunTime
 		for (i in 0 ... LocalStorage.length) {
 			var szKey = LocalStorage.key(i);
 			if (szKey.indexOf(kvPrex) == 0) {
-				Lib.alert(szKey);
+				//Lib.alert(szKey);
 				if (szKey.indexOf("@$bm$@") != -1) {
 					var bookmark:Bookmark = new Bookmark();
 					bookmark.fillData(szKey, LocalStorage.getItem(szKey));
