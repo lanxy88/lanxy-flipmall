@@ -509,10 +509,6 @@ class DoubleFlipBook extends FlipBook
 					mainAdHtml.style.overflow = "hide";
 					mainAdHtml.innerHTML = ad.innerData;							
 					
-					//if (ad.has.width) mainAdHtml.style.width = ad.att.width + "px";
-					//if (ad.has.height) mainAdHtml.style.height = ad.att.height + "px";
-					
-					//Lib.alert(mainAdHtml.style.left+";"+mainAdHtml.style.width);
 				}else if (ad.has.url) {
 					//mainAdHtml.innerHTML = "<a href='#'><img src='"+ad.att.url+"' style='width:400px'></a>";
 					mainAdInner.style.styleFloat = "right";
@@ -534,6 +530,15 @@ class DoubleFlipBook extends FlipBook
 						mainAdImg.style.maxHeight = mainAdHtml.style.height;
 						mainAdImg.style.maxWidth = mainAdHtml.style.width;
 						//Lib.alert(RunTime.clientHeight-getRealValue(mainAdImg.style.height ));
+					}else if (mainAdLayout == "stretch") {
+						mainAdImg.style.height = mainAdHtml.style.height;
+						mainAdImg.style.width = mainAdHtml.style.width;
+					}else {
+						mainAdInner.style.top = (RunTime.clientHeight-getRealValue(mainAdImg.style.height) )/ 4 +"px";
+						mainAdInner.style.verticalAlign = "middle";
+						mainAdInner.style.textAlign = "right";
+						mainAdImg.style.maxHeight = mainAdHtml.style.height;
+						mainAdImg.style.maxWidth = mainAdHtml.style.width;
 					}
 				}
 				//

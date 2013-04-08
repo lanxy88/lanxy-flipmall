@@ -1457,6 +1457,15 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 						this.mainAdInner.style.textAlign = "right";
 						this.mainAdImg.style.maxHeight = this.mainAdHtml.style.height;
 						this.mainAdImg.style.maxWidth = this.mainAdHtml.style.width;
+					} else if(this.mainAdLayout == "stretch") {
+						this.mainAdImg.style.height = this.mainAdHtml.style.height;
+						this.mainAdImg.style.width = this.mainAdHtml.style.width;
+					} else {
+						this.mainAdInner.style.top = (RunTime.clientHeight - this.getRealValue(this.mainAdImg.style.height)) / 4 + "px";
+						this.mainAdInner.style.verticalAlign = "middle";
+						this.mainAdInner.style.textAlign = "right";
+						this.mainAdImg.style.maxHeight = this.mainAdHtml.style.height;
+						this.mainAdImg.style.maxWidth = this.mainAdHtml.style.width;
 					}
 				}
 			}
