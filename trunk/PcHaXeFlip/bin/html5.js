@@ -1670,6 +1670,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 					debugger;
 				}
 			}
+			this.updateAds();
 		} catch( e ) {
 			js.Lib.alert(e);
 		}
@@ -1859,6 +1860,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		if(p.leftPage != null) RunTime.logPageView(p.leftPage.num + 1);
 		if(p.rightPage != null) RunTime.logPageView(p.rightPage.num + 1);
 		this.onEnterPage();
+		this.updateAds();
 	}
 	,checkCanZoom: function() {
 		var p = this.getCurrentPair();

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE >
 <html>
 <head>
 	<title></title>
@@ -7,10 +7,10 @@
 	<meta name="description" content="" />
 	<meta name="keywords" content="" />
 	<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
-	
+	<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=3, user-scalable=yes"> 
 	<style type="text/css" media="screen"> 
 		html, body	{ height:100%; }
-		body {margin:0; padding:0; overflow:auto;  }
+		body { margin:0; padding:0; overflow:auto; text-align:center; }
 		ul{list-style-type: none;margin:0px;padding-left:20px; }
 		ul li{height:20px;}
 		ul li span {color:blue;overflow: hidden;text-overflow: ellipsis;white-space:nowrap;display:block;width: 100%}
@@ -21,12 +21,9 @@
 		#cvsBook{ position:absolute;left:0px;top:0px;width:100%;height:100%;overflow: hide; -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 		-webkit-user-select: none;}
 		#cvsButton{ position:absolute;left:0px;top:0px;width:100%;height:100%;overflow: hide; }
-		#zoom{-ms-touch-action: pinch-zoom;position:absolute;left:0px;top:0px;width:100%;height:100%;overflow: hide; -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+		#zoom{ position:absolute;left:0px;top:0px;width:100%;height:100%;overflow: hide; -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 		-webkit-user-select: none;}
 
-		#mainAdhtml{ position:absolute;display:none;  overflow: hide; -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
-		-webkit-user-select: none;z-index:100; text-align:left;vertical-align:middle}
-		
 		.bookleftpage{ position:absolute;left:0px;top:0px; display:none;  overflow: hide; -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 		-webkit-user-select: none;}
 		.bookrightpage{ position:absolute;left:0px;top:0px;display:none; overflow: hide; -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
@@ -43,10 +40,6 @@
 		#mask{ position:absolute;left:0px;top:0px;width:100%;height:100%;overflow: hide;-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 		-webkit-user-select: none;}
 
-		#maskop{ position:absolute;left:0px;top:0px;width:100%;height:100%;overflow: hide;-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
-		-webkit-user-select: none;background: #ff00ff;opacity: 0;}
-
-
 		#maskPopup { position:absolute;left:0px;top:0px;width:100%;height:100%; background-color:#CCCCCC; opacity:0.5; display:none;}
 		#cvsOthers,#cvsYoutube { position:absolute;left:0px;top:0px;}
 		#cvsVideo {position:absolute;left:0px;top:0px;overflow: hide;-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
@@ -56,40 +49,36 @@
 		-webkit-user-select: none;}
 
 
-		#cvsTest {position:absolute;width:100%;z-index: 9999999999;height:100%;background: #0000ff; opacity: 0; left:0px;top:0px;overflow: hide;-webkit-tap-highlight-color: rgba(255, 255, 255, 0);
-		-webkit-user-select: none;}
-
-
 		#tz { position:absolute;bottom:0px;width:100%;height:40px;
 				align:center;background: blue;opacity: 0}
 
 
-		#topMenuBar { top:0px;width:100%;height:40px;
+		#topMenuBar { position:absolute;top:0px;width:100%;height:40px;
 				align:center;}
 		#topMenuBarBg { width:100%;height:40px;
-				align:center;background-color:#5c5c5c;}
+				align:center;background-color:5c5c5c;}
 
 		#topTable{height:100%;}
 		#topTable img {margin-left:25px;}
 
 
-		#bottomBar { left:0px;position:absolute;bottom:0px;width:100%;height:49px;z-index: 999999;
+		#bottomBar { position:absolute;bottom:0px;width:100%;height:49px;z-index: 999999;
 				align:center;}
-		#bottomBarBg {left:0px;position:absolute; width:100%;height:49px;align:center;background:#5c5c5c;}
+		#bottomBarBg {position:absolute; width:100%;height:49px;align:center;background-color:5c5c5c;}
 
 
 		#bottomTable{height:100%}
 		#tbPage{width:35px;}
 		#bottomTable img {margin-left:25px;}
 		#tbPageCount {color:#ffffff;}
-		#topBar,.topBarDefault {position:absolute; top:0px;display:none;background:#cccccc;
+		#topBar,.topBarDefault {position:absolute; top:0px;display:none;background-color:#cccccc;
 			margin-right: auto; margin-left: auto; width:500px;
 			border:1px solid #666666;-webkit-border-radius: 5px; padding-bottom:45px;z-index: 100000;
 		}
 		#topBar #close{	position:absolute; top:2px; right:5px;}
 		#topBarTitle {position:absolute;top:0px;width:100%;height:30px;background-color:888888;text-align:left;}
 		#topBarContent {position:absolute; padding-left:10px;padding-right:10px; top:35px;
-						text-align:left;overflow:auto; height:280px;width:96%;display: block;}
+		text-align:left;overflow:auto; height:280px;width:96%;}
 		#topFullTextContent {text-align:left;overflow:auto;top:35px;position:absolute; padding-left:10px;padding-right:10px;background: #ffffff}
 		#topTitle {position:absolute;top:5px;left:5px;}
 		.thumb {max-width:80px;max-height:78px;margin:8px;}
@@ -107,14 +96,6 @@
 		.bookmarkrow{border-bottom:  1px dashed #ffffff; margin: 15px 0px; height: 35px}
 
 		button{height: 35px;}
-
-		#inputBox p{
-			margin: 20px 30px;
-		}
-
-		#tbKeyword{
-			margin: 10px 30px;
-		}
 
 		.slides {
 
@@ -175,9 +156,6 @@
 			padding:  0px 5px;
 		}
 
-		#mainAdInner{ position:absolute;
-			vertical-align:middle;margin:auto;
-		}
 
 	</style>
 
@@ -185,8 +163,7 @@
 
 	<script type="text/javascript">
 		
-		var c_width = 0;
-		var c_height = 0;
+
 		function showSpinner(){
 			var opts = {
 			      lines: 16, 
@@ -200,11 +177,6 @@
 	    	};
 			var target = document.getElementById('loading');
 			var spinner = new Spinner(opts).spin(target);
-
-			c_width = document.body.clientWidth ;
-			c_height = document.body.clientHeight ;
-
-			window.onresize = orientationChange;
 		}
 
 
@@ -213,12 +185,6 @@
 
 	
 	<script>
-
-		function orientationChange(){
-			if (c_width == document.body.clientHeight && c_height == document.body.clientWidth) {
-				updateOrientation();
-			}
-		}
         function isNUM(e)
         {
             var iKeyCode = e.keyCode;
@@ -366,14 +332,9 @@
 
 
 	
-	<div id="zoom"  >
+	<div id="zoom">
 		
 		<canvas id="cvsBook" class="canvasBook"  width="1" height="1" onselectstart="return false">this browser does not support canvas…</canvas>
-		<div id="mainAdhtml">
-			<a id="mainAdInner">
-				<img id="mainAdimg" />
-			</a>
-		</div>
 		<img id='leftpage' class="bookleftpage" src=''/>
 		<img id='rightpage' class="bookrightpage" src=''/>
 		<canvas id="cvsButton" class="canvasBook"  width="1" height="1" onselectstart="return false">this browser does not support canvas…</canvas>
@@ -382,33 +343,37 @@
 
 		<canvas  style=" position:absolute; " id="cvsNote" width="1" height="1" onselectstart="return false">this browser does not support canvas…</canvas>
 
-		<canvas  style=" position:absolute; " id="cvsBookmark" width="1" height="1" onselectstart="return false">this browser does not support canvas…</canvas>
 
 
-		<div id="mask">
-			<div id="maskop"></div>
+
+		
+
+		<div id="mask" >
 			<div id="leftPageLock" class ="leftPageLock" >
-				<img id ="leftLockIcon" src="content/images/iconLock.png" style="position:absolute;" onclick="InputUnlock()" >
+				<img src="content/images/iconLock.png" style="margin-top: 50%;" onclick="InputUnlock()" >
 			</div>
 			<div id="rightPageLock" class ="rightPageLock" >
-				<img id ="rightLockIcon" src="content/images/iconLock.png" 
-				style="position:absolute;" onclick="InputUnlock()" >
+				<img src="content/images/iconLock.png" style="margin-top: 50%;" onclick="InputUnlock()" >
 			</div>
 		</div>
 
+
 		
+		<div id="maskPopup"></div>
+		<div id="cvsOthers"></div>
+		<div id="cvsAudio"></div>
 		<div id="cvsLeftPageBgAudio"></div>
 		<div id="cvsRightPageBgAudio"></div>
 		<div id="cvsSlideshow"></div>
-
-		<div id="cvsVideo" ></div>
+		
 
 	</div>
+
 	
-	<div id="maskPopup"></div>
-	<div id="cvsOthers"></div>
-	<div id="cvsAudio"></div>
+			
+
 	
+	<div id="cvsVideo" ></div>
 
 	<div id="hiddenSearch" style="display:none">
 		<div id="searchBox">
@@ -456,13 +421,13 @@
 
 			</tr>
 		</table>
-		</div>
+</div>
 	</div>
 
 	<div id="topBar">
 		<div id="topBarTitle">
-			<span id="topTitle">Table of Contents:</span>
-			<img id="close" width="24" height="24" src="content/images/close.png"  onclick="hideTopBar();" />			
+		<span id="topTitle">Table of Contents:</span>
+		<img id="close" width="24" height="24" src="content/images/close.png"  onclick="hideTopBar();" />			
 		</div>
 		<div id="topBarContent"></div>
 		<div id="topFullTextContent"></div>
@@ -486,11 +451,8 @@
 				</td>
 			</tr>
 		</table>
-
 	</div>
 
-
-	
 
 	<script src="html5ms.js"></script>
 	
