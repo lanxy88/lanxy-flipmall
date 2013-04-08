@@ -182,7 +182,7 @@ global: mK6go5Js -->
 	 
 	 <!-- dockPos --halfpage/halfscreen -->
 	 <!-- layout --center stretch fill fit-->
-	<mainAd url="content/images/27.jpg" href="http://www.flipmall.net" dockPos="halfpage" layout="fill"/>
+<!-- 	<mainAd url="content/images/27.jpg" href="http://www.flipmall.net" dockPos="halfpage" layout="fill"/> -->
 	
 <!-- 	<mainAd href="page:4" hideWhenOpened="false" height="200" width="300" layout="stretch" dockPos="halfpage"> -->
 <!--  		<![CDATA[ -->
@@ -192,6 +192,8 @@ global: mK6go5Js -->
 <!--  			<p><img src="http://www.google.com.hk/images/srpr/logo4w.png"></p> -->
 <!--  		]]> -->
 <!-- 	</mainAd> -->
+
+	<mainAd url="content/images/gap.JPG" href="" hideWhenOpened="False"/>
 	
 	<!-- 右键菜单 -->
 	<contextmenu>

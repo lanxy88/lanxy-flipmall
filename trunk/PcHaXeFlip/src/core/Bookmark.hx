@@ -11,10 +11,18 @@ class Bookmark
 	public var pageNum:Int;
 	public var text:String;
 	public var guid:String;
+	public var onlyread:Bool = false;
+	private var bookmarkImg:Image;
+	private var bookImgLoaded:Bool;
 		
 	public function new() 
 	{
-
+		bookmarkImg = untyped Lib.document.createElement("img");		
+		bookmarkImg.onload = function():Void {
+			//Lib.alert("loaded");
+			bookImgLoaded = true;
+		};
+		bookmarkImg.src = RunTime.urlRoot + "content/images/bookmark.png";
 	}
 	
 	private function toJSONString():String {
@@ -46,4 +54,14 @@ class Bookmark
 		bookmark.text = this.text;
 		return bookmark;
 	}
+	
+	public function loadToContext2D(ctx:CanvasRenderingContext2D) {
+		if (ctx != null && bookImgLoaded) {
+			ctx.save();
+			ctx.drawImage(bookmarkImg,Std.int(RunTime.clientWidth)-40 , 52);
+			//ctx.fillRect(Std.int(RunTime.imagePageWidth), 50, 32, 32);
+			ctx.restore();
+		}
+	}
+	
 }

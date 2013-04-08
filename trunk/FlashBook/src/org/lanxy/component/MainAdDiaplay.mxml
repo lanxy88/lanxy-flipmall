@@ -107,10 +107,10 @@
 					this.hideAdWBookOpen = String(_mainAdXML.@hideWhenOpened).toLowerCase() == "true";
 				}
 				
-				if(_mainAdXML.@dockPos){
+				if(String(_mainAdXML.@dockPos)){
 					this.dockPos = String(_mainAdXML.@dockPos);
 				}
-				if(_mainAdXML.@layout){
+				if(String(_mainAdXML.@layout)){
 					this.layout = String(_mainAdXML.@layout);
 //					updateLayout();
 				}
