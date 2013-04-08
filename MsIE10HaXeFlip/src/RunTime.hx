@@ -53,7 +53,8 @@ class RunTime
 	public static var urlSearch:String =urlRoot + "data/search.xml";
 	public static var urlVideos:String = urlRoot +"data/videos.xml";
 	public static var urlButtons:String = urlRoot + "data/buttons.xml";
-	public static var urlAudios:String =urlRoot + "data/sounds.xml";
+	public static var urlAudios:String = urlRoot + "data/sounds.xml";
+	public static var urlBookmarks:String = urlRoot + "data/bookmarks.xml";
 	public static var urlLang:String = urlRoot + "data/languages/languages.xml";
 	
 	public static var urlSlideshow:String = urlRoot +"data/slideshow.xml";
@@ -78,6 +79,7 @@ class RunTime
 	public static var videoInfo:Xml;
 	public static var audioInfo:Xml;
 	public static var buttonInfo:Xml;
+	public static var bookmarkInfo:Xml;
 	public static var bgImageData:ImageData;
 	
 	public static var slideshow:HtmlDom;
@@ -428,6 +430,11 @@ class RunTime
 				cvsNote.width = RunTime.clientWidth;
 				cvsNote.height = RunTime.clientHeight;
 				
+				var cvsBookmark:Dynamic = Lib.document.getElementById("cvsBookmark");
+				RunTime.flipBook.cvsBookmark = cvsBookmark;
+				cvsBookmark.width = RunTime.clientWidth;
+				cvsBookmark.height = RunTime.clientHeight;	
+				
 				
 				RunTime.flipBook.zoom.style.width = RunTime.clientWidth +"px";
 				RunTime.flipBook.zoom.style.height = RunTime.clientHeight +"px";
@@ -437,6 +444,7 @@ class RunTime
 				RunTime.flipBook.bookContext.ctxButton = RunTime.flipBook.getButtonContext();
 				RunTime.flipBook.bookContext.ctxHighLight = RunTime.flipBook.getHighLightContext();
 				RunTime.flipBook.bookContext.ctxNote = RunTime.flipBook.getNoteContext();
+				RunTime.flipBook.bookContext.ctxBookmark = RunTime.flipBook.getBookmarkContext();
 				RunTime.requestLanguages(RunTime.requestBookInfo);
 				//RunTime.requestBookInfo();
 		
@@ -488,6 +496,10 @@ class RunTime
 					InputPwd();
 					//RunTime.showPopupMaskLayer();
 					//RunTime.flipBook.cvsOthers.innerHTML = HtmlHelper.toInputPwdHtml();
+				}
+				//double flipbook ad
+				if (!singlePage) {
+					flipBook.requestMainAd();
 				}
 			});
 	}
@@ -562,6 +574,7 @@ class RunTime
 				requestButtons();
 				readLocalHighLights();
 				readLocalNotes();
+				requestBookmark();
 				readLocalBookmarks();
 			});
 	}
@@ -679,6 +692,30 @@ class RunTime
 				{
 					invoke(book.pages);
 				}
+			});
+	}
+	
+	//bookmarkInfo
+	public static function requestBookmark():Void
+	{
+		Util.request(urlBookmarks,
+			function(data:Dynamic):Void
+			{
+				bookmarkInfo = Xml.parse(data);
+				var it:Iterator<Xml> = bookmarkInfo.firstElement().elementsNamed("bookmark");		
+				do {
+					var node:Xml = it.next();
+					//Lib.alert(node);
+					var bk:Bookmark = new Bookmark();
+					bk.pageNum = untyped node.get("page");
+					bk.text = node.get("content");
+					bk.onlyread = true;
+					book.bookmarks.push(bk);				
+					
+				}while (it.hasNext());
+				
+				//Lib.alert(book.bookmarks.length);
+				
 			});
 	}
 	

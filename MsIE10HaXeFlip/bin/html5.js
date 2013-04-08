@@ -444,6 +444,18 @@ FlipBook.prototype = {
 		if(RunTime.book.rightToLeft) html = core.HtmlHelper.toBookmarksHtml(bookmarks,RunTime.singlePage,rv,lv);
 		this.topBarContent.innerHTML = html;
 	}
+	,loadCurrentBookmark: function() {
+		var bms = new Array();
+		if(RunTime.book != null && RunTime.book.bookmarks != null) {
+			var _g1 = 0, _g = RunTime.book.bookmarks.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				var bm = RunTime.book.bookmarks[i];
+				if(bm.pageNum == this.currentPageNum + 1) bms.push(bm);
+			}
+		}
+		this.bookContext.bookmarks = bms;
+	}
 	,removeBookmark: function(pageNum) {
 		var i = 0;
 		var tmp = new Array();
@@ -451,7 +463,7 @@ FlipBook.prototype = {
 		var _g1 = 0, _g = RunTime.book.bookmarks.length;
 		while(_g1 < _g) {
 			var i1 = _g1++;
-			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 2016, className : "FlipBook", methodName : "removeBookmark"});
+			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 2028, className : "FlipBook", methodName : "removeBookmark"});
 			if(pageNum + 1 != RunTime.book.bookmarks[i1].pageNum) tmp.push(RunTime.book.bookmarks[i1]); else currentBookmark = RunTime.book.bookmarks[i1];
 		}
 		if(currentBookmark != null) currentBookmark.remove();
@@ -785,7 +797,7 @@ FlipBook.prototype = {
 			if(this.currentOrgY + offsetY > js.Lib.document.body.clientHeight / 2) offsetY = js.Lib.document.body.clientHeight / 2 - this.currentOrgY;
 			if(this.currentOrgY + offsetY < -js.Lib.document.body.clientHeight / 2) offsetY = -js.Lib.document.body.clientHeight / 2 - this.currentOrgY;
 			this.zoom.style.cssText = this.getZoomInMoveCSS(offsetX | 0,offsetY | 0,true);
-			haxe.Log.trace(this.zoom.style.cssText,{ fileName : "FlipBook.hx", lineNumber : 1468, className : "FlipBook", methodName : "onTouchMove"});
+			haxe.Log.trace(this.zoom.style.cssText,{ fileName : "FlipBook.hx", lineNumber : 1480, className : "FlipBook", methodName : "onTouchMove"});
 			this.moveDX = offsetX | 0;
 			this.moveDY = offsetY | 0;
 		} else if(this.touchActive && Math.abs(js.Lib.window.innerWidth - RunTime.clientWidth) < 10) {
@@ -1165,6 +1177,7 @@ FlipBook.prototype = {
 		this.loadCtxButtons();
 		this.loadCtxHighLights();
 		this.loadCtxNotes();
+		this.loadCurrentBookmark();
 		this.clearVideos();
 		this.bookContext.removeAllPages();
 		this.bookContext.resetLayoutParams();
@@ -1204,6 +1217,7 @@ FlipBook.prototype = {
 				self.loadCtxHighLights();
 				self.loadCtxNotes();
 				self.updateVideos();
+				self.loadCurrentBookmark();
 				RunTime.flipBook.rightPageLock.style.display = "none";
 				RunTime.flipBook.leftPageLock.style.display = "none";
 				if(dstPage != null && dstPage.locked && RunTime.bLocked) RunTime.flipBook.leftPageLock.style.display = "block";
@@ -1267,6 +1281,7 @@ FlipBook.prototype = {
 		this.currentPageNum = index;
 		this.loadCtxHotlinks();
 		this.loadCtxSlideshow();
+		this.loadCurrentBookmark();
 		var page = RunTime.getPage(this.currentPageNum);
 		this.bookContext.addPage(page);
 		if(page != null && page.locked && RunTime.bLocked) RunTime.flipBook.leftPageLock.style.display = "block";
@@ -1289,7 +1304,7 @@ FlipBook.prototype = {
 	}
 	,pointDown: function(e) {
 		var obj = e;
-		haxe.Log.trace("pointDown",{ fileName : "FlipBook.hx", lineNumber : 368, className : "FlipBook", methodName : "pointDown"});
+		haxe.Log.trace("pointDown",{ fileName : "FlipBook.hx", lineNumber : 377, className : "FlipBook", methodName : "pointDown"});
 		this.maskGesture.addPointer(obj.pointerId);
 		this.downPointCount++;
 		if(this.downPointCount > 1) this.zoomAt(0,0);
@@ -1352,6 +1367,9 @@ FlipBook.prototype = {
 		this.btnBookMark.onclick = $bind(this,this.onButtonBookmark);
 		this.btnNote.onclick = $bind(this,this.onButtonNoteClick);
 	}
+	,getBookmarkContext: function() {
+		return this.cvsBookmark.getContext("2d");
+	}
 	,getNoteContext: function() {
 		return this.cvsNote.getContext("2d");
 	}
@@ -1390,6 +1408,8 @@ FlipBook.prototype = {
 		this.zoom.style.cssText = this.getZoomInCSS();
 		this.hideBottomBar(null);
 	}
+	,requestMainAd: function() {
+	}
 	,resetCSS: function() {
 		this.moveDX = 0;
 		this.moveDY = 0;
@@ -1399,6 +1419,8 @@ FlipBook.prototype = {
 	,__class__: FlipBook
 }
 var DoubleFlipBook = function() {
+	this.mainAdLayout = "center";
+	this.mainAdDockPos = "halfpage";
 	FlipBook.call(this);
 };
 DoubleFlipBook.__name__ = true;
@@ -1571,6 +1593,69 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		this.bookContext.slideshow = slides;
 		this.updateSlideshow();
 	}
+	,getRealValue: function(value) {
+		if(value == null || value == "") return 0;
+		return Std.parseInt(value.substring(0,value.lastIndexOf("px")));
+	}
+	,updateAds: function() {
+		if(this.currentPageNum == 0) this.mainAdHtml.style.display = "block"; else this.mainAdHtml.style.display = "none";
+	}
+	,requestMainAd: function() {
+		this.mainAdHtml = js.Lib.document.getElementById("mainAdhtml");
+		var an = js.Lib.document.getElementById("mainAdInner");
+		this.mainAdInner = an;
+		var img = js.Lib.document.getElementById("mainAdimg");
+		this.mainAdImg = img;
+		try {
+			var ad = new haxe.xml.Fast(RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+			if(ad != null) {
+				if(ad.has.resolve("dockPos")) this.mainAdDockPos = ad.att.resolve("dockPos");
+				this.mainAdHtml.style.display = "block";
+				this.mainAdHtml.style.marginRight = 0;
+				this.mainAdHtml.style.height = RunTime.clientHeight + "px";
+				if(this.mainAdDockPos == "halfpage") {
+					this.mainAdHtml.style.width = RunTime.imagePageWidth + "px";
+					this.mainAdHtml.style.left = RunTime.clientWidth / 2 - RunTime.imagePageWidth + "px";
+					this.mainAdHtml.style.right = RunTime.clientWidth / 2 + "px";
+				} else if(this.mainAdDockPos == "halfscreen") {
+					this.mainAdHtml.style.left = "0px";
+					this.mainAdHtml.style.width = RunTime.clientWidth / 2 + "px";
+				}
+				if(ad.getInnerData() != null && StringTools.trim(ad.getInnerData()) != "") {
+					this.mainAdHtml.style.overflow = "hide";
+					this.mainAdHtml.innerHTML = ad.getInnerData();
+				} else if(ad.has.resolve("url")) {
+					this.mainAdInner.style.styleFloat = "right";
+					this.mainAdImg.src = ad.att.resolve("url");
+					if(ad.has.resolve("layout")) this.mainAdLayout = ad.att.resolve("layout");
+					if(ad.has.resolve("href")) {
+						this.mainAdHref = ad.att.resolve("href");
+						this.mainAdInner.href = this.mainAdHref;
+						this.mainAdInner.target = ad.has.resolve("target")?ad.att.resolve("target"):"_blank";
+					}
+					if(this.mainAdLayout == "center") {
+						this.mainAdInner.style.top = (RunTime.clientHeight - this.getRealValue(this.mainAdImg.style.height)) / 4 + "px";
+						this.mainAdInner.style.verticalAlign = "middle";
+						this.mainAdInner.style.textAlign = "right";
+						this.mainAdImg.style.maxHeight = this.mainAdHtml.style.height;
+						this.mainAdImg.style.maxWidth = this.mainAdHtml.style.width;
+					} else if(this.mainAdLayout == "stretch") {
+						this.mainAdImg.style.height = this.mainAdHtml.style.height;
+						this.mainAdImg.style.width = this.mainAdHtml.style.width;
+					} else {
+						this.mainAdInner.style.top = (RunTime.clientHeight - this.getRealValue(this.mainAdImg.style.height)) / 4 + "px";
+						this.mainAdInner.style.verticalAlign = "middle";
+						this.mainAdInner.style.textAlign = "right";
+						this.mainAdImg.style.maxHeight = this.mainAdHtml.style.height;
+						this.mainAdImg.style.maxWidth = this.mainAdHtml.style.width;
+					}
+				}
+			}
+			this.updateAds();
+		} catch( e ) {
+			js.Lib.alert(e);
+		}
+	}
 	,zoomAt: function(point0,point1) {
 		var num = 0;
 		if(this.currentPageNum != null) num = this.currentPageNum;
@@ -1601,6 +1686,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		return new core.PagePair(current);
 	}
 	,turnToPage: function(pageNum) {
+		var _g = this;
 		this.preloadPages(pageNum);
 		var current = this.getCurrentPageNum();
 		if(current < 0 || current >= RunTime.book.pages.length) return;
@@ -1690,6 +1776,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 				self.loadCtxButtons();
 				self.loadCtxHighLights();
 				self.loadCtxNotes();
+				self.loadCurrentBookmark();
 				self.updateVideos();
 				self.onEnterPage();
 				RunTime.flipBook.rightPageLock.style.display = "none";
@@ -1698,6 +1785,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 				if(newPair.leftPage != null && newPair.leftPage.locked && RunTime.bLocked) RunTime.flipBook.leftPageLock.style.display = "block";
 			}
 			self.bookContext.render();
+			_g.updateAds();
 		};
 		this.clearCtxHotlinks();
 		this.clearCtxButtons();
@@ -1771,6 +1859,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		this.loadCtxButtons();
 		this.loadCtxHighLights();
 		this.loadCtxNotes();
+		this.loadCurrentBookmark();
 		this.updateVideos();
 		var p = this.getCurrentPair();
 		this.bookContext.addPage(p.leftPage);
@@ -1781,6 +1870,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		if(p.leftPage != null) RunTime.logPageView(p.leftPage.num + 1);
 		if(p.rightPage != null) RunTime.logPageView(p.rightPage.num + 1);
 		this.onEnterPage();
+		this.updateAds();
 	}
 	,checkCanZoom: function() {
 		var p = this.getCurrentPair();
@@ -2020,6 +2110,116 @@ L.loadXml = function(xml) {
 		L.instance.set(key,val);
 	}
 }
+var List = function() {
+	this.length = 0;
+};
+List.__name__ = true;
+List.prototype = {
+	map: function(f) {
+		var b = new List();
+		var l = this.h;
+		while(l != null) {
+			var v = l[0];
+			l = l[1];
+			b.add(f(v));
+		}
+		return b;
+	}
+	,filter: function(f) {
+		var l2 = new List();
+		var l = this.h;
+		while(l != null) {
+			var v = l[0];
+			l = l[1];
+			if(f(v)) l2.add(v);
+		}
+		return l2;
+	}
+	,join: function(sep) {
+		var s = new StringBuf();
+		var first = true;
+		var l = this.h;
+		while(l != null) {
+			if(first) first = false; else s.b += Std.string(sep);
+			s.b += Std.string(l[0]);
+			l = l[1];
+		}
+		return s.b;
+	}
+	,toString: function() {
+		var s = new StringBuf();
+		var first = true;
+		var l = this.h;
+		s.b += Std.string("{");
+		while(l != null) {
+			if(first) first = false; else s.b += Std.string(", ");
+			s.b += Std.string(Std.string(l[0]));
+			l = l[1];
+		}
+		s.b += Std.string("}");
+		return s.b;
+	}
+	,iterator: function() {
+		return { h : this.h, hasNext : function() {
+			return this.h != null;
+		}, next : function() {
+			if(this.h == null) return null;
+			var x = this.h[0];
+			this.h = this.h[1];
+			return x;
+		}};
+	}
+	,remove: function(v) {
+		var prev = null;
+		var l = this.h;
+		while(l != null) {
+			if(l[0] == v) {
+				if(prev == null) this.h = l[1]; else prev[1] = l[1];
+				if(this.q == l) this.q = prev;
+				this.length--;
+				return true;
+			}
+			prev = l;
+			l = l[1];
+		}
+		return false;
+	}
+	,clear: function() {
+		this.h = null;
+		this.q = null;
+		this.length = 0;
+	}
+	,isEmpty: function() {
+		return this.h == null;
+	}
+	,pop: function() {
+		if(this.h == null) return null;
+		var x = this.h[0];
+		this.h = this.h[1];
+		if(this.h == null) this.q = null;
+		this.length--;
+		return x;
+	}
+	,last: function() {
+		return this.q == null?null:this.q[0];
+	}
+	,first: function() {
+		return this.h == null?null:this.h[0];
+	}
+	,push: function(item) {
+		var x = [item,this.h];
+		this.h = x;
+		if(this.q == null) this.q = x;
+		this.length++;
+	}
+	,add: function(item) {
+		var x = [item];
+		if(this.h == null) this.h = x; else this.q[1] = x;
+		this.q = x;
+		this.length++;
+	}
+	,__class__: List
+}
 var Main = function() { }
 Main.__name__ = true;
 Main.main = function() {
@@ -2152,11 +2352,11 @@ RunTime.init = function() {
 }
 RunTime.msOnResize = function(e) {
 	if(js.Lib.document.body.clientHeight == js.Lib.window.screen.height && js.Lib.document.body.clientWidth == js.Lib.window.screen.width) {
-		haxe.Log.trace("fullscreen",{ fileName : "RunTime.hx", lineNumber : 181, className : "RunTime", methodName : "msOnResize"});
+		haxe.Log.trace("fullscreen",{ fileName : "RunTime.hx", lineNumber : 183, className : "RunTime", methodName : "msOnResize"});
 		if(RunTime.resizeTimer != null) RunTime.resizeTimer.stop();
 		RunTime.isFullscreen = true;
 	} else {
-		haxe.Log.trace("exit fullscreen",{ fileName : "RunTime.hx", lineNumber : 188, className : "RunTime", methodName : "msOnResize"});
+		haxe.Log.trace("exit fullscreen",{ fileName : "RunTime.hx", lineNumber : 190, className : "RunTime", methodName : "msOnResize"});
 		RunTime.isFullscreen = false;
 		if(RunTime.resizeTimer != null) RunTime.resizeTimer.stop();
 		RunTime.resizeTimer = new haxe.Timer(600);
@@ -2165,7 +2365,7 @@ RunTime.msOnResize = function(e) {
 }
 RunTime.onFullscreenChange = function(e) {
 	var obj = e;
-	haxe.Log.trace(e,{ fileName : "RunTime.hx", lineNumber : 200, className : "RunTime", methodName : "onFullscreenChange"});
+	haxe.Log.trace(e,{ fileName : "RunTime.hx", lineNumber : 202, className : "RunTime", methodName : "onFullscreenChange"});
 }
 RunTime.OnResize = function() {
 	if(RunTime.isFullscreen) return;
@@ -2307,6 +2507,10 @@ RunTime.preRequestBookInfo = function() {
 		RunTime.flipBook.cvsNote = cvsNote;
 		cvsNote.width = RunTime.clientWidth;
 		cvsNote.height = RunTime.clientHeight;
+		var cvsBookmark = js.Lib.document.getElementById("cvsBookmark");
+		RunTime.flipBook.cvsBookmark = cvsBookmark;
+		cvsBookmark.width = RunTime.clientWidth;
+		cvsBookmark.height = RunTime.clientHeight;
 		RunTime.flipBook.zoom.style.width = RunTime.clientWidth + "px";
 		RunTime.flipBook.zoom.style.height = RunTime.clientHeight + "px";
 		RunTime.flipBook.afterInit();
@@ -2314,6 +2518,7 @@ RunTime.preRequestBookInfo = function() {
 		RunTime.flipBook.bookContext.ctxButton = RunTime.flipBook.getButtonContext();
 		RunTime.flipBook.bookContext.ctxHighLight = RunTime.flipBook.getHighLightContext();
 		RunTime.flipBook.bookContext.ctxNote = RunTime.flipBook.getNoteContext();
+		RunTime.flipBook.bookContext.ctxBookmark = RunTime.flipBook.getBookmarkContext();
 		RunTime.requestLanguages(RunTime.requestBookInfo);
 	});
 }
@@ -2334,6 +2539,7 @@ RunTime.requestBookInfo = function() {
 				RunTime.afterRequestBookInfo();
 			}
 		} else RunTime.InputPwd();
+		if(!RunTime.singlePage) RunTime.flipBook.requestMainAd();
 	});
 }
 RunTime.InputPwd = function() {
@@ -2382,6 +2588,7 @@ RunTime.requestPages = function() {
 		RunTime.requestButtons();
 		RunTime.readLocalHighLights();
 		RunTime.readLocalNotes();
+		RunTime.requestBookmark();
 		RunTime.readLocalBookmarks();
 	});
 }
@@ -2458,6 +2665,20 @@ RunTime.requestSearch = function(invoke) {
 		RunTime.searchInfo = dom.parseFromString(ctx.prepareXmlAsHtml(data),"text/xml");
 		RunTime.loadPageContents(ctx);
 		if(invoke != null) invoke(RunTime.book.pages);
+	});
+}
+RunTime.requestBookmark = function() {
+	orc.utils.Util.request(RunTime.urlBookmarks,function(data) {
+		RunTime.bookmarkInfo = Xml.parse(data);
+		var it = RunTime.bookmarkInfo.firstElement().elementsNamed("bookmark");
+		do {
+			var node = it.next();
+			var bk = new core.Bookmark();
+			bk.pageNum = node.get("page");
+			bk.text = node.get("content");
+			bk.onlyread = true;
+			RunTime.book.bookmarks.push(bk);
+		} while(it.hasNext());
 	});
 }
 RunTime.invokePageContentsAction = function(invoke) {
@@ -4006,6 +4227,14 @@ core.BookContext.prototype = {
 				item.loadToContext2D(this.ctxNote);
 			}
 		}
+		if(this.bookmarks != null && this.bookmarks.length > 0) {
+			var _g1 = 0, _g = this.bookmarks.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				var item = this.bookmarks[i];
+				item.loadToContext2D(this.ctxBookmark);
+			}
+		}
 	}
 	,addPage: function(page) {
 		if(page == null) return;
@@ -4028,6 +4257,7 @@ core.BookContext.prototype = {
 		if(this.ctxButton != null) this.ctxButton.clearRect(0,0,this.ctxButton.canvas.width,this.ctxButton.canvas.height);
 		if(this.ctxHighLight != null) this.ctxHighLight.clearRect(0,0,this.ctxHighLight.canvas.width,this.ctxHighLight.canvas.height);
 		if(this.ctxNote != null) this.ctxNote.clearRect(0,0,this.ctxNote.canvas.width,this.ctxNote.canvas.height);
+		if(this.ctxBookmark != null) this.ctxBookmark.clearRect(0,0,this.ctxBookmark.canvas.width,this.ctxBookmark.canvas.height);
 	}
 	,removeAllPages: function() {
 		if(this.pages != null) {
@@ -4051,10 +4281,24 @@ core.BookContext.prototype = {
 	,__class__: core.BookContext
 }
 core.Bookmark = function() {
+	this.onlyread = false;
+	var _g = this;
+	this.bookmarkImg = js.Lib.document.createElement("img");
+	this.bookmarkImg.onload = function() {
+		_g.bookImgLoaded = true;
+	};
+	this.bookmarkImg.src = RunTime.urlRoot + "content/images/bookmark.png";
 };
 core.Bookmark.__name__ = true;
 core.Bookmark.prototype = {
-	clone: function() {
+	loadToContext2D: function(ctx) {
+		if(ctx != null && this.bookImgLoaded) {
+			ctx.save();
+			ctx.drawImage(this.bookmarkImg,(RunTime.clientWidth | 0) - 40,52);
+			ctx.restore();
+		}
+	}
+	,clone: function() {
 		var bookmark = new core.Bookmark();
 		bookmark.guid = this.guid;
 		bookmark.pageNum = this.pageNum;
@@ -5894,6 +6138,120 @@ haxe.web.Request.getURI = function() {
 	return window.location.pathname;
 }
 if(!haxe.xml) haxe.xml = {}
+if(!haxe.xml._Fast) haxe.xml._Fast = {}
+haxe.xml._Fast.NodeAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.NodeAccess.__name__ = true;
+haxe.xml._Fast.NodeAccess.prototype = {
+	resolve: function(name) {
+		var x = this.__x.elementsNamed(name).next();
+		if(x == null) {
+			var xname = this.__x.nodeType == Xml.Document?"Document":this.__x.getNodeName();
+			throw xname + " is missing element " + name;
+		}
+		return new haxe.xml.Fast(x);
+	}
+	,__class__: haxe.xml._Fast.NodeAccess
+}
+haxe.xml._Fast.AttribAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.AttribAccess.__name__ = true;
+haxe.xml._Fast.AttribAccess.prototype = {
+	resolve: function(name) {
+		if(this.__x.nodeType == Xml.Document) throw "Cannot access document attribute " + name;
+		var v = this.__x.get(name);
+		if(v == null) throw this.__x.getNodeName() + " is missing attribute " + name;
+		return v;
+	}
+	,__class__: haxe.xml._Fast.AttribAccess
+}
+haxe.xml._Fast.HasAttribAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.HasAttribAccess.__name__ = true;
+haxe.xml._Fast.HasAttribAccess.prototype = {
+	resolve: function(name) {
+		if(this.__x.nodeType == Xml.Document) throw "Cannot access document attribute " + name;
+		return this.__x.exists(name);
+	}
+	,__class__: haxe.xml._Fast.HasAttribAccess
+}
+haxe.xml._Fast.HasNodeAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.HasNodeAccess.__name__ = true;
+haxe.xml._Fast.HasNodeAccess.prototype = {
+	resolve: function(name) {
+		return this.__x.elementsNamed(name).hasNext();
+	}
+	,__class__: haxe.xml._Fast.HasNodeAccess
+}
+haxe.xml._Fast.NodeListAccess = function(x) {
+	this.__x = x;
+};
+haxe.xml._Fast.NodeListAccess.__name__ = true;
+haxe.xml._Fast.NodeListAccess.prototype = {
+	resolve: function(name) {
+		var l = new List();
+		var $it0 = this.__x.elementsNamed(name);
+		while( $it0.hasNext() ) {
+			var x = $it0.next();
+			l.add(new haxe.xml.Fast(x));
+		}
+		return l;
+	}
+	,__class__: haxe.xml._Fast.NodeListAccess
+}
+haxe.xml.Fast = function(x) {
+	if(x.nodeType != Xml.Document && x.nodeType != Xml.Element) throw "Invalid nodeType " + Std.string(x.nodeType);
+	this.x = x;
+	this.node = new haxe.xml._Fast.NodeAccess(x);
+	this.nodes = new haxe.xml._Fast.NodeListAccess(x);
+	this.att = new haxe.xml._Fast.AttribAccess(x);
+	this.has = new haxe.xml._Fast.HasAttribAccess(x);
+	this.hasNode = new haxe.xml._Fast.HasNodeAccess(x);
+};
+haxe.xml.Fast.__name__ = true;
+haxe.xml.Fast.prototype = {
+	getElements: function() {
+		var it = this.x.elements();
+		return { hasNext : $bind(it,it.hasNext), next : function() {
+			var x = it.next();
+			if(x == null) return null;
+			return new haxe.xml.Fast(x);
+		}};
+	}
+	,getInnerHTML: function() {
+		var s = new StringBuf();
+		var $it0 = this.x.iterator();
+		while( $it0.hasNext() ) {
+			var x = $it0.next();
+			s.b += Std.string(x.toString());
+		}
+		return s.b;
+	}
+	,getInnerData: function() {
+		var it = this.x.iterator();
+		if(!it.hasNext()) throw this.getName() + " does not have data";
+		var v = it.next();
+		var n = it.next();
+		if(n != null) {
+			if(v.nodeType == Xml.PCData && n.nodeType == Xml.CData && StringTools.trim(v.getNodeValue()) == "") {
+				var n2 = it.next();
+				if(n2 == null || n2.nodeType == Xml.PCData && StringTools.trim(n2.getNodeValue()) == "" && it.next() == null) return n.getNodeValue();
+			}
+			throw this.getName() + " does not only have data";
+		}
+		if(v.nodeType != Xml.PCData && v.nodeType != Xml.CData) throw this.getName() + " does not have data";
+		return v.getNodeValue();
+	}
+	,getName: function() {
+		return this.x.nodeType == Xml.Document?"Document":this.x.getNodeName();
+	}
+	,__class__: haxe.xml.Fast
+}
 haxe.xml.Parser = function() { }
 haxe.xml.Parser.__name__ = true;
 haxe.xml.Parser.parse = function(str) {
@@ -6497,6 +6855,7 @@ RunTime.urlSearch = RunTime.urlRoot + "data/search.xml";
 RunTime.urlVideos = RunTime.urlRoot + "data/videos.xml";
 RunTime.urlButtons = RunTime.urlRoot + "data/buttons.xml";
 RunTime.urlAudios = RunTime.urlRoot + "data/sounds.xml";
+RunTime.urlBookmarks = RunTime.urlRoot + "data/bookmarks.xml";
 RunTime.urlLang = RunTime.urlRoot + "data/languages/languages.xml";
 RunTime.urlSlideshow = RunTime.urlRoot + "data/slideshow.xml";
 RunTime.urlShareInfo = RunTime.urlRoot + "data/share.xml";

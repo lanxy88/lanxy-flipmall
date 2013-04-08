@@ -22,6 +22,20 @@ import core.ZoomStatus;
 
 class DoubleFlipBook extends FlipBook
 {
+	
+	private var mainAdHtml:HtmlDom;
+	private var mainAdInner:Anchor;
+	private var mainAdImg:Image;
+	private var mainAdHref:String;
+	/**
+	 * halfpage  halfscreen
+	 */
+	private var mainAdDockPos:String = "halfpage";
+	/**
+	 * center fill stretch fit
+	 */
+	private var mainAdLayout:String = "center";
+	
 	public function new() 
 	{
 		super();
@@ -55,6 +69,7 @@ class DoubleFlipBook extends FlipBook
 		loadCtxButtons();
 		loadCtxHighLights();
 		loadCtxNotes();
+		loadCurrentBookmark();
 		updateVideos();
 		var p:PagePair = this.getCurrentPair();
 		bookContext.addPage(p.leftPage);			
@@ -79,6 +94,7 @@ class DoubleFlipBook extends FlipBook
 		}
 		
 		onEnterPage();
+		updateAds();
 	}
 	
 	private override function getFullText(pages:Array<Page>):String
@@ -427,6 +443,7 @@ class DoubleFlipBook extends FlipBook
 				self.loadCtxButtons();
 				self.loadCtxHighLights();
 				self.loadCtxNotes();
+				self.loadCurrentBookmark();
 				self.updateVideos();
 				self.onEnterPage();
 				RunTime.flipBook.rightPageLock.style.display = "none";
@@ -439,6 +456,7 @@ class DoubleFlipBook extends FlipBook
 				}
 			}
 			self.bookContext.render();
+			updateAds();
 		}
 		
 		this.clearCtxHotlinks();
@@ -538,6 +556,96 @@ class DoubleFlipBook extends FlipBook
 			pageZoomOut();
 		}
 		*/
+	}
+	
+	public override function requestMainAd()
+	{
+		
+		mainAdHtml = Lib.document.getElementById("mainAdhtml");
+		var an:Dynamic = Lib.document.getElementById("mainAdInner");
+		mainAdInner = an;
+		var img:Dynamic = Lib.document.getElementById("mainAdimg");
+		mainAdImg = img;
+		//Lib.alert("mianAd"+"\n"+RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+		try {
+			var ad = new haxe.xml.Fast(RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+
+			if (ad != null) {
+				if(ad.has.dockPos) mainAdDockPos = ad.att.dockPos;
+				mainAdHtml.style.display = "block";
+				mainAdHtml.style.marginRight = 0;
+				mainAdHtml.style.height = RunTime.clientHeight + "px";
+				if (mainAdDockPos == "halfpage") {
+					mainAdHtml.style.width = RunTime.imagePageWidth + "px";
+					//Lib.alert("zoom "+mainAdHtml.style.width);
+					mainAdHtml.style.left = RunTime.clientWidth / 2 - RunTime.imagePageWidth + "px";
+					mainAdHtml.style.right = (RunTime.clientWidth / 2)+"px";
+				}else if (mainAdDockPos == "halfscreen") {
+					mainAdHtml.style.left = "0px";
+					mainAdHtml.style.width = RunTime.clientWidth / 2 +"px";	
+				}
+				
+				if (ad.innerData != null && StringTools.trim(ad.innerData)!="") {
+					//Lib.alert("innerdata");
+					mainAdHtml.style.overflow = "hide";
+					mainAdHtml.innerHTML = ad.innerData;							
+					
+				}else if (ad.has.url) {
+					//mainAdHtml.innerHTML = "<a href='#'><img src='"+ad.att.url+"' style='width:400px'></a>";
+					mainAdInner.style.styleFloat = "right";
+					mainAdImg.src = ad.att.url;
+
+					//Lib.alert("touch end");
+					if (ad.has.layout) {
+						mainAdLayout = ad.att.layout;	
+					}
+					if (ad.has.href) {
+						mainAdHref = ad.att.href;
+						mainAdInner.href = mainAdHref;
+						mainAdInner.target = ad.has.target?ad.att.target:"_blank";
+					}
+					if (mainAdLayout == "center") {
+						mainAdInner.style.top = (RunTime.clientHeight-getRealValue(mainAdImg.style.height) )/ 4 +"px";
+						mainAdInner.style.verticalAlign = "middle";
+						mainAdInner.style.textAlign = "right";
+						mainAdImg.style.maxHeight = mainAdHtml.style.height;
+						mainAdImg.style.maxWidth = mainAdHtml.style.width;
+						//Lib.alert(RunTime.clientHeight-getRealValue(mainAdImg.style.height ));
+					}else if (mainAdLayout == "stretch") {
+						mainAdImg.style.height = mainAdHtml.style.height;
+						mainAdImg.style.width = mainAdHtml.style.width;
+					}else {
+						mainAdInner.style.top = (RunTime.clientHeight-getRealValue(mainAdImg.style.height) )/ 4 +"px";
+						mainAdInner.style.verticalAlign = "middle";
+						mainAdInner.style.textAlign = "right";
+						mainAdImg.style.maxHeight = mainAdHtml.style.height;
+						mainAdImg.style.maxWidth = mainAdHtml.style.width;
+					}
+				}
+				//
+				
+			}
+			updateAds();
+			
+		}catch (e:Dynamic) {
+			Lib.alert(e);
+		}
+		
+	}
+	
+	public function updateAds():Void 
+	{
+		//Lib.alert("turn");
+		if (currentPageNum == 0) {
+			mainAdHtml.style.display = "block";
+		}else {
+			mainAdHtml.style.display = "none";
+		}
+	}
+	
+	private function getRealValue(value:String):Int {
+		if (value == null || value == "") return 0;
+		return Std.parseInt(value.substring(0,value.lastIndexOf("px")));
 	}
 	
 	public override function loadCtxSlideshow():Void

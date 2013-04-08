@@ -34,6 +34,7 @@ class FlipBook
 	public var cvsButton:Canvas;
 	public var cvsHighLight:Canvas;
 	public var cvsNote:Canvas;
+	public var cvsBookmark:Canvas;
 	
 	public var zoomLeftPage:Image;
 	public var zoomRightPage:Image;
@@ -181,6 +182,10 @@ class FlipBook
 		currentOrgY = 0;
 	}
 	
+	public function requestMainAd() {
+		
+	}
+	
 	public function ZoomWithCSS():Void
 	{
 		zoomLevel += 1;
@@ -250,6 +255,10 @@ class FlipBook
 	
 	public function getNoteContext():CanvasRenderingContext2D {
 		return cvsNote.getContext("2d");
+	}
+	
+	public function getBookmarkContext():CanvasRenderingContext2D {
+		return cvsBookmark.getContext("2d");
 	}
 	
 	public function attachActions():Void
@@ -411,6 +420,7 @@ class FlipBook
 		currentPageNum = index;
 		loadCtxHotlinks();
 		loadCtxSlideshow();
+		loadCurrentBookmark();
 		var page:Page = RunTime.getPage(currentPageNum);
 		bookContext.addPage(page);
 		if (page != null && page.locked && RunTime.bLocked) {
@@ -588,6 +598,7 @@ class FlipBook
 				self.loadCtxHighLights();
 				self.loadCtxNotes();
 				self.updateVideos();
+				self.loadCurrentBookmark();
 				
 				RunTime.flipBook.rightPageLock.style.display = "none";
 				RunTime.flipBook.leftPageLock.style.display = "none";
@@ -641,6 +652,7 @@ class FlipBook
 		loadCtxButtons();
 		loadCtxHighLights();
 		loadCtxNotes();
+		loadCurrentBookmark();
 		clearVideos();
 		
 		bookContext.removeAllPages();
@@ -2037,6 +2049,21 @@ class FlipBook
 		}
 		topBarContent.innerHTML = html;
 		
+	}
+	
+	public function loadCurrentBookmark() {
+		//Lib.alert( RunTime.book.bookmarks.length);
+		var bms:Array<Bookmark> = new Array<Bookmark>();
+		if (RunTime.book != null && RunTime.book.bookmarks != null) {
+			for (i in 0 ... RunTime.book.bookmarks.length) {
+				var bm:Bookmark = RunTime.book.bookmarks[i];
+				//Lib.alert("cp="+currentPageNum+";i="+i+";bm.pn="+bm.pageNum);
+				if (bm.pageNum == currentPageNum+1) {
+					bms.push(bm);
+				}
+			}
+		}
+		this.bookContext.bookmarks = bms;
 	}
 	
 	/**

@@ -94,6 +94,7 @@ class DoubleFlipBook extends FlipBook
 		}
 		
 		onEnterPage();
+		updateAds();
 	}
 	
 	private override function getFullText(pages:Array<Page>):String
@@ -545,7 +546,7 @@ class DoubleFlipBook extends FlipBook
 				}
 				//
 			}
-			
+			updateAds();
 		}catch (e:Dynamic) {
 			Lib.alert(e);
 		}
