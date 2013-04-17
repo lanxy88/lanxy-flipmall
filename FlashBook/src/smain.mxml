@@ -3099,7 +3099,7 @@
 							 updateComplete="bottomThumb_updateCompleteHandler(event)" 
 							 thumbChange="onBottomThumbChage(event)"  
 							 id="bottomThumb" 
-							 source="{RunTime.bookPages}" 
+							 source="{RunTime.rightToLeft?RunTime.bookPages.shift():RunTime.bookPages}" 
 							 width="100%" />
 			<fbc:TurnPageIcon id="tpiRight" visible="{bottomThumb.horizontalScrollBar==null?false:true}"  direct="1" scaleX="0.3" scaleY="0.3" click="onNextScreen(event)" bgTransparent="true" />
 		</HBox>

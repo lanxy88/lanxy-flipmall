@@ -111,7 +111,7 @@ global: mK6go5Js -->
 		<email visible="true" icon=""/>
 		<sns visible="true" icon=""/>
 		<print visible="true" icon=""/>
-		<pdf visible="true"  icon="" singlePage="true" doublePage="false" entirePDF="true"/>
+		<pdf visible="true"  icon="" singlePage="true" doublePage="true" entirePDF="true"/>
 		<download visible="true"  icon=""/>
 		<setting visible="true"  icon=""/>
 		<about visible="true"  icon=""/>

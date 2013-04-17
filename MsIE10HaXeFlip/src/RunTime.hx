@@ -705,6 +705,7 @@ class RunTime
 				var it:Iterator<Xml> = bookmarkInfo.firstElement().elementsNamed("bookmark");		
 				do {
 					var node:Xml = it.next();
+					if (node == null) break;
 					//Lib.alert(node);
 					var bk:Bookmark = new Bookmark();
 					bk.pageNum = untyped node.get("page");

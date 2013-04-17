@@ -1637,7 +1637,12 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 					this.mainAdHtml.style.left = "0px";
 					this.mainAdHtml.style.width = RunTime.clientWidth / 2 + "px";
 				}
-				if(ad.getInnerData() != null && StringTools.trim(ad.getInnerData()) != "") {
+				var isHtmlAD = false;
+				try {
+					if(ad.getInnerData() != null && StringTools.trim(ad.getInnerData()) != "") isHtmlAD = true;
+				} catch( err ) {
+				}
+				if(isHtmlAD) {
 					this.mainAdHtml.style.overflow = "hide";
 					this.mainAdHtml.innerHTML = ad.getInnerData();
 				} else if(ad.has.resolve("url")) {
@@ -1667,7 +1672,6 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 						this.mainAdImg.style.maxHeight = this.mainAdHtml.style.height;
 						this.mainAdImg.style.maxWidth = this.mainAdHtml.style.width;
 					}
-					debugger;
 				}
 			}
 			this.updateAds();
@@ -1860,7 +1864,7 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		if(p.leftPage != null) RunTime.logPageView(p.leftPage.num + 1);
 		if(p.rightPage != null) RunTime.logPageView(p.rightPage.num + 1);
 		this.onEnterPage();
-		this.updateAds();
+		if(index != null) this.updateAds();
 	}
 	,checkCanZoom: function() {
 		var p = this.getCurrentPair();
@@ -2653,6 +2657,7 @@ RunTime.requestBookmark = function() {
 		var it = RunTime.bookmarkInfo.firstElement().elementsNamed("bookmark");
 		do {
 			var node = it.next();
+			if(node == null) break;
 			var bk = new core.Bookmark();
 			bk.pageNum = node.get("page");
 			bk.text = node.get("content");
