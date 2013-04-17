@@ -2,7 +2,7 @@
 <Canvas xmlns="http://www.adobe.com/2006/mxml"
 		xmlns:controls="qs.controls.*"
 		width="600" height="400" 
-		backgroundColor="0xFFFFFF"
+		backgroundColor="0xffffff"
 		mouseMove="onMouseMove(event)"
 		mouseOut="onMouseOut(event)"
 		horizontalScrollPolicy="off"

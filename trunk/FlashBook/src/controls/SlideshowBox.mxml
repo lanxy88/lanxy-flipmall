@@ -16,6 +16,7 @@
 			import common.SlideshowInfo;
 			import common.SlideshowItem;
 			
+			import mx.controls.Alert;
 			import mx.controls.Button;
 			import mx.controls.Image;
 			import mx.core.UIComponent;
@@ -29,8 +30,8 @@
 			/**
 			 * 切换模式。slide和single
 			 */
-			[Inspectable(category="General", enumeration="single,multi", defaultValue="single")]
-			public var switchType:String = "single";
+			/* [Inspectable(category="General", enumeration="single,multi", defaultValue="single")]
+			public var switchType:String = "single"; */
 			
 			[Bindable]
 			public var pos:int = 0;
@@ -52,6 +53,7 @@
 			
 			private function onInit():void
 			{
+//				Alert.show("create showslide");
 				addChildAt(slideLayer,0);
 				
 				this.addEventListener(MouseEvent.MOUSE_DOWN, onSlideshowBox);
@@ -80,10 +82,10 @@
 				
 			}
 			
-			private function get pageable():Boolean
+			/* private function get pageable():Boolean
 			{
 				return switchType == "single";
-			}
+			} */
 			
 			private function onTimer(e:TimerEvent):void
 			{
@@ -102,10 +104,13 @@
 			var nextPic:Image = new Image();
 			private function reset(useFirstItemPosAsPos:Boolean = true):void
 			{
-				//this.removeAllChildren();
-
+				for (var i:int = slideLayer.numChildren-1; i >0; i--) 
+				{
+					slideLayer.removeChildAt(i);
+				}
+/* 
 				if(slideLayer.numChildren > 0)	slideLayer.removeChildAt(slideLayer.numChildren-1);
-				return;
+				return; */
 
 				
 			}

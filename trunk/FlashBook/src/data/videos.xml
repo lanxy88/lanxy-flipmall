@@ -4,10 +4,10 @@
 		height="342" width="497" y="762" x="655" pagewidth="1240" page="1" />
 		 -->
 
-	<video page="1" x="80" y="100" width="1000" height="800" 
+	<!-- <video page="1" x="80" y="100" width="1000" height="800" 
 		 autoPlay="false" showControl="true" stopWhenFlip="false"
 		 autoRepeat="false" url="content/videos/problem_01.swf"
-		/>
+		/> -->
 		 
 	<video page="2" x="80" y="100" width="500" height="500" 
 		 autoPlay="true" showControl="true" stopWhenFlip="false"

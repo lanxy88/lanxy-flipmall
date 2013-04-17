@@ -94,7 +94,10 @@ class DoubleFlipBook extends FlipBook
 		}
 		
 		onEnterPage();
-		updateAds();
+		if (index != null) {
+			updateAds();
+		}
+		
 	}
 	
 	private override function getFullText(pages:Array<Page>):String
@@ -498,7 +501,16 @@ class DoubleFlipBook extends FlipBook
 					mainAdHtml.style.width = RunTime.clientWidth / 2 +"px";	
 				}
 				
-				if (ad.innerData != null && StringTools.trim(ad.innerData)!="") {
+				var isHtmlAD:Bool = false;
+				try {
+					if ( ad.innerData != null && StringTools.trim(ad.innerData) != "") {
+						isHtmlAD = true;
+					}
+				}catch (err:Dynamic) {
+					
+				}
+				
+				if (isHtmlAD) {
 					//Lib.alert("innerdata");
 					mainAdHtml.style.overflow = "hide";
 					mainAdHtml.innerHTML = ad.innerData;							
@@ -542,7 +554,7 @@ class DoubleFlipBook extends FlipBook
 					}
 					//Lib.alert(mainAdLayout+"\n");
 					//Lib.alert(mainAdHtml.style.width);
-					Lib.debug();
+					//Lib.debug();
 				}
 				//
 			}
@@ -555,7 +567,9 @@ class DoubleFlipBook extends FlipBook
 	
 	public function updateAds():Void 
 	{
-		//Lib.alert("turn");
+		//Lib.debug();
+		//Lib.alert("updateads"+currentPageNum);
+		//mainAdHtml.appendChild();
 		if (currentPageNum == 0) {
 			mainAdHtml.style.display = "block";
 		}else {

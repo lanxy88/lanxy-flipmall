@@ -375,11 +375,13 @@ package qs.controls
 			if(cvs == null) return;
 			
 			for each(var slideshow:SlideshowInfo in this.slideshows){
-				if(slideshow.slideshowBox == null){
+//				if(slideshow.slideshowBox == null){
 					slideshow.slideshowBox = new SlideshowBox();
 					slideshow.slideshowBox.slideshowInfo = slideshow;
-				}
-				cvs.addChild(slideshow.slideshowBox);
+//				}
+				cvs.addChild(slideshow.slideshowBox)
+//				Alert.show(cvs.addChild(slideshow.slideshowBox)?"yes":"null");
+//				Alert.show("slider show "+slideshow.page);
 			}
 			
 			
@@ -440,7 +442,7 @@ package qs.controls
 				cvs.addChild(video.videoBox);
 			}
 			
-			
+//			Alert.show("cvs num "+cvs.numChildren);
 			
 
 			this.invalidateProperties();
@@ -481,6 +483,8 @@ package qs.controls
 
 			content.width = unscaledWidth;
 			content.height = unscaledHeight;
+			
+//			Alert.show("content w "+content.width + " content y "+ content.height);
 		}
 	}
 }

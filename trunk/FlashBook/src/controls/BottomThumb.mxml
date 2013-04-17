@@ -17,6 +17,7 @@
 		<![CDATA[
 			import common.events.ThumbChangeEvent;
 			
+			import mx.controls.Alert;
 			import mx.controls.Spacer;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
@@ -71,51 +72,85 @@
 				
 				if(!RunTime.singlePageMode){
 					
-					for( var i:int = -1; i < count; i+= 2){
+					if(count==3){
+						for( var i:int = 0; i < count-1; i++){
+							
+							var item:BottomThumbItem = new BottomThumbItem();
+							item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
+							item.leftPage = i;
+							item.rightPage = i+1;
+							if(item.rightPage >= _source.length) item.rightPage = -1;
+							
+							if(i > -1)	item.szLeftThumb = _source[i].thumb;
+							if(i + 1 < _source.length) item.szRightThumb = _source[i+1].thumb;
+							thumbsSlide.addChild(item);
+							item.index = idx;
+							item.y = 11;
+							
+							idx++;
+							this.thumbs.push(item);
+							
+							if(i==-1 || i==1){
+								item.addEndSpacer();
+							}
+						}
 						
-						var item:BottomThumbItem = new BottomThumbItem();
-						item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
-						item.leftPage = i+1;
-						item.rightPage = i+2;
-						if(item.rightPage >= _source.length) item.rightPage = -1;
-						
-						if(i > -1)	item.szLeftThumb = _source[i].thumb;
-						if(i + 1 < _source.length) item.szRightThumb = _source[i+1].thumb;
-						thumbsSlide.addChild(item);
-						item.index = idx;
-						item.y = 11;
-						
-						idx++;
-						this.thumbs.push(item);
-						
-						if(i+2 >= count){
-							item.addEndSpacer();
+					}else{
+						for( var i:int = -1; i <= count; i+= 2){
+							
+							var item:BottomThumbItem = new BottomThumbItem();
+							item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
+							item.leftPage = i+1;
+							item.rightPage = i+2;
+							if(item.rightPage >= _source.length) item.rightPage = -1;
+							
+							if(i > -1)	item.szLeftThumb = _source[i].thumb;
+							if(i + 1 < _source.length) item.szRightThumb = _source[i+1].thumb;
+							thumbsSlide.addChild(item);
+							item.index = idx;
+							item.y = 11;
+							
+							idx++;
+							this.thumbs.push(item);
+							
+							if(i+2 >= count){
+								item.addEndSpacer();
+							}
 						}
 					}
+					
 				}
 				else{
 					
-					for( var i:int = 1; i < count; i+= 1){
+					for( var i:int = 0; i < count; i++){
 						
-						var item:BottomThumbItem = new BottomThumbItem();
-						item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
-						item.leftPage = i;
-						item.rightPage = -1;
-						
-						
-						item.szLeftThumb = _source[i].thumb;
-						item.szRightThumb = "";
-						
-						thumbsSlide.addChild(item);
-						item.index = idx;
-						item.y = 11;
-						
-						idx++;
-						this.thumbs.push(item);
-						
-						if(i+1 >= count){
-							item.addEndSpacer();
+						try{
+							var item:BottomThumbItem = new BottomThumbItem();
+							item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
+							item.leftPage = i+1;
+							item.rightPage = -1;
+							
+							
+							item.szLeftThumb = _source[i].thumb;
+							item.szRightThumb = "";
+							
+							thumbsSlide.addChild(item);
+							item.index = idx;
+							item.y = 11;
+							
+							idx++;
+							this.thumbs.push(item);
+							
+							/* if(count==3 && i==2){
+								item.addEndSpacer();
+							}else  */ if(i+1 >= count){
+								item.addEndSpacer();
+							}
+						}catch(err:Error){
+							Alert.show(err.message);
 						}
+						
+						
 					}
 				}
 				
@@ -244,7 +279,7 @@
 	</mx:Script>
 	<!-- <mx:HBox id="thumbsSlide" horizontalGap="20"/> -->
 	
-	<mx:Canvas id="thumbsSlide" />
+	<mx:Canvas id="thumbsSlide" horizontalCenter="0" added="trace('thumb child added '+ thumbsSlide.numChildren);"/>
 
 	
 	
