@@ -124,7 +124,7 @@ global: mK6go5Js -->
 				autoHideOnFullScreen="false" 
 				hideAfterZoom="false"
 				iconSameSize="false">
-		<help visible="true" url="help.html"  icon=""/>
+		<help visible="true" url=""  icon=""/>
 		<info visible="true" url="info.htm"  icon=""/>
 		<back visible="true"  icon=""/>
 		<forward visible="true"  icon=""/>
@@ -146,22 +146,10 @@ global: mK6go5Js -->
 		
 	</bottommenu>
 	
-	<topAd slideShow="false" position="left"> 
-	  <pic url="content/images/adtop.gif" href="page:4" target="_blank" width="400" height="50" time="5" />
+	<!-- <topAd slideShow="false" position="left"> 
+	   <pic url="content/images/adtop.gif" href="page:4" target="_blank" width="400" height="50" time="5" />
 	   <pic url="content/images/ad1.jpg" href="http://www.flipmall.net"   width="300" height="50" time="5" />
-	  <!--
-  	  <pic url="content/images/ad1.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad2.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad3.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad4.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad5.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad6.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad7.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad8.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad9.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  <pic url="content/images/ad10.jpg" href="http://www.flipmall.net" width="300" height="50" time="5" />
-  	  -->
-	</topAd>
+	</topAd> -->
 	
 	<rightAd slideShow="false" position="bottom"> 
 	  <pic url="content/images/adtop.gif" href="page:4"  target="_blank" width="150" height="50" time="5" />

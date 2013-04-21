@@ -123,4 +123,6 @@
 
 <item key="DeleteMarkConfirm" value="删除这条高亮标记？" />
 <item key="ExitConfirm" value="确定要关闭页面吗?" />
+
+<item key="Title" value="标题"/>
 </lang>

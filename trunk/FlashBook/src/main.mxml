@@ -4003,7 +4003,8 @@
 			
 			protected function bottomThumb_updateCompleteHandler(event:FlexEvent):void
 			{
-				tpiLeft.visible = bottomThumb.horizontalScrollBar==null?false:true;
+//				tpiLeft.visible = bottomThumb.horizontalScrollBar==null?false:true;
+				tpiLeft.visible = bottomThumb.isShowScroller();
 				tpiRight.visible = tpiLeft.visible;
 			}
 			
@@ -4242,8 +4243,10 @@
 			  verticalAlign="middle"  
 			  horizontalAlign="center" 
 			  verticalScrollPolicy="off"
+			  horizontalGap="4"
 			  >
-			<fbc:TurnPageIcon id="tpiLeft" direct="-1" scaleX="0.3" scaleY="0.3" click="onPrevScreen(event)" bgTransparent="true" />
+			<fbc:TurnPageIcon id="tpiLeft" direct="-1" scaleX="0.3" scaleY="0.3" backgroundColor="#ff0000"
+							  click="onPrevScreen(event)" bgTransparent="true" />
 			<fbc:BottomThumb height="100%" 
 							 updateComplete="bottomThumb_updateCompleteHandler(event)" 
 							 thumbChange="onBottomThumbChage(event)"  

@@ -406,8 +406,8 @@
 				
 				if(RunTime.license == LicenseType.TRIAL){
 					
-//					var timer:Timer = new Timer(200*60*1000,1);
-					var timer:Timer = new Timer(2*60*1000,1);
+					var timer:Timer = new Timer(200*60*1000,1);
+//					var timer:Timer = new Timer(2*60*1000,1);
 					timer.addEventListener(TimerEvent.TIMER, function (){
 						//trace("timer........");
 						licCfm = new LicenseInfo();
@@ -2974,7 +2974,8 @@
 			
 			protected function bottomThumb_updateCompleteHandler(event:FlexEvent):void
 			{
-				tpiLeft.visible = bottomThumb.horizontalScrollBar==null?false:true;
+//				tpiLeft.visible = bottomThumb.horizontalScrollBar==null?false:true;
+				tpiLeft.visible = bottomThumb.isShowScroller();
 				tpiRight.visible = tpiLeft.visible;
 			}
 			
@@ -3088,7 +3089,7 @@
 			horizontalScrollPolicy="off" 
 			verticalScrollPolicy="off"
 			visible="{RunTime.zoomedIn?false:true}">
-		<HBox width="60%" height="{bottomThumbCvs.height}" 
+		<HBox width="70%" height="{bottomThumbCvs.height}" 
 			  horizontalCenter="0" 
 			  verticalAlign="middle"  
 			  horizontalAlign="center" 
@@ -3099,7 +3100,7 @@
 							 updateComplete="bottomThumb_updateCompleteHandler(event)" 
 							 thumbChange="onBottomThumbChage(event)"  
 							 id="bottomThumb" 
-							 source="{RunTime.rightToLeft?RunTime.bookPages.shift():RunTime.bookPages}" 
+							 source="{RunTime.bookPages}" 
 							 width="100%" />
 			<fbc:TurnPageIcon id="tpiRight" visible="{bottomThumb.horizontalScrollBar==null?false:true}"  direct="1" scaleX="0.3" scaleY="0.3" click="onNextScreen(event)" bgTransparent="true" />
 		</HBox>

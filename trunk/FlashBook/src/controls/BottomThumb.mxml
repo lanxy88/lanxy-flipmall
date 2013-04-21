@@ -7,8 +7,9 @@
 		   creationComplete="onCreationComplete(event)"
 		   updateComplete="onUpdateComplete(event)"  
 		   verticalScrollPolicy="off"
+		   horizontalScrollPolicy="off"
 			>
-	
+	<!-- horizontalScrollBarStyleName="customScrollbarStyle"-->
 	<mx:Metadata>
 		[Event(name="thumbChange",type="common.events.ThumbChangeEvent")]
 
@@ -56,7 +57,11 @@
 			public function set source(value:Array):void
 			{
 				if(!RunTime.showBottomThumb) return;
-				_source = value;
+				if(RunTime.rightToLeft){
+					_source = value.reverse()
+				}else{
+					_source = value;
+				}
 				//trace(_source);
 				
 				if(_source.length == 0) return;
@@ -147,15 +152,18 @@
 								item.addEndSpacer();
 							}
 						}catch(err:Error){
-							Alert.show(err.message);
+//							Alert.show(err.message);
 						}
 						
 						
 					}
 				}
 				
-
-				thumbChange(0);
+				if(RunTime.rightToLeft){
+					thumbChange(thumbs.length-1);
+				}else{
+					thumbChange(0);
+				}
 				
 			}
 			
@@ -273,15 +281,28 @@
 			protected function onUpdateComplete(event:FlexEvent):void
 			{
 				if(horizontalScrollBar != null) horizontalScrollBar.alpha = 0;
+				trace(hb.horizontalScrollBar);
+			}
+			
+			public function isShowScroller():Boolean
+			{
+				if(thumbsSlide.getExplicitOrMeasuredWidth() > width) return true;
+				return false;
 			}
 			
 		]]>
 	</mx:Script>
 	<!-- <mx:HBox id="thumbsSlide" horizontalGap="20"/> -->
 	
-	<mx:Canvas id="thumbsSlide" horizontalCenter="0" added="trace('thumb child added '+ thumbsSlide.numChildren);"/>
+	<!--<mx:Canvas id="thumbsSlide" horizontalCenter="0" added="trace('thumb child added '+ thumbsSlide.numChildren);trace('st width:'+thumbsSlide.getExplicitOrMeasuredWidth())" 
+			   removed="trace('thumb child removed '+thumbsSlide.numChildren)" horizontalScrollPolicy="on"/>-->
 
 	
+	
+	<mx:HBox id="hb" width="100%" horizontalScrollPolicy="off" verticalAlign="middle" height="100%" horizontalAlign="center">
+		<mx:HBox id="thumbsSlide" horizontalCenter="0" verticalAlign="middle">
+		</mx:HBox>
+	</mx:HBox>
 	
 	
 	<!--

@@ -9,7 +9,7 @@
 		 autoRepeat="false" url="content/videos/problem_01.swf"
 		/> -->
 		 
-	<video page="2" x="80" y="100" width="500" height="500" 
+	<!-- <video page="2" x="80" y="100" width="500" height="500" 
 		 autoPlay="true" showControl="true" stopWhenFlip="false"
 		 autoRepeat="false" url="content/videos/test.mp4"
 		/>
@@ -23,6 +23,6 @@
 		/>
 	<video page="10" x="100" y="100" width="600" height="400" 
 		 autoPlay="false" autoRepeat="true" youtubeId="7ZsKqbt3gQ0"
-		/>
+		/> -->
 	
 </videos>
