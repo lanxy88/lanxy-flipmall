@@ -204,7 +204,7 @@
 			 paddingTop="20" verticalGap="0">
 		<mx:Label id="tbNoResults" visible="false" text="No Results Matched."/>
 		<controls:VTable id="table" visible="{(table.source as Array).length &gt; 0}" width="100%"
-						 borderColor="0xFFFFFF" borderStyle="solid"
+						 borderColor="0xFFFFFF" borderStyle="solid" showTitle="{cbSearchPreviousIssues.selected}"
 						 deleteToolTip="{l.i.s('Delete')}" editable="true"
 						 recordClick="onRecordClick(event)" source="{[]}"
 						 title="{l.i.s('SearchResults','Search Results')}">

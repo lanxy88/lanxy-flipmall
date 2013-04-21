@@ -15,6 +15,9 @@
 		<![CDATA[
 			import common.Record;
 			import common.RecordEvent;
+			import common.SearchResult;
+			import common.TreeNodeRecord;
+			
 			import mx.binding.utils.BindingUtils;
 			import mx.containers.GridItem;
 			import mx.containers.GridRow;
@@ -44,6 +47,9 @@
 			
 			private var _source:Array = null;
 			
+			[Bindable]
+			public var showTitle:Boolean;
+			
 			public function get source():Array
 			{
 				return _source;
@@ -60,10 +66,37 @@
 				box.removeAllChildren();
 				if(_source == null) return;
 				
-				for each(var item:Record in _source)
+				/* if(type='search'){
+					for each(var item:* in _source)
+					{
+						if(item is SearchResult){
+							var i:SearchResult = item as SearchResult;
+							trace("VTable.updateData()"+i);
+							if(i.node)
+								box.addChild(createGridRow(item,i.node.content));
+							else
+								box.addChild(createGridRow(item));
+						}
+					}
+				}else{ */
+				for each(var item:* in _source)
 				{
-					box.addChild(createGridRow(item));
+					if(item is SearchResult){
+						var i:SearchResult = item as SearchResult;
+						if(i.node)
+							box.addChild(createGridRow(item,i.node.content));
+						else
+							box.addChild(createGridRow(item));
+					}else{
+						box.addChild(createGridRow(item));
+					}
 				}
+				/* } */
+				
+					/* for each(var item:Record in _source)
+					{
+						box.addChild(createGridRow(item));
+					} */
 				
 				var lines:int = Math.min(rowHeight,_source.length);
 				
@@ -71,7 +104,7 @@
 				box.height = this.height - rowHeight;
 			}
 			
-			private function createGridRow(obj:Record):HBox
+			private function createGridRow(obj:Record,title:String=""):HBox
 			{
 				var row:HBox = new HBox();
 				row.percentWidth=100;
@@ -113,6 +146,35 @@
 						selectedItem = obj;
 						self.dispatchEvent(new RecordEvent("recordClick",selectedItem));
 					});
+				
+				if(showTitle){
+					var titleText:Text = new Text();
+					titleText.text = title;
+					titleText.mouseChildren=false;
+					titleText.buttonMode = true;
+					titleText.useHandCursor = true;
+					titleText.setStyle("horizontalCenter",0);
+					titleText.setStyle("verticalCenter",0);
+					
+					var t0:Canvas = new Canvas();
+					t0.width = 90;
+					t0.percentHeight=100;
+					t0.addChild(titleText);
+					t0.buttonMode = true;
+					t0.useHandCursor = true;
+					t0.verticalScrollPolicy="off";
+					t0.horizontalScrollPolicy="off";
+					t0.setStyle("horizontalAlign","center");
+					t0.setStyle("verticalAlign","middle");
+					t0.setStyle("paddingLeft",10);
+					t0.setStyle("borderStyle","solid");
+					t0.setStyle("borderColor",0xFFFFFF);
+					t0.setStyle("borderThickness",1);
+					t0.setStyle("borderSides","right");
+					
+					row.addChild(t0);
+				}
+				
 				
 				var pageText:Text = new Text();
 				pageText.text = obj.page.toString();
@@ -229,6 +291,17 @@
 			 borderColor="0xFFFFFF" 
 			 borderThickness="1" 
 			 borderSides="bottom">
+		<mx:Canvas width="90" height="100%" 
+				   borderStyle="solid"
+				   borderColor="0xFFFFFF" 
+				   borderThickness="1" 
+				   borderSides="right" 
+				   includeInLayout="{showTitle}"
+				   visible="{showTitle}"
+				   >
+			<mx:Label text="{l.i.s('Title')}" 
+					  horizontalCenter="0" verticalCenter="0" />
+		</mx:Canvas>
 		<mx:Canvas width="50" height="100%" 
 				   borderStyle="solid"
 				   borderColor="0xFFFFFF" 

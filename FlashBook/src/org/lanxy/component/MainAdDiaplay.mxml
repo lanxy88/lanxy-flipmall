@@ -3,7 +3,8 @@
 		 xmlns:flexiframe="com.google.code.flexiframe.*"
 		 xmlns:controls="controls.*"
 		 backgroundAlpha="0" creationComplete="vbox1_creationCompleteHandler(event)"
-		 updateComplete="vbox1_updateCompleteHandler(event)">
+		 updateComplete="vbox1_updateCompleteHandler(event)"
+		 horizontalAlign="right" verticalAlign="middle">
 	<mx:Script>
 		<![CDATA[
 			import common.RpcRequest;
@@ -125,6 +126,8 @@
 						//
 						this.width = outBox.width;
 						this.height = outBox.height;
+						adImg.percentHeight = 100;
+						adImg.percentWidth = 100;
 						if(imgUrl){
 							adImg.scaleContent = true;
 							adImg.width = this.width;
@@ -211,7 +214,7 @@
 	</mx:TextArea>
 	<!--<flexiframe:IFrame id="html" width="100%" height="100%" includeInLayout="{(htmlContent?true:false)}" 
 					   content="{htmlContent}"/>-->
-	<controls:AdDisplay id="adImg" width="100%" height="100%" buttonMode="{imgHref?true:false}"
+	<controls:AdDisplay id="adImg"  buttonMode="{imgHref?true:false}"
 						click="RunTime.clickHref(imgHref);" horizontalAlign="center"
 						includeInLayout="{imgUrl?true:false}" maintainAspectRatio="true"
 						scaleContent="true" source="{imgUrl}" verticalAlign="middle"/>

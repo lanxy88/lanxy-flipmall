@@ -646,7 +646,7 @@ package
 		}
 		
 		public static function showMVHelp():Boolean{
-			if(!RunTime.helpUrl) return false;
+//			if(!RunTime.helpUrl) return false;
 			return true;
 		}
 	
