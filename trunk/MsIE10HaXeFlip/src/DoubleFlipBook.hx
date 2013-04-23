@@ -570,7 +570,11 @@ class DoubleFlipBook extends FlipBook
 		mainAdImg = img;
 		//Lib.alert("mianAd"+"\n"+RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
 		try {
-			var ad = new haxe.xml.Fast(RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+			var ad = null;
+			try {
+				ad = new haxe.xml.Fast(RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+			}catch (e:Dynamic) {
+			}			
 
 			if (ad != null) {
 				if(ad.has.dockPos) mainAdDockPos = ad.att.dockPos;

@@ -1425,7 +1425,11 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		var img = js.Lib.document.getElementById("mainAdimg");
 		this.mainAdImg = img;
 		try {
-			var ad = new haxe.xml.Fast(RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+			var ad = null;
+			try {
+				ad = new haxe.xml.Fast(RunTime.bookInfo.firstElement().elementsNamed("mainAd").next());
+			} catch( e ) {
+			}
 			if(ad != null) {
 				if(ad.has.resolve("dockPos")) this.mainAdDockPos = ad.att.resolve("dockPos");
 				this.mainAdHtml.style.display = "block";
