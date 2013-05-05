@@ -1598,7 +1598,10 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		return Std.parseInt(value.substring(0,value.lastIndexOf("px")));
 	}
 	,updateAds: function() {
-		if(this.currentPageNum == 0) this.mainAdHtml.style.display = "block"; else this.mainAdHtml.style.display = "none";
+		try {
+			if(this.currentPageNum == 0) this.mainAdHtml.style.display = "block"; else this.mainAdHtml.style.display = "none";
+		} catch( ex ) {
+		}
 	}
 	,requestMainAd: function() {
 		this.mainAdHtml = js.Lib.document.getElementById("mainAdhtml");
@@ -2339,6 +2342,7 @@ RunTime.alert = function(msg) {
 }
 RunTime.init = function() {
 	RunTime.kvPrex = js.Lib.window.location.pathname.split("?")[0];
+	RunTime.loadingLogo = js.Lib.document.getElementById("loadingLogo");
 	RunTime.clientWidth = js.Lib.window.document.body.clientWidth;
 	RunTime.clientHeight = js.Lib.window.document.body.clientHeight;
 	RunTime.defaultPageNum = Std.parseInt(orc.utils.Util.getUrlParam("page"));
@@ -2361,11 +2365,11 @@ RunTime.init = function() {
 }
 RunTime.msOnResize = function(e) {
 	if(js.Lib.document.body.clientHeight == js.Lib.window.screen.height && js.Lib.document.body.clientWidth == js.Lib.window.screen.width) {
-		haxe.Log.trace("fullscreen",{ fileName : "RunTime.hx", lineNumber : 183, className : "RunTime", methodName : "msOnResize"});
+		haxe.Log.trace("fullscreen",{ fileName : "RunTime.hx", lineNumber : 186, className : "RunTime", methodName : "msOnResize"});
 		if(RunTime.resizeTimer != null) RunTime.resizeTimer.stop();
 		RunTime.isFullscreen = true;
 	} else {
-		haxe.Log.trace("exit fullscreen",{ fileName : "RunTime.hx", lineNumber : 190, className : "RunTime", methodName : "msOnResize"});
+		haxe.Log.trace("exit fullscreen",{ fileName : "RunTime.hx", lineNumber : 193, className : "RunTime", methodName : "msOnResize"});
 		RunTime.isFullscreen = false;
 		if(RunTime.resizeTimer != null) RunTime.resizeTimer.stop();
 		RunTime.resizeTimer = new haxe.Timer(600);
@@ -2374,7 +2378,7 @@ RunTime.msOnResize = function(e) {
 }
 RunTime.onFullscreenChange = function(e) {
 	var obj = e;
-	haxe.Log.trace(e,{ fileName : "RunTime.hx", lineNumber : 202, className : "RunTime", methodName : "onFullscreenChange"});
+	haxe.Log.trace(e,{ fileName : "RunTime.hx", lineNumber : 205, className : "RunTime", methodName : "onFullscreenChange"});
 }
 RunTime.OnResize = function() {
 	if(RunTime.isFullscreen) return;
@@ -2549,6 +2553,7 @@ RunTime.requestBookInfo = function() {
 			}
 		} else RunTime.InputPwd();
 		if(!RunTime.singlePage) RunTime.flipBook.requestMainAd();
+		RunTime.hideLoadingLogo();
 	});
 }
 RunTime.InputPwd = function() {
@@ -2583,6 +2588,17 @@ RunTime.afterRequestBookInfo = function() {
 	RunTime.clearPopupContents();
 	RunTime.requestPages();
 	RunTime.useAnalyticsUA(RunTime.book.analyticsUA,RunTime.book.bookId);
+}
+RunTime.showLoadingLogo = function(loadingUrl) {
+	if(loadingUrl == null || loadingUrl == "") return;
+	RunTime.loadingLogo.innerHTML = "<img src='" + loadingUrl + "'>";
+	RunTime.loadingLogo.style.top = (RunTime.clientHeight - RunTime.loadingLogo.clientHeight) / 2 + "px";
+	RunTime.loadingLogo.style.left = (RunTime.clientWidth - RunTime.loadingLogo.clientWidth) / 2 + "px";
+	RunTime.loadingLogo.style.display = "inline";
+}
+RunTime.hideLoadingLogo = function() {
+	RunTime.loadingLogo.innerHTML = "";
+	RunTime.loadingLogo.style.display = "none";
 }
 RunTime.requestPages = function() {
 	orc.utils.Util.request(RunTime.urlPageInfo,function(data) {
@@ -2740,6 +2756,7 @@ RunTime.loadBookInfo = function() {
 	var i = RunTime.bookInfo.elementsNamed("bookinfo");
 	if(i.hasNext() == false) return;
 	var node = i.next();
+	RunTime.showLoadingLogo(node.get("loadingLogo"));
 	var idVal = node.get("id");
 	if(idVal == null) idVal = "";
 	RunTime.book.bookId = idVal;
@@ -3021,11 +3038,17 @@ RunTime.loadHotlinks = function(ctx) {
 		var popupWidthVal = node.getAttribute("popupWidth");
 		var popupHeightVal = node.getAttribute("popupHeight");
 		var youtubeIdVal = node.getAttribute("youtubeId");
+		var target = node.getAttribute("target");
 		var htmlText = null;
 		var htmlTextDoms = node.getElementsByTagName("cdata");
 		if(htmlTextDoms != null && htmlTextDoms.length > 0) {
 			htmlText = StringTools.trim(htmlTextDoms[0].childNodes[0].nodeValue);
 			htmlText = ctx.getCData(htmlText);
+		}
+		try {
+			var iframe = node.getElementsByTagName("iframe")[0];
+			if(iframe != null) htmlText = "<iframe src=\"" + iframe.getAttribute("src") + "\" frameborder=\"0\" style=\"width:100%;height:100%\" ></iframe>";
+		} catch( ex ) {
 		}
 		var link = new core.HotLink();
 		link.pageNum = Std.parseInt(pageNumVal) - 1;
@@ -3038,6 +3061,7 @@ RunTime.loadHotlinks = function(ctx) {
 		if(popupHeightVal != null) link.popupHeight = Std.parseInt(popupHeightVal);
 		link.youtubeId = youtubeIdVal;
 		link.type = typeVal == null?"":typeVal;
+		if(target != null) link.target = target == ""?"_blank":target;
 		if(colorVal != null) {
 			colorVal = StringTools.replace(colorVal,"0x","#");
 			colorVal = StringTools.replace(colorVal,"0X","#");
@@ -3127,10 +3151,16 @@ RunTime.loadButtons = function() {
 		var textVal = "";
 		var fontColorVal = "";
 		var fontSizeVal = "";
+		var target = node.get("target");
 		if(node.get("text") != null) textVal = node.get("text");
 		if(node.get("fontColor") != null) fontColorVal = node.get("fontColor");
 		if(node.get("fontSize") != null) fontSizeVal = node.get("fontSize");
 		var htmlText = RunTime.extractCData(node.toString());
+		try {
+			var iframe = node.elementsNamed("iframe").next();
+			if(iframe != null) htmlText = "<iframe src=\"" + iframe.get("src") + "\" frameborder=\"0\" style=\"width:100%;height:100%\" ></iframe>";
+		} catch( ex ) {
+		}
 		var item = new core.ButtonInfo();
 		item.pageNum = Std.parseInt(pageNumVal) - 1;
 		item.x = Std.parseFloat(xVal);
@@ -3146,6 +3176,7 @@ RunTime.loadButtons = function() {
 		item.type = typeVal == null?"":typeVal;
 		item.image = imageVal;
 		item.text = textVal;
+		if(target != null) item.target = target == ""?"_blank":target;
 		if(fontColorVal != "") item.fontColor = fontColorVal;
 		if(fontSizeVal != "") item.fontSize = fontSizeVal;
 		RunTime.book.buttons.push(item);
@@ -3367,10 +3398,13 @@ RunTime.setOffset = function(dom,left,top) {
 }
 RunTime.useAnalyticsUA = function(ua,id) {
 	if(RunTime.isNullOrEmpty(ua)) return;
-	RunTime.trackerId = id;
-	var gat = _gat;
-	RunTime.tracker = gat._getTracker(ua);
-	RunTime.tracker._initData();
+	try {
+		RunTime.trackerId = id;
+		var gat = _gat;
+		RunTime.tracker = gat._getTracker(ua);
+		RunTime.tracker._initData();
+	} catch( ex ) {
+	}
 }
 RunTime.log = function(action,msg) {
 	if(RunTime.isNullOrEmpty(msg)) return;
@@ -4335,6 +4369,7 @@ core.Bookmark.prototype = {
 	,__class__: core.Bookmark
 }
 core.ButtonInfo = function() {
+	this.target = "_blank";
 	this.fontSize = "12";
 	this.fontColor = "#ffffff";
 	this.text = "";
@@ -4364,7 +4399,7 @@ core.ButtonInfo.prototype = {
 					if(fun == "content") RunTime.flipBook.onContentsClick(null); else if(fun == "thumb") RunTime.flipBook.onThumbsClick(null); else if(fun == "showtxt") RunTime.flipBook.onShowTxtClick(null); else if(fun == "highlight") RunTime.flipBook.onButtonMaskClick(null); else if(fun == "bookmark") RunTime.flipBook.onButtonBookmark(null); else if(fun == "notes") RunTime.flipBook.onButtonNoteClick(null); else if(fun == "autoflip") RunTime.flipBook.onAutoFlipClick(null); else if(fun == "download") RunTime.onDownloadClick(null); else if(fun == "fliptofront") RunTime.flipBook.turnToFirstPage(null); else if(fun == "flipleft") RunTime.flipBook.turnToPrevPage(null); else if(fun == "flipright") RunTime.flipBook.turnToNextPage(null); else if(fun == "fliptoback") RunTime.flipBook.turnToLastPage(null);
 				} else {
 					RunTime.logClickLink(this.destination);
-					js.Lib.window.location.href = this.destination;
+					if("_self" == this.target) js.Lib.window.location.href = this.destination; else js.Lib.window.open(this.destination,this.target);
 				}
 			}
 			break;
@@ -4375,7 +4410,7 @@ core.ButtonInfo.prototype = {
 				js.Lib.document.getElementById("cvsOthers").innerHTML = txt;
 				var timer = new haxe.Timer(100);
 				timer.run = function() {
-					haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 235, className : "core.ButtonInfo", methodName : "click"});
+					haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 243, className : "core.ButtonInfo", methodName : "click"});
 					timer.stop();
 					js.Lib.document.getElementById("popupImage").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 				};
@@ -4388,7 +4423,7 @@ core.ButtonInfo.prototype = {
 			js.Lib.document.getElementById("cvsOthers").innerHTML = core.HtmlHelper.toPopupVideoHtml(this);
 			var timer = new haxe.Timer(100);
 			timer.run = function() {
-				haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 251, className : "core.ButtonInfo", methodName : "click"});
+				haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 259, className : "core.ButtonInfo", methodName : "click"});
 				timer.stop();
 				js.Lib.document.getElementById("popupVideo").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 			};
@@ -4406,7 +4441,7 @@ core.ButtonInfo.prototype = {
 			js.Lib.document.getElementById("cvsOthers").innerHTML = core.HtmlHelper.toPopupHtml(this);
 			var timer = new haxe.Timer(100);
 			timer.run = function() {
-				haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 269, className : "core.ButtonInfo", methodName : "click"});
+				haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 277, className : "core.ButtonInfo", methodName : "click"});
 				timer.stop();
 				js.Lib.document.getElementById("popupMessage").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 			};
@@ -4417,7 +4452,7 @@ core.ButtonInfo.prototype = {
 			js.Lib.document.getElementById("cvsOthers").innerHTML = core.HtmlHelper.toPopupHtml(this);
 			var timer = new haxe.Timer(100);
 			timer.run = function() {
-				haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 280, className : "core.ButtonInfo", methodName : "click"});
+				haxe.Log.trace("zoomComplete",{ fileName : "ButtonInfo.hx", lineNumber : 288, className : "core.ButtonInfo", methodName : "click"});
 				timer.stop();
 				js.Lib.document.getElementById("popupMessage").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 			};
@@ -4720,6 +4755,7 @@ core.HighLight.prototype = {
 	,__class__: core.HighLight
 }
 core.HotLink = function() {
+	this.target = "_blank";
 	this.opacity = 0.8;
 	this.pageLayoutType = 0;
 	this.color = "#333333";
@@ -4747,7 +4783,7 @@ core.HotLink.prototype = {
 					if(fun == "content") RunTime.flipBook.onContentsClick(null); else if(fun == "thumb") RunTime.flipBook.onThumbsClick(null); else if(fun == "showtxt") RunTime.flipBook.onShowTxtClick(null); else if(fun == "highlight") RunTime.flipBook.onButtonMaskClick(null); else if(fun == "bookmark") RunTime.flipBook.onButtonBookmark(null); else if(fun == "notes") RunTime.flipBook.onButtonNoteClick(null); else if(fun == "autoflip") RunTime.flipBook.onAutoFlipClick(null); else if(fun == "download") RunTime.onDownloadClick(null); else if(fun == "fliptofront") RunTime.flipBook.turnToFirstPage(null); else if(fun == "flipleft") RunTime.flipBook.turnToPrevPage(null); else if(fun == "flipright") RunTime.flipBook.turnToNextPage(null); else if(fun == "fliptoback") RunTime.flipBook.turnToLastPage(null);
 				} else {
 					RunTime.logClickLink(this.destination);
-					js.Lib.window.location.href = this.destination;
+					if("_self" == this.target) js.Lib.window.location.href = this.destination; else js.Lib.window.open(this.destination,this.target);
 				}
 			}
 			break;
@@ -4758,7 +4794,7 @@ core.HotLink.prototype = {
 				js.Lib.document.getElementById("cvsOthers").innerHTML = txt;
 				var timer = new haxe.Timer(100);
 				timer.run = function() {
-					haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 178, className : "core.HotLink", methodName : "click"});
+					haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 186, className : "core.HotLink", methodName : "click"});
 					timer.stop();
 					js.Lib.document.getElementById("popupImage").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 				};
@@ -4771,7 +4807,7 @@ core.HotLink.prototype = {
 			js.Lib.document.getElementById("cvsOthers").innerHTML = core.HtmlHelper.toPopupVideoHtml(this);
 			var timer = new haxe.Timer(100);
 			timer.run = function() {
-				haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 199, className : "core.HotLink", methodName : "click"});
+				haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 207, className : "core.HotLink", methodName : "click"});
 				timer.stop();
 				js.Lib.document.getElementById("popupVideo").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 			};
@@ -4790,7 +4826,7 @@ core.HotLink.prototype = {
 			js.Lib.document.getElementById("popupMessage").style.cssText += " transform: scale(1);transition: width 0.5s ease-out; -ms-transform: scale(1);-ms-transition: width 0.5s ease-out; -webkit-transform: scale(1); -webkit-transition: 0.5s ease-out; ";
 			var timer = new haxe.Timer(100);
 			timer.run = function() {
-				haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 221, className : "core.HotLink", methodName : "click"});
+				haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 229, className : "core.HotLink", methodName : "click"});
 				timer.stop();
 				js.Lib.document.getElementById("popupMessage").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 			};
@@ -4801,7 +4837,7 @@ core.HotLink.prototype = {
 			js.Lib.document.getElementById("cvsOthers").innerHTML = core.HtmlHelper.toPopupHtml(this);
 			var timer = new haxe.Timer(100);
 			timer.run = function() {
-				haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 232, className : "core.HotLink", methodName : "click"});
+				haxe.Log.trace("zoomComplete",{ fileName : "HotLink.hx", lineNumber : 240, className : "core.HotLink", methodName : "click"});
 				timer.stop();
 				js.Lib.document.getElementById("popupMessage").style.cssText += " transform: scale(1);transition:all 500ms; -ms-transform: scale(1);-ms-transition: all 500ms;";
 			};

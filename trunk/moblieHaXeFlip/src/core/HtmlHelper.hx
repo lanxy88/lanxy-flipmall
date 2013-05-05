@@ -518,7 +518,9 @@ class HtmlHelper
 		+ Std.string(top) + "px; width:"
 		+ Std.string(w) + "px; height:"
 		+ Std.string(h) + "px; background-color:#ffffff; text-align:left; -webkit-transform: scale(0.2); -webkit-transition: 0s ease-out; \">";
+		s += "<div style='overflow:scroll;'>";
 		s += item.htmlText;
+		s += "</div>";
 		s += "<img width=\"24\" height=\"24\" src=\"content/images/close.png\" onclick=\"clearPopupContents();\" style=\"position:absolute;right:-12px;top:-12px;\" />";
 		s += "</div>";
 		return s;

@@ -36,6 +36,8 @@ class ButtonInfo
 	public var fontColor:String = "#ffffff";
 	public var fontSize:String = "12";
 	
+	public var target:String = "_blank";
+	
 	public function new() 
 	{
 		pageLayoutType = 0;
@@ -218,7 +220,13 @@ class ButtonInfo
 					else
 					{
 						RunTime.logClickLink(destination);
-						Lib.window.location.href = destination;
+						if ("_self" == target) {
+							Lib.window.location.href = destination;
+						}else {
+							Lib.window.open(destination,target);
+						}
+						//RunTime.logClickLink(destination);
+						//Lib.window.location.href = destination;
 					}
 				}
 			case "image":

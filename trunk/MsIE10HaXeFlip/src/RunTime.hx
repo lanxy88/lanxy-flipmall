@@ -94,6 +94,8 @@ class RunTime
 	/** book **/
 	public static var book:Book = new Book();
 	
+	private static var loadingLogo:HtmlDom;
+	
 	public static var flipBook:FlipBook;
 	public static var singlePage:Bool = false;
 	
@@ -146,6 +148,7 @@ class RunTime
 		RunTime.kvPrex = Lib.window.location.pathname.split("?")[0];
 		//Lib.alert(RunTime.kvPrex);
 		//return;
+		loadingLogo = Lib.document.getElementById("loadingLogo");
 		
 		RunTime.clientWidth = Lib.window.document.body.clientWidth;
 		RunTime.clientHeight = Lib.window.document.body.clientHeight;
@@ -501,6 +504,8 @@ class RunTime
 				if (!singlePage) {
 					flipBook.requestMainAd();
 				}
+				//
+				hideLoadingLogo();
 			});
 	}
 	
@@ -554,6 +559,22 @@ class RunTime
 		clearPopupContents();
 		requestPages();
 		useAnalyticsUA(book.analyticsUA, book.bookId);
+	}
+	
+	private static function showLoadingLogo(loadingUrl:String):Void
+	{
+		//Lib.debug();
+		if (loadingUrl==null || loadingUrl=="") return;
+		loadingLogo.innerHTML = "<img src='" + loadingUrl + "'>";
+		loadingLogo.style.top = (RunTime.clientHeight - loadingLogo.clientHeight) / 2 + "px";
+		loadingLogo.style.left  = (RunTime.clientWidth - loadingLogo.clientWidth) / 2 + "px";
+		loadingLogo.style.display = "inline";
+	}
+	
+	private static function hideLoadingLogo():Void
+	{
+		loadingLogo.innerHTML = "";
+		loadingLogo.style.display = "none";
 	}
 	
 	public static function requestPages():Void
@@ -800,6 +821,8 @@ class RunTime
 		
 		// 获取pageWidth节点
 		var node:Xml = i.next();
+		
+		showLoadingLogo(node.get("loadingLogo"));
 		
 		var idVal:String = node.get("id");
 		if (idVal == null) idVal = "";
@@ -1221,12 +1244,22 @@ class RunTime
 			var popupWidthVal:String =  node.getAttribute("popupWidth");
 			var popupHeightVal:String =  node.getAttribute("popupHeight");
 			var youtubeIdVal:String =  node.getAttribute("youtubeId");
+			var target:String = node.getAttribute("target");
 			var htmlText:String = null;
 			var htmlTextDoms:HtmlCollection<HtmlDom> = node.getElementsByTagName("cdata");
 			if (htmlTextDoms != null && htmlTextDoms.length > 0)
 			{
 				htmlText = StringTools.trim(htmlTextDoms[0].childNodes[0].nodeValue);
 				htmlText = ctx.getCData(htmlText);
+			}
+			try {
+				//Lib.debug();
+				var iframe:HtmlDom = node.getElementsByTagName("iframe")[0];
+				if (iframe!=null) {
+					htmlText = "<iframe src=\""+iframe.getAttribute("src")+"\" frameborder=\"0\" style=\"width:100%;height:100%\" ></iframe>";
+				}
+			}catch (ex:Dynamic) {
+				
 			}
 			var link:HotLink = new HotLink();
 			link.pageNum = Std.parseInt(pageNumVal) - 1;
@@ -1239,6 +1272,7 @@ class RunTime
 			if (popupHeightVal != null) link.popupHeight = Std.parseInt(popupHeightVal);
 			link.youtubeId = youtubeIdVal;
 			link.type = typeVal == null ? "" : typeVal;
+			if (target != null) link.target = (target == ""?"_blank":target);
 			
 			if (colorVal != null)
 			{
@@ -1345,11 +1379,23 @@ class RunTime
 			var fontColorVal:String = "";
 			var fontSizeVal:String = "";
 			
+			var target:String = node.get("target");
+			
 			if ( node.get("text") != null) textVal = node.get("text");
 			if ( node.get("fontColor") != null) fontColorVal = node.get("fontColor");
 			if	( node.get("fontSize") != null) fontSizeVal = node.get("fontSize");
 			
 			var htmlText:String = extractCData(node.toString());
+			try {
+				//Lib.debug();
+				var iframe:Xml = node.elementsNamed("iframe").next();
+				if (iframe!=null) {
+					htmlText = "<iframe src=\""+iframe.get("src")+"\" frameborder=\"0\" style=\"width:100%;height:100%\" ></iframe>";
+				}
+			}catch (ex:Dynamic) {
+				
+			}
+			
 			var item:ButtonInfo = new ButtonInfo();
 			item.pageNum = Std.parseInt(pageNumVal) - 1;
 			item.x = Std.parseFloat(xVal);
@@ -1365,6 +1411,8 @@ class RunTime
 			item.type = typeVal == null ? "" : typeVal;
 			item.image = imageVal;
 			item.text = textVal;
+			
+			if (target != null) item.target = (target == ""?"_blank":target);
 			
 			if(fontColorVal != "")	item.fontColor = fontColorVal;
 			if(fontSizeVal != "")	item.fontSize = fontSizeVal;
@@ -1728,10 +1776,15 @@ class RunTime
 	{
 		if (isNullOrEmpty(ua)) return;
 		
-		trackerId = id;
-		var gat = untyped __js__("_gat");
-		tracker = gat._getTracker(ua);
-		tracker._initData();
+		try {
+			trackerId = id;
+			var gat = untyped __js__("_gat");
+			tracker = gat._getTracker(ua);
+			tracker._initData();
+		}catch (ex:Dynamic) {
+			
+		}
+		
 	}
 		
 	public static function log(action:String, msg:String):Void
