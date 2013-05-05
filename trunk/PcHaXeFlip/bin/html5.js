@@ -461,7 +461,7 @@ FlipBook.prototype = {
 		var _g1 = 0, _g = RunTime.book.bookmarks.length;
 		while(_g1 < _g) {
 			var i1 = _g1++;
-			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 1982, className : "FlipBook", methodName : "removeBookmark"});
+			haxe.Log.trace(RunTime.book.bookmarks[i1].pageNum,{ fileName : "FlipBook.hx", lineNumber : 1983, className : "FlipBook", methodName : "removeBookmark"});
 			if(pageNum + 1 != RunTime.book.bookmarks[i1].pageNum) tmp.push(RunTime.book.bookmarks[i1]); else currentBookmark = RunTime.book.bookmarks[i1];
 		}
 		if(currentBookmark != null) currentBookmark.remove();
@@ -1285,6 +1285,7 @@ FlipBook.prototype = {
 		return false;
 	}
 	,onButtonLinkClick: function(x,y) {
+		debugger;
 		var hotlink = this.bookContext.getHotLinkAt(x,y);
 		if(hotlink != null) {
 			hotlink.click();
@@ -1614,7 +1615,10 @@ DoubleFlipBook.prototype = $extend(FlipBook.prototype,{
 		return Std.parseInt(value.substring(0,value.lastIndexOf("px")));
 	}
 	,updateAds: function() {
-		if(this.currentPageNum == 0) this.mainAdHtml.style.display = "block"; else this.mainAdHtml.style.display = "none";
+		try {
+			if(this.currentPageNum == 0) this.mainAdHtml.style.display = "block"; else this.mainAdHtml.style.display = "none";
+		} catch( ex ) {
+		}
 	}
 	,requestMainAd: function() {
 		this.mainAdHtml = js.Lib.document.getElementById("mainAdhtml");
@@ -2328,6 +2332,7 @@ RunTime.alert = function(msg) {
 }
 RunTime.init = function() {
 	RunTime.kvPrex = js.Lib.window.location.pathname.split("?")[0];
+	RunTime.loadingLogo = js.Lib.document.getElementById("loadingLogo");
 	RunTime.clientWidth = js.Lib.window.document.body.clientWidth;
 	RunTime.clientHeight = js.Lib.window.document.body.clientHeight;
 	RunTime.defaultPageNum = Std.parseInt(orc.utils.Util.getUrlParam("page"));
@@ -2528,6 +2533,7 @@ RunTime.requestBookInfo = function() {
 			}
 		} else RunTime.InputPwd();
 		if(!RunTime.singlePage) RunTime.flipBook.requestMainAd();
+		RunTime.hideLoadingLogo();
 	});
 }
 RunTime.InputPwd = function() {
@@ -2703,11 +2709,23 @@ RunTime.navigateUrl = function(url) {
 	if(url == null || url == "null" || url == "") return;
 	js.Lib.window.location.href = url;
 }
+RunTime.showLoadingLogo = function(loadingUrl) {
+	if(loadingUrl == null || loadingUrl == "") return;
+	RunTime.loadingLogo.innerHTML = "<img src='" + loadingUrl + "'>";
+	RunTime.loadingLogo.style.top = (RunTime.clientHeight - RunTime.loadingLogo.clientHeight) / 2 + "px";
+	RunTime.loadingLogo.style.left = (RunTime.clientWidth - RunTime.loadingLogo.clientWidth) / 2 + "px";
+	RunTime.loadingLogo.style.display = "inline";
+}
+RunTime.hideLoadingLogo = function() {
+	RunTime.loadingLogo.innerHTML = "";
+	RunTime.loadingLogo.style.display = "none";
+}
 RunTime.getBookInfo = function() {
 	if(RunTime.bookInfo == null) return;
 	var i = RunTime.bookInfo.elementsNamed("bookinfo");
 	if(i.hasNext() == false) return;
 	var node = i.next();
+	RunTime.showLoadingLogo(node.get("loadingLogo"));
 	RunTime.book.singlepageMode = node.get("singlepageMode") == "true"?true:false;
 	RunTime.book.rightToLeft = node.get("rightToLeft") == "true"?true:false;
 	RunTime.book.autoFlipSecond = Std.parseInt(node.get("autoFlipSeconds"));
@@ -3000,11 +3018,17 @@ RunTime.loadHotlinks = function(ctx) {
 		var popupWidthVal = node.getAttribute("popupWidth");
 		var popupHeightVal = node.getAttribute("popupHeight");
 		var youtubeIdVal = node.getAttribute("youtubeId");
+		var target = node.getAttribute("target");
 		var htmlText = null;
 		var htmlTextDoms = node.getElementsByTagName("cdata");
 		if(htmlTextDoms != null && htmlTextDoms.length > 0) {
 			htmlText = StringTools.trim(htmlTextDoms[0].childNodes[0].nodeValue);
 			htmlText = ctx.getCData(htmlText);
+		}
+		try {
+			var iframe = node.getElementsByTagName("iframe")[0];
+			if(iframe != null) htmlText = "<iframe src=\"" + iframe.getAttribute("src") + "\" frameborder=\"0\" style=\"width:100%;height:100%\" ></iframe>";
+		} catch( ex ) {
 		}
 		var link = new core.HotLink();
 		link.pageNum = Std.parseInt(pageNumVal) - 1;
@@ -3017,6 +3041,7 @@ RunTime.loadHotlinks = function(ctx) {
 		if(popupHeightVal != null) link.popupHeight = Std.parseInt(popupHeightVal);
 		link.youtubeId = youtubeIdVal;
 		link.type = typeVal == null?"":typeVal;
+		if(target != null) link.target = target == ""?"_blank":target;
 		if(colorVal != null) {
 			colorVal = StringTools.replace(colorVal,"0x","#");
 			colorVal = StringTools.replace(colorVal,"0X","#");
@@ -3107,11 +3132,15 @@ RunTime.loadButtons = function() {
 		var fontColorVal = "";
 		var fontSizeVal = "";
 		var target = node.get("target");
-		js.Lib.alert("button " + target);
 		if(node.get("text") != null) textVal = node.get("text");
 		if(node.get("fontColor") != null) fontColorVal = node.get("fontColor");
 		if(node.get("fontSize") != null) fontSizeVal = node.get("fontSize");
 		var htmlText = RunTime.extractCData(node.toString());
+		try {
+			var iframe = node.elementsNamed("iframe").next();
+			if(iframe != null) htmlText = "<iframe src=\"" + iframe.get("src") + "\" frameborder=\"0\" style=\"width:100%;height:100%\" ></iframe>";
+		} catch( ex ) {
+		}
 		var item = new core.ButtonInfo();
 		item.pageNum = Std.parseInt(pageNumVal) - 1;
 		item.x = Std.parseFloat(xVal);
@@ -3349,10 +3378,13 @@ RunTime.setOffset = function(dom,left,top) {
 }
 RunTime.useAnalyticsUA = function(ua,id) {
 	if(RunTime.isNullOrEmpty(ua)) return;
-	RunTime.trackerId = id;
-	var gat = _gat;
-	RunTime.tracker = gat._getTracker(ua);
-	RunTime.tracker._initData();
+	try {
+		RunTime.trackerId = id;
+		var gat = _gat;
+		RunTime.tracker = gat._getTracker(ua);
+		RunTime.tracker._initData();
+	} catch( ex ) {
+	}
 }
 RunTime.log = function(action,msg) {
 	if(RunTime.isNullOrEmpty(msg)) return;
@@ -4346,9 +4378,8 @@ core.ButtonInfo.prototype = {
 					var fun = HxOverrides.substr(this.destination,4,null);
 					if(fun == "content") RunTime.flipBook.onContentsClick(null); else if(fun == "thumb") RunTime.flipBook.onThumbsClick(null); else if(fun == "showtxt") RunTime.flipBook.onShowTxtClick(null); else if(fun == "highlight") RunTime.flipBook.onButtonMaskClick(null); else if(fun == "bookmark") RunTime.flipBook.onButtonBookmark(null); else if(fun == "notes") RunTime.flipBook.onButtonNoteClick(null); else if(fun == "autoflip") RunTime.flipBook.onAutoFlipClick(null); else if(fun == "download") RunTime.onDownloadClick(null); else if(fun == "fliptofront") RunTime.flipBook.turnToFirstPage(null); else if(fun == "flipleft") RunTime.flipBook.turnToPrevPage(null); else if(fun == "flipright") RunTime.flipBook.turnToNextPage(null); else if(fun == "fliptoback") RunTime.flipBook.turnToLastPage(null);
 				} else {
-					js.Lib.alert(this.target);
 					RunTime.logClickLink(this.destination);
-					if("_blank" == this.target) js.Lib.window.location.href = this.destination; else js.Lib.window.open(this.destination,this.target);
+					if("_self" == this.target) js.Lib.window.location.href = this.destination; else js.Lib.window.open(this.destination,this.target);
 				}
 			}
 			break;
@@ -4389,13 +4420,14 @@ core.ButtonInfo.prototype = {
 		}
 	}
 	,hitTest: function(mouseX,mouseY) {
+		debugger;
 		if(this.type == "none") return false;
 		var dp = this.getDrawParams();
 		var xx = dp.dx + (this.x - dp.sx) * (dp.dw / dp.sw);
 		var yy = dp.dy + (this.y - dp.sy) * (dp.dh / dp.sh);
 		var ww = this.width * (dp.dw / dp.sw);
 		var hh = this.height * (dp.dh / dp.sh);
-		haxe.Log.trace("mouseX=" + mouseX + ",mouseY=" + mouseY,{ fileName : "ButtonInfo.hx", lineNumber : 150, className : "core.ButtonInfo", methodName : "hitTest"});
+		haxe.Log.trace("mouseX=" + mouseX + ",mouseY=" + mouseY,{ fileName : "ButtonInfo.hx", lineNumber : 151, className : "core.ButtonInfo", methodName : "hitTest"});
 		var result = mouseX >= xx && mouseY >= yy && mouseX <= xx + ww && mouseY <= yy + hh;
 		return result;
 	}
@@ -4685,6 +4717,7 @@ core.HighLight.prototype = {
 	,__class__: core.HighLight
 }
 core.HotLink = function() {
+	this.target = "_blank";
 	this.opacity = 0.8;
 	this.pageLayoutType = 0;
 	this.color = "#333333";
@@ -4712,7 +4745,7 @@ core.HotLink.prototype = {
 					if(fun == "content") RunTime.flipBook.onContentsClick(null); else if(fun == "thumb") RunTime.flipBook.onThumbsClick(null); else if(fun == "showtxt") RunTime.flipBook.onShowTxtClick(null); else if(fun == "highlight") RunTime.flipBook.onButtonMaskClick(null); else if(fun == "bookmark") RunTime.flipBook.onButtonBookmark(null); else if(fun == "notes") RunTime.flipBook.onButtonNoteClick(null); else if(fun == "autoflip") RunTime.flipBook.onAutoFlipClick(null); else if(fun == "download") RunTime.onDownloadClick(null); else if(fun == "fliptofront") RunTime.flipBook.turnToFirstPage(null); else if(fun == "flipleft") RunTime.flipBook.turnToPrevPage(null); else if(fun == "flipright") RunTime.flipBook.turnToNextPage(null); else if(fun == "fliptoback") RunTime.flipBook.turnToLastPage(null);
 				} else {
 					RunTime.logClickLink(this.destination);
-					js.Lib.window.location.href = this.destination;
+					if("_self" == this.target) js.Lib.window.location.href = this.destination; else js.Lib.window.open(this.destination,this.target);
 				}
 			}
 			break;
@@ -5109,7 +5142,9 @@ core.HtmlHelper.toPopupHtml = function(item) {
 	var top = (RunTime.clientHeight - h) / 2 | 0;
 	var s = "";
 	s += "<div id=\"popupMessage\" style=\"position:absolute; z-index:204; left:" + Std.string(left) + "px; top:" + Std.string(top) + "px; width:" + Std.string(w) + "px; height:" + Std.string(h) + "px; background-color:#ffffff; text-align:left;-moz-transform: scale(0.2);-moz-transition:width  0s ease-out; -webkit-transform: scale(0.2); -webkit-transition: 0s ease-out; \">";
+	s += "<div>";
 	s += Std.string(item.htmlText);
+	s += "</div>";
 	s += "<img width=\"24\" height=\"24\" src=\"content/images/close.png\" onclick=\"clearPopupContents();\" style=\"position:absolute;right:-12px;top:-12px;\" />";
 	s += "</div>";
 	return s;

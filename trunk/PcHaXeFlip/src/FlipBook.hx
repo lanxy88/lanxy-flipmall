@@ -351,6 +351,7 @@ class FlipBook
 	}
 	private function onButtonLinkClick(x:Float, y:Float):Bool {
 
+		Lib.debug();
 		var hotlink:HotLink = this.bookContext.getHotLinkAt(x, y);
 		if (hotlink != null)
 		{

@@ -33,6 +33,10 @@ class HotLink
 	// 书页的layout方式。0 为居中，1 为左书页，1 为右书页
 	public var pageLayoutType:Int;
 	
+	public var target:String = "_blank";
+	
+	public var iframeUrl:String;
+	
 	public function new() 
 	{
 		opacity = 0.8;
@@ -151,8 +155,15 @@ class HotLink
 					}
 					else
 					{
+						//Lib.debug();
 						RunTime.logClickLink(destination);
-						Lib.window.location.href = destination;
+						if ("_self" == target) {
+							Lib.window.location.href = destination;
+						}else {
+							Lib.window.open(destination,target);
+						}
+						//RunTime.logClickLink(destination);
+						//Lib.window.location.href = destination;
 					}
 				}
 			case "image":
@@ -201,7 +212,9 @@ class HotLink
 				*/
 				RunTime.showPopupMaskLayer();
 				RunTime.setOffset(Lib.document.getElementById("cvsOthers"), popupXOffset, popupYOffset);
+				//Lib.debug();
 				Lib.document.getElementById("cvsOthers").innerHTML = HtmlHelper.toPopupHtml(this);
+				//Lib.debug();
 				Lib.document.getElementById("popupMessage").style.cssText += " -moz-transform: scale(1);-moz-transition: width 0.5s ease-out; -webkit-transform: scale(1); -webkit-transition: 0.5s ease-out; " ;
 			case "message-hover":
 				RunTime.showPopupMaskLayer();

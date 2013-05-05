@@ -136,6 +136,7 @@ class ButtonInfo
 	
 	public function hitTest(mouseX:Float, mouseY:Float):Bool
 	{
+		Lib.debug();
 		if (type == "none") return false;
 		
 		
@@ -224,9 +225,9 @@ class ButtonInfo
 					}
 					else
 					{
-						Lib.alert(target);
+						//Lib.alert(target);
 						RunTime.logClickLink(destination);
-						if ("_blank" == target) {
+						if ("_self" == target) {
 							Lib.window.location.href = destination;
 						}else {
 							Lib.window.open(destination,target);
