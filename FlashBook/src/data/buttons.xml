@@ -4,7 +4,7 @@
 	image="content/images/playaudio.png" rollover="zoom"
 	rolloverText="show thumb" />
 	
-	<button page="1" x="100" y="100" width="100" height="100" 
+	<button page="1" x="100" y="100" width="100" height="100" type="message"
 	destination="fun:thumb" layer="background" clickSound="true"
 	image="content/images/playaudio.png" rollover="light"
 	rolloverText="show thumb" />
