@@ -651,11 +651,16 @@ class DoubleFlipBook extends FlipBook
 	public function updateAds():Void 
 	{
 		//Lib.alert("turn");
-		if (currentPageNum == 0) {
-			mainAdHtml.style.display = "block";
-		}else {
-			mainAdHtml.style.display = "none";
+		try {
+			if (currentPageNum == 0) {
+				mainAdHtml.style.display = "block";
+			}else {
+				mainAdHtml.style.display = "none";
+			}
+		}catch (ex:Dynamic) {
+			
 		}
+		
 	}
 	
 	private function getRealValue(value:String):Int {
