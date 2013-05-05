@@ -36,6 +36,8 @@ package common
 		
 		public var clickSound:Boolean = false;
 		
+		public var iframeUrl:String = "";
+		
 		public var layer:int = ButtonInfo.LAYER_ONPAGE;
 		public var rollover:int = ButtonInfo.ROLLOVER_NONE;
 		public var fun:String = "";
@@ -140,6 +142,11 @@ package common
 			if(String(xml.@type))
 			{
 				item.type = String(xml.@type);
+			}
+			
+			if(xml.elements("iframe")[0]){
+				var iframe:XML = xml.elements("iframe")[0];
+				item.iframeUrl = iframe.@src;
 			}
 			
 			var text:String = xml.text();

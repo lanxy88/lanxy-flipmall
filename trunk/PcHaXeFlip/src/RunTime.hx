@@ -1338,6 +1338,9 @@ class RunTime
 			var fontColorVal:String = "";
 			var fontSizeVal:String = "";
 			
+			var target:String = node.get("target");
+			Lib.alert("button "+target);
+			
 			if ( node.get("text") != null) textVal = node.get("text");
 			if ( node.get("fontColor") != null) fontColorVal = node.get("fontColor");
 			if	( node.get("fontSize") != null) fontSizeVal = node.get("fontSize");
@@ -1358,6 +1361,8 @@ class RunTime
 			item.type = typeVal == null ? "" : typeVal;
 			item.image = imageVal;
 			item.text = textVal;
+			
+			if (target != null) item.target = target == ""?"_blank":target;
 			
 			if(fontColorVal != "")	item.fontColor = fontColorVal;
 			if(fontSizeVal != "")	item.fontSize = fontSizeVal;

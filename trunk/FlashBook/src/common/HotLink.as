@@ -1,6 +1,18 @@
 package common
 {
 	import controls.HotLinkBox;
+	
+	import flash.events.Event;
+	import flash.events.IOErrorEvent;
+	import flash.net.URLLoader;
+	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
+	
+	import mx.controls.Text;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	import mx.rpc.http.HTTPService;
+	
 	import utils.Helper;
 
 	public class HotLink
@@ -31,6 +43,8 @@ package common
 		public var target:String ="_self";
 		
 		public var clickSound:Boolean = false;
+		
+		public var iframeUrl:String = "";
 		
 		public function get isMessageHover():Boolean
 		{
@@ -104,18 +118,54 @@ package common
 				hotlink.type = String(xml.@type);
 			}
 			
+			if(xml.elements("iframe")[0]){
+				var iframe:XML = xml.elements("iframe")[0];
+				hotlink.iframeUrl = iframe.@src;
+				/*var urlRequest:URLRequest = new URLRequest(iframe.@src);
+				urlRequest.method = URLRequestMethod.GET;
+				var urlLoader:URLLoader = new URLLoader();
+				urlLoader.addEventListener(Event.COMPLETE,onComplete);
+				urlLoader.addEventListener(IOErrorEvent.IO_ERROR, 
+					function(event:Event): void
+					{
+						trace();
+					}
+				);
+				urlLoader.load(urlRequest);
+				
+				function onComplete(evt:Event):void{
+					var _t:String = evt.currentTarget.data;
+					if(hotlink.type != "message" && hotlink.type != "message-hover")
+					{
+						hotlink.title = _t;
+						hotlink.isRichText = true;
+					}
+					else
+					{
+						hotlink.message = _t;
+					}
+				}*/
+			}
+			
 			var text:String = xml.text();
 			if(text)
 			{
-				if(hotlink.type != "message" && hotlink.type != "message-hover")
-				{
-					hotlink.title = text;
-					hotlink.isRichText = true;
-				}
-				else
-				{
-					hotlink.message = text;
-				}
+				/*try{
+					var f:XML = new XML(text);
+					trace();
+				}catch(err:Error){*/
+					if(hotlink.type != "message" && hotlink.type != "message-hover")
+					{
+						hotlink.title = text;
+						hotlink.isRichText = true;
+					}
+					else
+					{
+						hotlink.message = text;
+					}
+				/*}*/
+				
+				
 			}
 			return hotlink;
 		}

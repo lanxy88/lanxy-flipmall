@@ -15,7 +15,7 @@
 		 mouseOut="onMouseOut(event)"
 		 toolTip="{toTooltip(hotlink)}"
 		 horizontalScrollPolicy="off" 
-		 verticalScrollPolicy="off"
+		 verticalScrollPolicy="off" xmlns:flexiframe="com.google.code.flexiframe.*"
 		 >
 	<mx:Script>
 		<![CDATA[
@@ -40,7 +40,7 @@
 			
 			private function showHandCursor(link:HotLink):Boolean
 			{
-				return (hotlink.destination || hotlink.message || hotlink.youtubeId)?true:false;
+				return (hotlink.destination || hotlink.message || hotlink.youtubeId || hotlink.iframeUrl)?true:false;
 			}
 			
 			private function toTooltip(link:HotLink):String
@@ -148,7 +148,7 @@
 			
 			private function onMouseDown(event:MouseEvent):void
 			{
-				if(!hotlink.destination && !hotlink.message && !hotlink.youtubeId) return;
+				if(!hotlink.destination && !hotlink.message && !hotlink.youtubeId && !hotlink.iframeUrl) return;
 				
 				//if(RunTime.singlePageMode) RunTime.sModeBook.audio.playClickSound();
 				//else RunTime.book.audio.playClickSound();
@@ -213,6 +213,7 @@
 			}
 		]]>
 	</mx:Script>
+	
 	<mx:TextArea editable="false"
 				 backgroundAlpha="0" borderThickness="0"
 				 mouseChildren="{hotlink.isRichText ? true : false}"
@@ -222,6 +223,8 @@
 				 color="{hotlink.fontColor}"
 				 mouseDown="onContentMouseDown(event)"
 			  />
+	<!--<flexiframe:IFrame content="{hotlink.title}" width="100%" color="{hotlink.fontColor}" 
+					   mouseChildren="{hotlink.isRichText?true:false}" mouseDown="onContentMouseDown(event)"/>-->
 	<mx:Label right="0" textAlign="right" mouseChildren="false"
 			  text="{hotlink.pageText}"
 			  fontSize="{hotlink.fontSize}" 
