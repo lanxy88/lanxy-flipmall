@@ -2885,6 +2885,8 @@ RunTime.loadButtons = function() {
 		var textVal = "";
 		var fontColorVal = "";
 		var fontSizeVal = "";
+		var target = node.get("target");
+		js.Lib.alert("button " + target);
 		if(node.get("text") != null) textVal = node.get("text");
 		if(node.get("fontColor") != null) fontColorVal = node.get("fontColor");
 		if(node.get("fontSize") != null) fontSizeVal = node.get("fontSize");
@@ -2904,6 +2906,7 @@ RunTime.loadButtons = function() {
 		item.type = typeVal == null?"":typeVal;
 		item.image = imageVal;
 		item.text = textVal;
+		if(target != null) item.target = target == ""?"_blank":target;
 		if(fontColorVal != "") item.fontColor = fontColorVal;
 		if(fontSizeVal != "") item.fontSize = fontSizeVal;
 		RunTime.book.buttons.push(item);
@@ -3179,7 +3182,7 @@ RunTime.readLocalBookmarks = function() {
 				bookmark.fillData(szKey,localStorage.getItem(szKey));
 				bookmarks.push(bookmark);
 				RunTime.book.bookmarks.push(bookmark);
-				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1806, className : "RunTime", methodName : "readLocalBookmarks"});
+				haxe.Log.trace("bookmark.text:" + bookmark.text + "  pagenum: " + bookmark.pageNum,{ fileName : "RunTime.hx", lineNumber : 1810, className : "RunTime", methodName : "readLocalBookmarks"});
 			}
 		}
 	}
@@ -4092,6 +4095,7 @@ core.Bookmark.prototype = {
 	,__class__: core.Bookmark
 }
 core.ButtonInfo = function() {
+	this.target = "_blank";
 	this.fontSize = "12";
 	this.fontColor = "#ffffff";
 	this.text = "";
@@ -4120,8 +4124,9 @@ core.ButtonInfo.prototype = {
 					var fun = HxOverrides.substr(this.destination,4,null);
 					if(fun == "content") RunTime.flipBook.onContentsClick(null); else if(fun == "thumb") RunTime.flipBook.onThumbsClick(null); else if(fun == "showtxt") RunTime.flipBook.onShowTxtClick(null); else if(fun == "highlight") RunTime.flipBook.onButtonMaskClick(null); else if(fun == "bookmark") RunTime.flipBook.onButtonBookmark(null); else if(fun == "notes") RunTime.flipBook.onButtonNoteClick(null); else if(fun == "autoflip") RunTime.flipBook.onAutoFlipClick(null); else if(fun == "download") RunTime.onDownloadClick(null); else if(fun == "fliptofront") RunTime.flipBook.turnToFirstPage(null); else if(fun == "flipleft") RunTime.flipBook.turnToPrevPage(null); else if(fun == "flipright") RunTime.flipBook.turnToNextPage(null); else if(fun == "fliptoback") RunTime.flipBook.turnToLastPage(null);
 				} else {
+					js.Lib.alert(this.target);
 					RunTime.logClickLink(this.destination);
-					js.Lib.window.location.href = this.destination;
+					if("_blank" == this.target) js.Lib.window.location.href = this.destination; else js.Lib.window.open(this.destination,this.target);
 				}
 			}
 			break;

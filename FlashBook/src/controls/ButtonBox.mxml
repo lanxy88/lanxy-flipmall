@@ -65,7 +65,7 @@
 				if(item.type == 'none') return false;
 				else
 				{
-					return (item.destination || item.message || item.youtubeId)?true:false;
+					return (item.destination || item.message || item.youtubeId || item.iframeUrl)?true:false;
 				}
 			}
 			
@@ -234,7 +234,7 @@
 			
 			private function onMouseDown(event:MouseEvent):void
 			{
-				if(!buttonInfo.destination && !buttonInfo.message && !buttonInfo.youtubeId) return;
+				if(!buttonInfo.destination && !buttonInfo.message && !buttonInfo.youtubeId && !buttonInfo.iframeUrl) return;
 				
 				//if(RunTime.singlePageMode) RunTime.sModeBook.audio.playClickSound();
 				//else RunTime.book.audio.playClickSound();

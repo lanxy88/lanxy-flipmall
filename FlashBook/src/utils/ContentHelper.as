@@ -206,7 +206,8 @@ package utils
 			cnt.height = Math.min(cnt.height,RunTime.mainApp.height-100);
 			cnt.width = Math.min(cnt.width,RunTime.mainApp.width-100);
 			
-			cnt.message = msg;
+			if(item.iframeUrl) cnt.iframeUrl = item.iframeUrl;
+			else cnt.message = msg;
 			cnt.showDialog();
 			return cnt;
 		}
@@ -232,7 +233,9 @@ package utils
 			
 			cnt.height = Math.min(cnt.height,RunTime.mainApp.height-100);
 			cnt.width = Math.min(cnt.width,RunTime.mainApp.width-100);
-			cnt.message = msg;
+			if(item.iframeUrl) cnt.iframeUrl = item.iframeUrl;
+			else cnt.message = msg;
+//			cnt.message = msg;
 			cnt.showDialog(x,y,false);
 
 			return cnt;

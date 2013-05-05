@@ -17,7 +17,7 @@
 						  creationCompleteEffect="{(isSwf() || isHover()) ? null : zoomAll}"
 						  horizontalScrollPolicy="off"
 						  verticalScrollPolicy="off"
-						  visible="true">
+						  visible="true" xmlns:flexiframe="com.google.code.flexiframe.*">
 	<mx:Script>
 		<![CDATA[
 			import common.PlayList;
@@ -25,6 +25,7 @@
 			import common.SoundContainer;
 			import common.VideoInfo;
 			
+			import mx.events.EffectEvent;
 			import mx.events.TweenEvent;
 			import mx.managers.PopUpManager;
 			
@@ -63,7 +64,9 @@
 			public var type:String="";
 
 			[Bindable]
-			public var message:String="";
+			public var message:String=null;
+			
+			private var _iframeUrl:String;
 
 			private function onTimeOut(e:Event):void
 			{
@@ -211,6 +214,37 @@
 			{
 				SharedObjectManager.instance.saveAudioBoxPostion();
 			}
+
+			[Bindable]
+			public function get iframeUrl():String
+			{
+				return _iframeUrl;
+			}
+
+			public function set iframeUrl(value:String):void
+			{
+				_iframeUrl = value;
+				 /* if(isHover()){
+					msgif.visible = true;
+				}  */
+			}
+
+			
+			protected function zoomAll_effectEndHandler(event:EffectEvent):void
+			{
+				// TODO Auto-generated method stub
+				if (iframeUrl) 
+				{
+					msgif.visible = true;
+				}
+			}
+			
+			protected function msgif_frameLoadHandler(event:Event):void
+			{
+				if(isHover()){
+					msgif.visible = true;
+				}
+			}
 			
 		]]>
 	</mx:Script>
@@ -219,6 +253,7 @@
 			 zoomWidthTo="1"
 			 zoomHeightTo="1"
 			 zoomWidthFrom="0.5"
+			 effectEnd="zoomAll_effectEndHandler(event)"
 			 zoomHeightFrom="0.5"/>
 	<mx:Canvas x="-8"
 			   y="-8"
@@ -253,7 +288,7 @@
 					  init="onSwfResize()"
 					  width="{width}"
 					  height="{height}"/>
-		<mx:TextArea width="100%"
+		<mx:TextArea width="100%" id="msgta"
 					 height="100%"
 					 wordWrap="true"
 					 visible="{type=='message' || type == 'message-hover'}"
@@ -261,6 +296,8 @@
 					 backgroundColor="0x333333"
 					 borderStyle="none"
 					 borderThickness="0"/>
+		<flexiframe:IFrame width="100%" height="100%" visible="{false}" frameLoad="msgif_frameLoadHandler(event)"
+						    source="{iframeUrl}" backgroundColor="0x333333" id="msgif"/>
 	</mx:Canvas>
 	<player:GIFPlayer id="gifPlayer"
 					  width="1"
