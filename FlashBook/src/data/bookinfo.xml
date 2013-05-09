@@ -181,7 +181,7 @@ global: mK6go5Js -->
 <!--  		]]> -->
 <!-- 	</mainAd> -->
 
-	<mainAd url="content/images/gap.JPG" href="" hideWhenOpened="False"/>
+	<mainAd url="content/images/12.jpg" href="" hideWhenOpened="False" dockPos="halfpage" layout="fill" />
 	
 	<!-- 右键菜单 -->
 	<contextmenu>

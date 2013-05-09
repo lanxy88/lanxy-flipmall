@@ -4,6 +4,7 @@
 		 xmlns:controls="controls.*"
 		 backgroundAlpha="0" creationComplete="vbox1_creationCompleteHandler(event)"
 		 updateComplete="vbox1_updateCompleteHandler(event)"
+		 
 		 horizontalAlign="right" verticalAlign="middle">
 	<mx:Script>
 		<![CDATA[
@@ -41,14 +42,15 @@
 			protected function vbox1_creationCompleteHandler(event:FlexEvent):void
 			{
 				// TODO Auto-generated method stub
-				updateLayout();
+//				updateLayout();
 				adImg.addEventListener(Event.COMPLETE,onImgLoaded);
 				function onImgLoaded(evt:Event):void
 				{
-					if(layout==STRETCH){
+//					if(layout==STRETCH){
 						adImg.width = Bitmap(adImg.content).bitmapData.width;
 						adImg.height = Bitmap(adImg.content).bitmapData.height;
-					}
+//					}
+					updateLayout();
 				}
 			}
 
@@ -136,13 +138,16 @@
 						}
 						break;
 					case FILL:
+						adImg.percentHeight = adImg.percentWidth = 100;
 						var rw:Number = this.width/outBox.width;
 						var rh:Number = this.height/outBox.height;
 						var r:Number = Math.min(rw,rh);
+						if(r==0) break;
 						this.height = this.height*1/r;
 						this.width = this.width*1/r;
 						break;
 					case FIT:
+						adImg.percentHeight = adImg.percentWidth = 100;
 						var rw:Number = this.width/outBox.width;
 						var rh:Number = this.height/outBox.height;
 						var r:Number = Math.max(rw,rh);
@@ -152,8 +157,11 @@
 					case CENTER:
 						this.width = outBox.width;
 						this.height = outBox.height;
-						break;
 						
+						break;						
+				}
+				if(adImg.width>width || adImg.height>height){
+					adImg.percentHeight = adImg.percentWidth = 100;
 				}
 			}
 
