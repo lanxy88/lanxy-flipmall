@@ -11,6 +11,7 @@
 		   mouseOut="onMouseOut(event)"
 		   mouseOver="onMouseOver(event)"
 		   alpha="0.6"
+		   clipContent="false"
 		   >
 
 	<mx:Script>
@@ -243,7 +244,7 @@
 			{
 				//if(zoom != null && zoom.isPlaying) return;
 				
-				if(zoom == null) zoom = new Zoom(this);
+				if(zoom == null) zoom = new Zoom(pageBox);
 				zoom.stop();
 				zoom.duration=250;
 				zoom.zoomHeightFrom = 1.2;
@@ -254,14 +255,14 @@
 				if(!checked) this.alpha = darkAlpha;
 				
 				zoom.play();
-
+				
 			}
 			
 			protected function onMouseOver(event:MouseEvent):void
 			{
 				//if(zoom != null && zoom.isPlaying) return;
 				
-				if(zoom == null) zoom = new Zoom(this);
+				if(zoom == null) zoom = new Zoom(pageBox);
 				zoom.stop();
 				zoom.duration=250;
 				if(!zoom.isPlaying)	zoom.zoomHeightFrom = 1;
@@ -271,17 +272,18 @@
 				zoom.play();
 				
 				this.alpha = 1;
-				
+				event.stopImmediatePropagation();
 			}
 			
 		]]>
 	</mx:Script>
 	
-	<mx:VBox width="{this.width}" height="100%" verticalScrollPolicy="off" verticalGap="0" 
-			  >
+	<mx:VBox width="{this.width+24}" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off" clipContent="false"
+			 verticalCenter="0" horizontalAlign="center"
+			  verticalAlign="middle" >
 		<!-- <mx:Label color="0xffffff" width="100%" text="{getTitle()}" textAlign="center" /> -->
-		<mx:HBox horizontalGap="0" id="pageBox" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 buttonMode="true" useHandCursor="true" mouseChildren="false">
+		<mx:HBox   id="pageBox" horizontalScrollPolicy="off" verticalScrollPolicy="off" height="100%" horizontalGap="0" verticalCenter="0"
+				 buttonMode="true" useHandCursor="true" mouseChildren="false" verticalAlign="middle" >
 		</mx:HBox>
 	</mx:VBox>
 

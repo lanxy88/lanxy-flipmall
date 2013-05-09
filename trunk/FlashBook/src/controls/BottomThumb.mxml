@@ -300,7 +300,7 @@
 	
 	
 	<mx:HBox id="hb" width="100%" horizontalScrollPolicy="off" verticalAlign="middle" height="100%" horizontalAlign="center">
-		<mx:HBox id="thumbsSlide" horizontalCenter="0" verticalAlign="middle">
+		<mx:HBox id="thumbsSlide" horizontalCenter="0" horizontalGap="20">
 		</mx:HBox>
 	</mx:HBox>
 	

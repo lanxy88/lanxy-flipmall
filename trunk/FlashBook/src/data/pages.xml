@@ -4,7 +4,7 @@
 <page id="2" source="test/case01/page1.png" shadow="false" thumb="content/thumbs/thumb2.jpg"/>
 <page id="3" source="test/case01/page2.png" shadow="false" thumb="content/thumbs/thumb2.jpg"/>
 -->
-<page id="1" source="content/pages/page1.jpg" shadow="true" thumb="content/thumbs/thumb5.jpg" canZoom="true"/>
+<page id="1" source="content/pages/page1.jpg" shadow="true" thumb="content/thumbs/thumb2_.jpg" canZoom="true"/>
 
 
 <page id="2" source="content/pages/page2.jpg" shadow="false" thumb="content/thumbs/thumb2.jpg" canZoom="false"/>
