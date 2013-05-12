@@ -137,6 +137,11 @@ package service
 				
 			}
 			
+			//其他请求
+			if(RunTime.bookConfig.bottommenu.zoom.@mode){
+				RunTime.zoomMode = String(RunTime.bookConfig.bottommenu.zoom.@mode);
+			}
+			
 		}
 		
 		private function loadCustomEnableButton(absUrl:String,btn:String):void{

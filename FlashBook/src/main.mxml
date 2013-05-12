@@ -64,6 +64,9 @@
 			private var mouseListener:BookMouseListener;
 			private var stageMouseListener:StageMouseListener;
 			private var isBookResizeOk:Boolean = false;
+
+			[Bindable]
+			public var flipArrow:Boolean;
 			
 //			[Bindable]
 //			private var isMainAdHideWhenOpened:Boolean = false;
@@ -576,7 +579,13 @@
 				}
 				
 				
-				
+				try{
+					if(bookConfig.attribute("flipArrow")){
+						flipArrow = Boolean(String(bookConfig.@flipArrow));
+					}
+				}catch(ex:Error){
+					
+				}
 				
 				
 				if(String(bookConfig.@showZoomBox))
@@ -1505,14 +1514,21 @@
 			
 			private function zoomOutBook():void
 			{
-				if(RunTime.zoomedIn)
-				{
-					
+//				if(mode = "out"){
 					showFlowTurnButton(false);
 					book.zoomActive = true;
 					showBookNavigation(true);
 					focusOn( bookCanvas );
-				}
+					
+//				}else if(RunTime.zoomedIn)
+//				{
+//					
+//					showFlowTurnButton(false);
+//					book.zoomActive = true;
+//					showBookNavigation(true);
+//					focusOn( bookCanvas );
+//				}
+				
 			}
 			
 			private function onZoomComplete(event:BookEvent):void
@@ -2953,10 +2969,15 @@
 			
 			private function zoom(focus:Point = null):void
 			{
-
-				(RunTime.zoomedIn == false) ? zoomInBook(focus):zoomOutBook();
-				autoFlip=false;
-				checkFlip();
+//				if(method=="in"){
+					(RunTime.zoomedIn == false) ? zoomInBook(focus):zoomOutBook();
+					autoFlip=false;
+					checkFlip();
+//				}else if(method=="out"){
+//					zoomOutBook(method);
+//					autoFlip=false;
+//					checkFlip();
+//				}
 			}
 			
 			private function isShowCornerTease(isZoomedIn:Boolean, mouseState:int):Boolean
@@ -4022,6 +4043,34 @@
 				
 			}
 			
+			private function getArrowPoints(directx:int=-1):Array
+			{
+				if(directx == -1) 
+					return 	[{x:12,y:32},{x:-16,y:0},{x:12,y:-32}];
+				return 	[{x:-12,y:32},{x:16,y:0},{x:-12,y:-32}]; 
+			}
+			
+			private function updatePageArrow():void
+			{
+				if(!flipArrow){
+					turnLeftArrow.visible = turnRightArrow.visible = false;
+					return;
+				}
+				if(book.canTurnBackward()) turnLeftArrow.visible = true;
+				else turnLeftArrow.visible = false;
+				if(book.canTurnForward()) turnRightArrow.visible = true;
+				else turnRightArrow.visible = false;
+			}
+			
+			protected function btnZoomOut_clickHandler(type:String = 'zoomIn'):void
+			{
+				// TODO Auto-generated method stub
+//				if(zoomBox.scale>0.5) zoomBox.zoom(-0.2);
+//				zoom(null,"out");
+				Helper.bringTop(zoomBox);
+				RunTime.removeHighlightOn();
+			}
+			
 		]]>
 	</Script>
 	
@@ -4067,14 +4116,14 @@
 							  pageZoomComplete="onZoomComplete(event);"
 							  transformChanged="changeBookMarks(event)" >
 			
-			<Box width="100%" height="100%"
+			<Box width="100%" height="100%" 
 				 paddingTop="{getBookPaddingTop2(RunTime.fullScreen,0)}"
 				 paddingLeft="{computePaddingLeft(RunTime.bookmarkRecords)}" 				 
 				 paddingRight="{computePaddingRight(RunTime.bookmarkRecords,adRight.width,RunTime.fullScreen)}" 
 				 paddingBottom="{getBookPaddingBottom2()}"
 				 >
 				
-				<Canvas id="bookCanvas" width="100%" height="100%" clipContent="false"
+				<Canvas id="bookCanvas" width="100%" height="100%" clipContent="false" 
 						resize="setBookSize();updateHighlights();updateNotes();updateRss(); updateFunButtons();"
 						horizontalScrollPolicy="off" verticalScrollPolicy="off" >
 					<controls:FlexBook
@@ -4114,6 +4163,7 @@
 							updateFocusController();
 							checkMainAdIndex();
 							updateZoomBoxHotArea();
+							updatePageArrow();
 
 						}" 
 						change="{stage.focus=null;}"
@@ -4155,7 +4205,21 @@
 							horizontalScrollPolicy="off" 
 							clipContent="false" color="0x000000"/>
 					<Canvas id="funButtonsLayer" x="{book.x}" y="{book.y}" clipContent="false" color="0x000000" />
-					<Canvas id="bgLayerButtons" x="{book.x}" y="{book.y}"  clipContent="false" />
+					<Canvas id="bgLayerButtons" x="{book.x}" y="{book.y}"  clipContent="false"  />
+					
+					<Canvas id="turnLeftArrow" left="{book.x -50}" height="{book.height}" width="32" verticalCenter="0" buttonMode="true" mouseEnabled="true"
+							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnLeftArrow.filters = [new GlowFilter(0x000000,0.2,8,8)]"  
+							click="{if(book.canTurnBackward())book.turnToPage(book.currentPageIndex-1)}" mouseOut="turnLeftArrow.filters = [];">
+						<fbc:PolygonIcon scaleX="0.3" scaleY="0.3"  color="#ffffff" points="{getArrowPoints()}" verticalCenter="0"
+										 horizontalCenter="0"/>	
+					</Canvas>
+					<Canvas id="turnRightArrow" left="{book.x+book.width + 16}" height="{book.height}" width="32" verticalCenter="0" buttonMode="true" mouseEnabled="true"
+							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnLeftArrow.filters = [new GlowFilter(0x000000,0.2,8,8)]" 
+							click="{if(book.canTurnForward())book.turnToPage(book.currentPageIndex+1)}"  mouseOut="turnLeftArrow.filters = [];">
+						<fbc:PolygonIcon scaleX="0.3" scaleY="0.3"  color="#ffffff" points="{getArrowPoints()}" verticalCenter="0"
+										 horizontalCenter="0" rotation="180"/>	
+					</Canvas>
+					
 				</Canvas>
 			</Box>
 		</containers:Landscape>
@@ -4193,6 +4257,7 @@
 						scale="{getLandscapeScale(landscape.scale, landscape.scaleByDragBox)}"
 						change="{
 							landscape.zoomToScale(zoomBox.scale);
+						Alert.show('scale: '+zoomBox.scale);
 						}"
 						fitfullpage="zoomBox_fitfullpageHandler(event)"
 						settingchange="zoomBox_settingchangeHandler(event)"
@@ -4242,6 +4307,7 @@
 			  horizontalCenter="0"
 			  horizontalAlign="center" 
 			  verticalScrollPolicy="off"
+			  horizontalScrollPolicy="off"
 			  horizontalGap="4"
 			  >
 			<fbc:TurnPageIcon id="tpiLeft" direct="-1" scaleX="0.3" scaleY="0.3" backgroundColor="#ff0000"
@@ -4270,11 +4336,11 @@
 			   />
 		<HBox id="menuBottomLeft"
 			  horizontalGap="3" 
-			  width="{RunTime.iconSameSize?130:90}"
+			  width="{RunTime.iconSameSize?150:90}"
 			  height="{RunTime.iconSameSize?RunTime.iconSize:16}"
 			  horizontalAlign="left"
 			  horizontalCenter="{RunTime.iconSameSize?-270:-230}" 
-			
+			  horizontalScrollPolicy="off"
 			  verticalCenter="0" 
 			  visible="{bookConfig}"
 			  >
@@ -4386,11 +4452,12 @@
 						   />
 		<HBox id="menuBottomRight" 
 			  height="27"
-			  width="365" 
+			  width="385" 
 			  paddingLeft="65"  
 			  horizontalGap="0" 
 			  horizontalCenter="245"  
 			  verticalCenter="0"
+			  horizontalScrollPolicy="off"
 			  visible="{bookConfig}"
 			  >
 			<fbc:ImageButton id="btnSoundSetting" 
@@ -4413,8 +4480,27 @@
 								l.i.s('ZoomIn','Zoom In') 
 								: l.i.s('ZoomOut','Zoom Out')}"
 								width="{String(bookConfig.bottommenu.zoom.@visible) == 'true' ? 27 : 0}"
-								
+								visible="{RunTime.zoomMode=='normal'?true:false}" includeInLayout="{RunTime.zoomMode=='normal'?true:false}"
 								/>
+			<!--new zoom mode -->
+			<HBox verticalAlign="middle" visible="{RunTime.zoomMode=='scalable'?true:false}" 
+				  includeInLayout="{RunTime.zoomMode=='scalable'?true:false}">
+				<fbc:ImageButton id="btnNewZoomIn"  
+								 source="{ RunTime.iconZoomIn }"
+								 click="btnZoomOut_clickHandler('zoomIn')"
+								 updateComplete="{refMenuBottomRight.updateReflection();}"
+								 toolTip="{l.i.s('ZoomIn','Zoom In')}"
+								 width="27"
+								 />
+				<fbc:ImageButton id="btnNewZoomOut"  
+								 source="{ RunTime.iconZoomOut }"
+								 click="btnZoomOut_clickHandler('zoomOut')"
+								 updateComplete="{refMenuBottomRight.updateReflection();}"
+								 toolTip="{l.i.s('ZoomOut','Zoom Out')}"
+								 width="27"
+								 />
+			</HBox>
+			
 			<Spacer width="{String(bookConfig.bottommenu.zoom.@visible) == 'true' ? 10 : 0}" />
 			
 			<fbc:ImageButton id="btnAutoFlip" 

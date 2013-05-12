@@ -99,6 +99,7 @@ global: mK6go5Js -->
  analyticsUA=""
  bookSize="10"
  bgPosition="fill"
+ flipArrow="true"
  >
  	<tooltip bgColor="#ff00ff" fgColor="#000000" showZoomTip="true" showFlipTip="true" />
 	<bottomthumb bgAlpha="0.59" bgColor="0x000000"  visible="true" />
@@ -128,7 +129,8 @@ global: mK6go5Js -->
 		<info visible="true" url="info.htm"  icon=""/>
 		<back visible="true"  icon=""/>
 		<forward visible="true"  icon=""/>
-		<zoom visible="true"  icon="" dicon=""/>
+		<!-- mode normal/scalable -->
+		<zoom visible="true"  icon="" dicon="" mode="scalable"/>
 		<autoflip visible="true"  icon=""/>
 		<search visible="true"  icon=""/>
 		<highlight visible="true"  icon=""/>
