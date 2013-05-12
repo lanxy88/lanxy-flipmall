@@ -395,6 +395,12 @@ package
 		public static var zoomedIn: Boolean = false;
 		
 		[Bindable]
+		public static var zoomMode:String = "normal";
+		
+		[Bindable]
+		public static var zoomedOut:Boolean = false;
+		
+		[Bindable]
 		public static var mainApp:Application;
 		
 		[Bindable]

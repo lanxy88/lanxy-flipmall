@@ -4,7 +4,7 @@
 		 xmlns:controls="controls.*"
 		 backgroundAlpha="0" creationComplete="vbox1_creationCompleteHandler(event)"
 		 updateComplete="vbox1_updateCompleteHandler(event)"
-		 
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 		 horizontalAlign="right" verticalAlign="middle">
 	<mx:Script>
 		<![CDATA[
