@@ -1422,7 +1422,7 @@
 				}
 				
 			
-				if(!RunTime.zoomedIn)
+				if( !RunTime.zoomedIn)
 				{
 					
 					var target:DisplayObject = bookCanvas;
@@ -4062,17 +4062,145 @@
 				else turnRightArrow.visible = false;
 			}
 			
+			public function zoomInBook2(focus:Point = null, limit:Number = 0): void
+			{
+				
+				var leftPage:int = book.getLeftPageNumber()-1;
+				var rightPage:int = book.getRightPageNumber()-1;
+				if(leftPage >=0){
+					if(!RunTime.bookPages[leftPage].canZoom){
+						return;
+					}
+				}
+				if(rightPage >=0){
+					if(!RunTime.bookPages[rightPage].canZoom){
+						return;
+					}
+				}
+				
+				if(RunTime.zoomMode=='scalable')
+				{
+					var target:DisplayObject = bookCanvas;
+					book.zoomActive = true;
+					var controller:DoublePageFocusController = new DoublePageFocusController();;
+					
+					if(this.book.getLeftPageNumber() == -1)
+					{
+						controller.focusMode = 1;
+					}
+					else if(this.book.getRightPageNumber() == -1) 
+					{
+						controller.focusMode = -1;
+					}
+					else
+					{
+						controller.isDoublePage = true;
+						if(focus != null)
+						{
+							var middle:Point = target.localToGlobal(new Point(0.5*target.width,0));
+							var isLeftPage:Boolean = focus.x < middle.x;
+							controller.focusMode = isLeftPage ? -1 : 1;
+						}
+						else
+						{
+							controller.focusMode = 1;
+						}
+					}
+					
+					if(limit > 0)
+					{
+						this.landscape.dragZoomScale = limit;
+						this.landscape.scaleByDragBox = true;
+						this.landscape.scaleByDragBoxActive = true;
+						controller.disenableFitFullScreen = true;
+					}
+					else
+					{
+						landscape.scaleByDragBox = false;
+						this.landscape.scaleByDragBoxActive = false;
+					}
+					
+					if(focus != null)
+					{
+						focusOn( target,focus.x, focus.y,controller);
+					}
+					else
+					{
+						focusOn( target,0,0,controller);
+					} 
+					
+					closeNoteDetails();
+//					Helper.ensureTop(landscape,mainAdBox);
+					
+					RunTime.showLeftMenu(!RunTime.hideLefMenuAfterZoom );
+					RunTime.showBottomMenu(!RunTime.hideBottomMenuAfterZoom);
+					showFlowTurnButton(true);
+				}
+			}
+			
+			
+			private var initZoomEnv:Boolean = false;
+			private var pageChanged:Boolean = false;
+			
 			protected function btnZoomOut_clickHandler(type:String = 'zoomIn'):void
 			{
-				// TODO Auto-generated method stub
-//				if(zoomBox.scale>0.5) zoomBox.zoom(-0.2);
-//				zoom(null,"out");
+				if(!initZoomEnv || pageChanged){
+					zoomInBook2();
+					initZoomEnv = true;
+					pageChanged = false;
+				}
+				zoomBox.visible = true;				
 				Helper.bringTop(zoomBox);
-				RunTime.removeHighlightOn();
+				switch(type){
+					case "zoomIn":
+						//
+						zoomBox.zoom(0.4);
+//						zoomBox.scale = zoomBox.scale + 0.2;
+						break;
+					case "zoomOut":
+						//
+						zoomBox.zoom(-0.4);
+//						zoomBox.scale = zoomBox.scale - 0.2;
+						break;
+				}
+				
+				autoFlip=false;
+				checkFlip();
+				
+				//
+				/* zoomBox2.renderSnapshot(book);
+				
+				if(type=="zoomIn") {
+					if(bookCanvas.scaleX<=2){
+						bookCanvas.scaleX +=0.2;
+						bookCanvas.scaleY +=0.2;
+					}
+				}
+				else if(type=="zoomOut") {
+					if(bookCanvas.scaleX>=0.4){
+						bookCanvas.scaleX -=0.2;
+						bookCanvas.scaleY -=0.2;
+					}
+				}
+				if(bookCanvas.scaleX!=1) zoomBox2.visible = true;
+				else zoomBox2.visible = false;
+				zoomBox2.scale = bookCanvas.scaleX;
+				//
+				Helper.bringTop(zoomBox);
+				RunTime.removeHighlightOn(); */
+			}
+			
+			protected function zoomBox2_changeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+//				bookCanvas.scaleX = zoomBox2.scale;
+//				bookCanvas.scaleY = zoomBox2.scale;
 			}
 			
 		]]>
 	</Script>
+	
+<!--	<Zoom id="bookZoomEffect" duration="400"/>-->
 	
 	<Canvas id="bookarea" height="100%" left="0" right="0"
 			verticalScrollPolicy="off" horizontalScrollPolicy="off" 
@@ -4164,7 +4292,7 @@
 							checkMainAdIndex();
 							updateZoomBoxHotArea();
 							updatePageArrow();
-
+							pageChanged = true;
 						}" 
 						change="{stage.focus=null;}"
 						resize="{updateNotes();updateRss();}"
@@ -4223,12 +4351,11 @@
 				</Canvas>
 			</Box>
 		</containers:Landscape>
-		<Canvas id="mainAdBox"
+		<Canvas id="mainAdBox"   top="{bookCanvas.y + 10}"
 				right="{ RunTime.rightToLeft == false ? adRight.width + bookCanvas.width/2 +20 : NaN }"
 				left="{ RunTime.rightToLeft == false ? NaN : bookCanvas.width/2 +20 }"
-				verticalCenter="0"
 				width="{mainAd.dockPos=='halfscreen'?this.width/2-120:book.width/2}"
-				height="{bookCanvas.height}" 
+				height="{bookCanvas.height -20}" 
 				horizontalScrollPolicy="off"
 				verticalScrollPolicy="off"
 				>
@@ -4257,7 +4384,6 @@
 						scale="{getLandscapeScale(landscape.scale, landscape.scaleByDragBox)}"
 						change="{
 							landscape.zoomToScale(zoomBox.scale);
-						Alert.show('scale: '+zoomBox.scale);
 						}"
 						fitfullpage="zoomBox_fitfullpageHandler(event)"
 						settingchange="zoomBox_settingchangeHandler(event)"
@@ -4265,6 +4391,13 @@
 						fitwidth="{zoomBox_fitWindowHandler();}"
 						>
 		</fbc:ZoomBox>
+		<!--<fbc:ZoomBox2 id="zoomBox2" includeInLayout="{RunTime.zoomMode=='scalable'}"
+					 x="{computeBaseVBoxX(width,zoomBox,10)}"
+					 y="{computeBaseVBoxY(height,zoomBox,10)}"
+					 visible="false" change="zoomBox2_changeHandler(event)"
+					 fit100="zoomBox_fit100Handler(event)"
+					 >
+		</fbc:ZoomBox2>-->
 		<fbc:SearchBox id="searchBox"
 						  x="{computeBaseVBoxX(width,searchBox,20)}"
 						  y="{computeBaseVBoxY(height,searchBox,20)}"
