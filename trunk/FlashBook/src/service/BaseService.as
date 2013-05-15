@@ -138,7 +138,7 @@ package service
 			}
 			
 			//其他请求
-			if(RunTime.bookConfig.bottommenu.zoom.@mode){
+			if(String(RunTime.bookConfig.bottommenu.zoom.@mode)){
 				RunTime.zoomMode = String(RunTime.bookConfig.bottommenu.zoom.@mode);
 			}
 			
