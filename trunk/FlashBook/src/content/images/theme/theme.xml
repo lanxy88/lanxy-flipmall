@@ -1,0 +1,35 @@
+<bookinfo bgColor="#454545 " bgImage="bg.jpg" bgPosition="stretch" windowColor="#3AAE01" themeName="Geen">
+	<leftmenu showTabBackground="false">
+		<issues visible="true" icon="library.png"/>
+		<toc visible="true" icon="toc.png"/>
+		<thumbs visible="true" icon="thumb.png"/>
+		<email visible="true" icon="email.png"/>
+		<sns visible="true" icon="share.png"/>            
+		<print visible="true" icon="print.png"/>
+		<pdf visible="true" icon="pdf.png"/>
+		<download visible="true" icon="download.png"/>
+		<setting visible="true" icon="settings.png"/>
+		<about visible="true" icon="about.png"/>
+                <close visible="true" icon="close.png"/>
+	</leftmenu>
+
+	<bottommenu iconSameSize="true">
+		<help visible="true" icon="help.png"/>
+		<info visible="true" icon="info.png"/>
+		<zoom visible="true" icon="zoomin.png" dicon="zoomout.png"/>
+		<autoflip visible="true" icon="autoflip.png"/>
+		<search visible="true" icon="search.png"/>
+		<highlight visible="true" icon="highlight.png"/>
+		<bookmark visible="true" icon="bookmark.png"/>
+		<notes visible="true" icon="note.png"/>
+		<fullscreen visible="true" icon="fullscreen.png" dicon="exitfullscreen.png"/>
+		<sound visible="true" icon="audiooff.png" dicon="audioon.png"/>
+                <back visible="true" icon="back.png"/>
+                <forward visible="true" icon="forward.png"/>
+                <firstpage visible="true" icon="first.png" />
+                <prevpage visible="true" icon="previous.png" />
+                <nextpage visible="true" icon="next.png" />
+                <lastpage visible="true" icon="last.png" />
+
+        </bottommenu>
+</bookinfo>

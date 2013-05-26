@@ -1,0 +1,91 @@
+<hotlinks>
+
+		<hotlink page="1" title="LOCALFILE" 
+			 x="5" y="150" width="500" height="20" 
+			 color="#0080FF" fontColor="0x000000" fontSize="12" destination="c:/abc.doc"
+			  />
+			  
+		<hotlink page="10" title="HOTLINK TITLE"
+			 x="5" y="60" width="500" height="200" 
+			 color="#0080FF" fontColor="0x000000" fontSize="12"
+			 opacity="0.8" rolloverOpacity="0.5"
+			 rolloverText="tool tip" rolloverColor="0xAA0000" destination="http://www.geblab.com/hotlink.html"
+			  />
+		<hotlink page="2"
+			 x="5" y="360" width="500" height="20" 
+			 color="#0080FF" fontColor="0x000000" fontSize="12" opacity="0.8" 
+			 rolloverText="tool tip" rolloverColor="0xAA0000" destination="page:5"
+			 clickSound="true"
+			  /> 
+		<hotlink page="3"
+			 x="5" y="120" width="500" height="20" 
+			 color="#0080FF" fontColor="0x000000" fontSize="12" destination="hotlink.html"
+			  />
+		<hotlink page="3" title="HOTLINK TITLE" pageText="20-23"
+			 x="5" y="150" width="500" height="20" 
+			 color="#0080FF" fontColor="0x000000" fontSize="12" destination="http://www.geblab.com/hotlink.html"
+			  />
+		<hotlink page="3"
+			 x="5" y="180" width="500" height="20" 
+			 color="#0080FF" fontColor="0x000000" fontSize="12" destination="mailto:xiaotie@geblab.com"
+			  />
+		<hotlink page="6"
+			 x="5" y="60" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12"
+		>
+		<![CDATA[About Us: <font color="#0000FF"><a href="http://www.geblab.com" target="_black">www.geblab.com</a></font> , Email: <font color="#0000FF"><a href="mailto:xiaotie@geblab.com">xiaotie@geblab.com</a></font>]]>
+		</hotlink>
+		
+		<hotlink page="6" title="HOTLINK TITLE" 
+			 x="5" y="160" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12"
+			 destination="page:3" target="_self"
+		>
+		
+		</hotlink>
+		
+		<hotlink page="9"
+			 x="30" y="60" width="500" height="20" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" type="image" destination="content/pages/page9.jpg"
+		/>
+		<hotlink page="9"
+			 x="30" y="90" width="500" height="20" title="Video Link Demo" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" type="video" destination="content/videos/test.mp4"
+		/>
+		<hotlink page="9"
+			 x="600" y="90" width="500" height="20" title="Video Link Demo" 
+			 color="0xFF0000" fontColor="0xff00ff" fontSize="12" type="video" destination="content/videos/test.swf"
+		/>
+		<hotlink page="9"
+			 x="30" y="120" width="500" height="20" title="Youtube Video Link Demo" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" type="video" youtubeId="7ZsKqbt3gQ0"
+		/>
+		<hotlink page="9"
+			 x="30" y="150" width="500" height="20" title="Message Link Demo" popupWidth="600" popupHeight="300"
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" type="message" >
+			<![CDATA[About Us: <font color="#0000FF"><a href="http://www.geblab.com" target="_black">www.geblab.com</a></font> , Email: <font color="#0000FF"><a href="mailto:xiaotie@geblab.com">xiaotie@geblab.com</a></font>]]>
+		</hotlink>
+		<hotlink page="9"
+			 x="30" y="180" width="500" height="20" title="Message-Hover Link Demo" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" type="message-hover" popupWidth="600" popupHeight="400" >
+			<![CDATA[About Us: <font color="#0000FF"><a href="http://www.geblab.com" target="_black">www.geblab.com</a></font> , Email: <font color="#0000FF"><a href="mailto:xiaotie@geblab.com">xiaotie@geblab.com</a></font>]]>
+		</hotlink>
+		<hotlink page="7"
+			clickSound="true"
+			 x="30" y="210" width="500" height="20" title="Audio Link Demo" 
+			 color="0xFF0000" fontColor="0x000000" fontSize="12" type="audio" destination="content/audios/demo.mp3"
+		/>
+		
+		<hotlink page="1" target="_blank" pagewidth="1275" x="159" y="270" width="499" height="261" popupWidth="280" popupHeight="150" 
+		color="#FFFF00" fontColor="0x000000" fontSize="12" opacity="0.3" rolloverOpacity="0.5" rolloverText="Click for more information" 
+		rolloverColor="#FFFF00" clickSound="true" type="message">
+		<![CDATA[ ssssssssssssssssssssssssssssss ]]>
+		</hotlink>
+		
+		<hotlink page="1" target="_blank" pagewidth="1275" x="359" y="470" width="499" height="261" popupWidth="800" popupHeight="600" 
+		color="#FFFF00" fontColor="0x000000" fontSize="12" opacity="0.3" rolloverOpacity="0.5" rolloverText="Click for more information" 
+		rolloverColor="#FFFF00" clickSound="true" type="message-hover">
+			<iframe src="http://www.baidu.com"/>
+		</hotlink>
+
+</hotlinks>

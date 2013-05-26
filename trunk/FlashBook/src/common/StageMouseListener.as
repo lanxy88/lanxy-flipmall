@@ -479,7 +479,10 @@ package common
 				{
 					if(RunTime.isSingleClickToZoom() == true )
 					{
-						mainPage.zoomInBook(new Point((from.x + to.x)/2,(from.y + to.y)/2));
+						if(RunTime.zoomMode=="scalable")
+							mainPage.zoomInBook2(new Point((from.x + to.x)/2,(from.y + to.y)/2));
+						else
+							mainPage.zoomInBook(new Point((from.x + to.x)/2,(from.y + to.y)/2));
 					}
 				}
 			}

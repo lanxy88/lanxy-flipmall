@@ -13,9 +13,9 @@
 
 <page id="4" source="content/pages/page4.jpg" shadow="true"  thumb="content/thumbs/thumb4.jpg"/>
 <page id="5" source="content/pages/page5.jpg" shadow="true" thumb="content/thumbs/thumb5.jpg"/>
-<page id="6" source="content/pages/page6.jpg" thumb="content/thumbs/thumb6.jpg"/>
-<page id="7" source="content/pages/page7.jpg" thumb="content/thumbs/thumb7.jpg"/>
-<page id="8" source="content/pages/page8.jpg" thumb="content/thumbs/thumb8.jpg"/>
+<!-- <page id="6" source="content/pages/page6.jpg" thumb="content/thumbs/thumb6.jpg"/> -->
+<!-- <page id="7" source="content/pages/page7.jpg" thumb="content/thumbs/thumb7.jpg"/> -->
+<!-- <page id="8" source="content/pages/page8.jpg" thumb="content/thumbs/thumb8.jpg"/> -->
 
 
 

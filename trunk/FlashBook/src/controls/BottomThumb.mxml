@@ -100,6 +100,28 @@
 							}
 						}
 						
+					}else if(count==1){
+						
+						var item:BottomThumbItem = new BottomThumbItem();
+						item.addEventListener(ThumbChangeEvent.THUMB_CHANGE, onThumbClick);				
+						item.leftPage = 1;
+						item.rightPage = 0;
+						if(item.rightPage >= _source.length) item.rightPage = -1;
+						
+						item.szLeftThumb = _source[0].thumb;
+						item.szRightThumb = ""; 
+//						if(i + 1 < _source.length) item.szRightThumb = _source[i+1].thumb;
+						thumbsSlide.addChild(item);
+						item.index = idx;
+						item.y = 11;
+						
+//						idx++;
+						this.thumbs.push(item);
+						
+//						if(i+2 >= count){
+							item.addEndSpacer();
+//						}
+						
 					}else{
 						for( var i:int = -1; i <= count; i+= 2){
 							
