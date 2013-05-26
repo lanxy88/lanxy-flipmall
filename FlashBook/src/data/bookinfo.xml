@@ -57,7 +57,7 @@ global: mK6go5Js -->
  autoFlipSeconds="5" 
  autoMoveAfterZoom="false" 
  windowColor="#0066cc"
- bgColor="#454545 " 
+ bgColor="#000000" 
  bgImage="content/images/fondor.jpg"
  shadow="true" 
  pageWidth="1232" 
@@ -76,7 +76,7 @@ global: mK6go5Js -->
  bookmarkHeight="150" 
  bookmarkFontSize="10" 
  defaultZoomScale="2" 
- clickToZoom="doubleclick" 
+ clickToZoom="singleclick" 
  rightToLeft="false" 
  autoFlip="false" 
  fitScreenAfterZoom="false" 
@@ -129,7 +129,7 @@ global: mK6go5Js -->
 		<info visible="true" url="info.htm"  icon=""/>
 		<back visible="true"  icon=""/>
 		<forward visible="true"  icon=""/>
-		<!-- mode normal/scalable -->
+<!-- 		mode normal/scalable -->
 		<zoom visible="true"  icon="" dicon="" mode="scalable"/>
 		<autoflip visible="true"  icon=""/>
 		<search visible="true"  icon=""/>
@@ -142,11 +142,28 @@ global: mK6go5Js -->
 		<firstpage visible="true" icon="" />
 		<prevpage visible="true" icon="" />
 		<nextpage visible="true" icon="" />
-		<lastpage visible="true" icon="" />
-
-		
+		<lastpage visible="true" icon="" />		
 		
 	</bottommenu>
+
+<!-- 	<bottommenu background="content/images/menuBackground.png" visible="true" iconSameSize="true" position="top" hideAfterZoom="false" showBackground="false" autoHideOnFullScreen="true"> -->
+<!-- 		<help visible="true" url="http://www.ePageCreator.net/readerhelp/index.html" icon="content/images/theme/help.png"/> -->
+<!-- 		<info visible="true" url="http://www.ePageCreator.net" icon="content/images/theme/info.png"/> -->
+<!-- 		<zoom visible="false" mode="scalable" icon="content/images/theme/zoomin.png" dicon="content/images/theme/zoomout.png"/> -->
+<!-- 		<autoflip visible="true" icon="content/images/theme/autoflip.png"/> -->
+<!-- 		<search visible="true" icon="content/images/theme/search.png"/> -->
+<!-- 		<highlight visible="true" icon="content/images/theme/highlight.png"/> -->
+<!-- 		<bookmark visible="true" icon="content/images/theme/bookmark.png"/> -->
+<!-- 		<notes visible="true" icon="content/images/theme/note.png"/> -->
+<!-- 		<fullscreen visible="true" icon="content/images/theme/fullscreen.png" dicon="content/images/theme/exitfullscreen.png"/> -->
+<!-- 		<sound visible="false" icon="content/images/theme/audiooff.png" dicon="content/images/theme/audioon.png"/> -->
+<!-- 		<back visible="true" icon="content/images/theme/back.png"/> -->
+<!-- 		<forward visible="true" icon="content/images/theme/forward.png"/> -->
+<!-- 		<firstpage icon="content/images/theme/first.png"/> -->
+<!-- 		<prevpage icon="content/images/theme/previous.png"/> -->
+<!-- 		<nextpage icon="content/images/theme/next.png"/> -->
+<!-- 		<lastpage icon="content/images/theme/last.png"/> -->
+<!-- 	</bottommenu> -->
 	
 	<!-- <topAd slideShow="false" position="left"> 
 	   <pic url="content/images/adtop.gif" href="page:4" target="_blank" width="400" height="50" time="5" />

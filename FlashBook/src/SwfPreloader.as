@@ -16,6 +16,7 @@ package
 	import flash.utils.Timer;
 	
 	import mx.controls.SWFLoader;
+	import mx.core.Application;
 	import mx.events.FlexEvent;
 	import mx.preloaders.DownloadProgressBar;
 	
@@ -40,6 +41,8 @@ package
 		
 		public function SwfPreloader()
 		{
+//			var o:Object = Application.application;
+//			sliceColor = (Application.application as Application); 
 			super();
 			bg = new Sprite();
 			this.addChild(bg);
@@ -110,7 +113,7 @@ package
 			x = (stageWidth/2);
 			y = (stageHeight/2);
 			bg.graphics.clear();
-			bg.graphics.beginFill(0x454545);
+//			bg.graphics.beginFill(0x454545);
 			//bg.graphics.beginFill(0xFF0000);
 			bg.graphics.drawRect(-x,-y,stageWidth, stageHeight);
 		}

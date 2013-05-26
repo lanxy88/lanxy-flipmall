@@ -26,7 +26,7 @@
 			
 			import qs.controls.FlexBook;
 			
-			private var _scale:Number;
+			private var _scale:Number = 1;
 			
 			[Embed(source='assets/blackStyle/btnAutoMove.png')]
 			[Bindable]
@@ -38,7 +38,7 @@
 			
 
 			[Bindable]
-			public var maxZoomScale:Number = 6;
+			public var maxZoomScale:Number = 2;
 			
 			public function get scale():Number
 			{
@@ -49,6 +49,7 @@
 			public function set scale(value:Number):void
 			{
 				_scale = value;
+				updateHotArea();
 			}
 			
 			public override function set visible(val:Boolean):void
@@ -183,8 +184,7 @@
 			
 			private function saveScale():void
 			{
-				if(RunTime.zoomMode!="scalable")
-					SharedObjectManager.instance.saveDefaultZoomScale(this.scale);
+				SharedObjectManager.instance.saveDefaultZoomScale(this.scale);
 			}
 			
 			protected function fitFullpage(event:MouseEvent):void
@@ -341,13 +341,11 @@
 					useHandCursor="true" 
 					liveDragging="true"
 					value="{scale}"
-					snapInterval="0.1"
-					minimum="0.2" maximum="{getMaxScale()}" valueCommit=""
+					minimum="0.4" maximum="2" valueCommit=""
 					change="{
 						scale = scaleSlider.value; 
 						updateHotArea();
 						dispatchEvent(new Event('change'));
-						saveScale();
 					}" />
 		<mx:Image  y="5" horizontalCenter="90"  buttonMode="true" useHandCursor="true" click="{zoom(0.1);saveScale();}"
 				   source="@Embed(source='assets/iconZoomIn.png')" /> 

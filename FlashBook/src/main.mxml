@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Application backgroundGradientAlphas="0,0" backgroundColor="0x454545"
+<Application backgroundGradientAlphas="0,0" backgroundColor="0x000000" backgroundAlpha="0"
 			 xmlns="http://www.adobe.com/2006/mxml" 
 			 xmlns:l="*"
 			 xmlns:controls="qs.controls.*"
@@ -1504,7 +1504,10 @@
 					
 					if(event.currentTarget.enabled)
 					{
-						zoomOutBook();
+						if(RunTime.zoomMode=="scalable"){
+							zoomInBook2();
+						}else
+							zoomOutBook();
 					}
 					RunTime.showLeftMenu(true);
 					RunTime.showBottomMenu(true);
@@ -1584,6 +1587,16 @@
 				
 				landscape.scaleByDragBoxActive = false;
 				
+//				var z:Number = zoomBox.scale;
+//				if(RunTime.zoomMode=="scalable"){
+//					if(Number(z.toFixed(0))==1){
+//						trace("zzzzz....");
+//						landscape.selection = [];
+////						zoomInBook2(null,1);
+//						event.stopImmediatePropagation();
+//					}
+//				}
+				
 				//timerLoadRSS();
 
 			}
@@ -1645,6 +1658,7 @@
 					landscape.receiveFocusPoint(p,target,focusControler);
 				}
 			}
+			
 			
 			private function updateZoomBoxHotArea(updateSnap:Boolean = true):void
 			{
@@ -3269,7 +3283,10 @@
 			
 			protected function zoomBox_fitfullpageHandler(event:Event):void
 			{
-				zoom();Helper.bringTop(zoomBox);RunTime.removeHighlightOn();
+				if(RunTime.zoomMode=="scalable"){
+					zoomToFit();
+				}else
+					zoom();Helper.bringTop(zoomBox);RunTime.removeHighlightOn();
 			}
 			
 			protected function zoomBox_settingchangeHandler(event:Event):void
@@ -4062,6 +4079,147 @@
 				else turnRightArrow.visible = false;
 			}
 			
+			private  function focusOn2(target:*,x:Number = -1,y:Number = -1,focusControler:FocusController = null):void
+			{
+				if(landscape.selection.length == 1 && landscape.selection[0] == target)
+				{
+					landscape.selection = [];
+					zoomBox.scale = 1;
+				}
+				else
+				{
+					var item:DisplayObject = target as DisplayObject;
+					var p:Point = new Point(x,y);
+					if(x < 0 || y < 0)
+					{
+						if(book.getRightPageNumber() == -1)
+						{
+							p.x = item.width * 0.25;
+						}
+						else if(book.getLeftPageNumber() == -1)
+						{
+							p.x = item.width * 0.75;
+						}
+						else
+						{
+							p.x = item.width * 0.5;
+						}
+						
+						p.y = item.height * 0.5;
+					}
+					else
+					{
+						p = item.globalToLocal(p);
+						if(focusControler != null && landscape.isFitScreenMode() == true)
+						{
+							if(book.getRightPageNumber() == -1)
+							{
+								p.x = item.width * 0.25;
+							}
+							else if(book.getLeftPageNumber() == -1)
+							{
+								p.x = item.width * 0.75;
+							}
+							else
+							{
+								p.x = item.width * 0.5;
+							}
+						}
+					}
+					
+					landscape.receiveFocusPoint(p,target,focusControler);
+				}
+			}
+			
+			public function zoomInBook3(focus:Point = null, limit:Number = 0): void
+			{
+				
+				var leftPage:int = book.getLeftPageNumber()-1;
+				var rightPage:int = book.getRightPageNumber()-1;
+				
+				if(leftPage >=0){
+					if(!RunTime.bookPages[leftPage].canZoom){
+						return;
+					}
+				}
+				
+				if(rightPage >=0){
+					if(!RunTime.bookPages[rightPage].canZoom){
+						return;
+					}
+				}
+				
+				
+				if( !RunTime.zoomedIn)
+				{
+					
+					var target:DisplayObject = bookCanvas;
+					book.zoomActive = true;
+					var controller:DoublePageFocusController = new DoublePageFocusController();;
+					
+					if(this.book.getLeftPageNumber() == -1)
+					{
+						controller.focusMode = 1;
+					}
+					else if(this.book.getRightPageNumber() == -1) 
+					{
+						controller.focusMode = -1;
+					}
+					else
+					{
+						controller.isDoublePage = true;
+						if(focus != null)
+						{
+							var middle:Point = target.localToGlobal(new Point(0.5*target.width,0));
+							var isLeftPage:Boolean = focus.x < middle.x;
+							controller.focusMode = isLeftPage ? -1 : 1;
+						}
+						else
+						{
+							controller.focusMode = 1;
+						}
+					}
+					
+					if(limit > 0)
+					{
+						this.landscape.dragZoomScale = limit;
+						this.landscape.scaleByDragBox = true;
+						this.landscape.scaleByDragBoxActive = true;
+						controller.disenableFitFullScreen = true;
+					}
+					else
+					{
+						landscape.scaleByDragBox = false;
+						this.landscape.scaleByDragBoxActive = false;
+					}
+					
+					
+					
+					if(focus != null)
+					{
+						focusOn( target,focus.x, focus.y,controller);
+					}
+					else
+					{
+						focusOn( target,-1,-1,controller);
+						
+					}
+					
+					RunTime.zoomedIn = true;
+					
+					closeNoteDetails();
+					Helper.ensureTop(landscape,mainAdBox);
+					
+					RunTime.showLeftMenu(!RunTime.hideLefMenuAfterZoom );
+					RunTime.showBottomMenu(!RunTime.hideBottomMenuAfterZoom);
+					
+					showFlowTurnButton(true);
+					
+					
+					
+				}
+			}
+			
 			public function zoomInBook2(focus:Point = null, limit:Number = 0): void
 			{
 				
@@ -4122,12 +4280,16 @@
 					
 					if(focus != null)
 					{
-						focusOn( target,focus.x, focus.y,controller);
+						focusOn2( target,focus.x, focus.y,controller);
 					}
 					else
 					{
-						focusOn( target,0,0,controller);
+						focusOn2( target,0,0,controller);
+//						landscape.receiveFocusPoint(new Point(0,0),target,controller);
 					} 
+					
+					if(RunTime.isSingleClickToZoom())
+						zoomBox.scale = landscape.scale;
 					
 					closeNoteDetails();
 //					Helper.ensureTop(landscape,mainAdBox);
@@ -4142,27 +4304,61 @@
 			private var initZoomEnv:Boolean = false;
 			private var pageChanged:Boolean = false;
 			
+			private function zoomToFit():void{
+				zoomInBook2(null,1);
+				zoomBox.visible = false;	
+//				landscape.selection = [bookCanvas];
+			}
+			
 			protected function btnZoomOut_clickHandler(type:String = 'zoomIn'):void
 			{
 				if(!initZoomEnv || pageChanged){
-					zoomInBook2();
+					if(RunTime.isSingleClickToZoom()){
+						var p:Number = landscape.scale;
+						zoomInBook2(null,type=="zoomIn"?p+0.2:p-0.2);
+					}else
+						zoomInBook2(null,type=="zoomIn"?1.2:0.8);
+//					zoomInBook2(null,1);
 					initZoomEnv = true;
 					pageChanged = false;
 				}
+				trace(landscape.selection);
+				if(landscape.selection.length==0){
+					landscape.selection = [bookCanvas];
+				}
 				zoomBox.visible = true;				
 				Helper.bringTop(zoomBox);
+				var z:Number;
 				switch(type){
 					case "zoomIn":
 						//
-						zoomBox.zoom(0.4);
+						z = zoomBox.scale+0.2;
+						if(Number(z.toFixed(1))==1){
+							zoomInBook2(null,1);
+						}else
+							zoomBox.zoom(0.2);
 //						zoomBox.scale = zoomBox.scale + 0.2;
 						break;
 					case "zoomOut":
 						//
-						zoomBox.zoom(-0.4);
+						z = zoomBox.scale-0.2;
+						if(Number(z.toFixed(1))==1){
+							zoomInBook2(null,1);
+						}else
+							zoomBox.zoom(-0.2);
+						
 //						zoomBox.scale = zoomBox.scale - 0.2;
 						break;
 				}
+//				if(landscape.scale==1){
+//					zoomToFit();
+//				}
+				
+//				if(RunTime.zoomMode=="scalable"){
+//					if(Number(z.toFixed(0))==1){
+//						zoomInBook2();
+//					}
+//				}
 				
 				autoFlip=false;
 				checkFlip();
@@ -4199,8 +4395,6 @@
 			
 		]]>
 	</Script>
-	
-<!--	<Zoom id="bookZoomEffect" duration="400"/>-->
 	
 	<Canvas id="bookarea" height="100%" left="0" right="0"
 			verticalScrollPolicy="off" horizontalScrollPolicy="off" 
@@ -4336,14 +4530,14 @@
 					<Canvas id="bgLayerButtons" x="{book.x}" y="{book.y}"  clipContent="false"  />
 					
 					<Canvas id="turnLeftArrow" left="{book.x -50}" height="{book.height}" width="32" verticalCenter="0" buttonMode="true" mouseEnabled="true"
-							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnLeftArrow.filters = [new GlowFilter(0x000000,0.2,8,8)]"  
+							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnLeftArrow.filters = [new GlowFilter(0x000000,0.6,8,8,2,1,false)]"  
 							click="{if(book.canTurnBackward())book.turnToPage(book.currentPageIndex-1)}" mouseOut="turnLeftArrow.filters = [];">
 						<fbc:PolygonIcon scaleX="0.3" scaleY="0.3"  color="#ffffff" points="{getArrowPoints()}" verticalCenter="0"
 										 horizontalCenter="0"/>	
 					</Canvas>
-					<Canvas id="turnRightArrow" left="{book.x+book.width + 16}" height="{book.height}" width="32" verticalCenter="0" buttonMode="true" mouseEnabled="true"
-							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnLeftArrow.filters = [new GlowFilter(0x000000,0.2,8,8)]" 
-							click="{if(book.canTurnForward())book.turnToPage(book.currentPageIndex+1)}"  mouseOut="turnLeftArrow.filters = [];">
+					<Canvas id="turnRightArrow" left="{book.x+book.width + 18}" height="{book.height}" width="32" verticalCenter="0" buttonMode="true" mouseEnabled="true"
+							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnRightArrow.filters = [new GlowFilter(0x000000,0.6,8,8,2,1,false)]" 
+							click="{if(book.canTurnForward())book.turnToPage(book.currentPageIndex+1)}"  mouseOut="turnRightArrow.filters = [];">
 						<fbc:PolygonIcon scaleX="0.3" scaleY="0.3"  color="#ffffff" points="{getArrowPoints()}" verticalCenter="0"
 										 horizontalCenter="0" rotation="180"/>	
 					</Canvas>
@@ -4586,7 +4780,7 @@
 		<HBox id="menuBottomRight" 
 			  height="27"
 			  width="385" 
-			  paddingLeft="65"  
+			  paddingLeft="65" 
 			  horizontalGap="0" 
 			  horizontalCenter="245"  
 			  verticalCenter="0"
@@ -4617,16 +4811,16 @@
 								/>
 			<!--new zoom mode -->
 			<HBox verticalAlign="middle" visible="{RunTime.zoomMode=='scalable'?true:false}" 
-				  includeInLayout="{RunTime.zoomMode=='scalable'?true:false}">
+				  includeInLayout="{RunTime.zoomMode=='scalable'?true:false}" paddingRight="10">
 				<fbc:ImageButton id="btnNewZoomIn"  
-								 source="{ RunTime.iconZoomIn }"
+								 source="{ RunTime.customButtonZoomEnable }"
 								 click="btnZoomOut_clickHandler('zoomIn')"
 								 updateComplete="{refMenuBottomRight.updateReflection();}"
 								 toolTip="{l.i.s('ZoomIn','Zoom In')}"
 								 width="27"
 								 />
 				<fbc:ImageButton id="btnNewZoomOut"  
-								 source="{ RunTime.iconZoomOut }"
+								 source="{ RunTime.customButtonZoomDisable }"
 								 click="btnZoomOut_clickHandler('zoomOut')"
 								 updateComplete="{refMenuBottomRight.updateReflection();}"
 								 toolTip="{l.i.s('ZoomOut','Zoom Out')}"
@@ -5325,5 +5519,5 @@
 	</Canvas>
 
 	<EmailValidator id="emailValidator" />
-	<l:PreloadInfo id="preloadInfo" backgroundColor="0x454545" width="100%" height="100%" visible="true" />
+	<l:PreloadInfo id="preloadInfo"  width="100%" height="100%" visible="true" />
 </Application>
