@@ -67,7 +67,7 @@
 		<mx:Label width="100%" text="{l.i.s('NeedPassword')}" textAlign="center" />
 		<mx:Label id="err" width="100%" text="{l.i.s('PasswordError')}" textAlign="center" color="0xFF0000" visible="false" />
 		<mx:TextInput id="tbPwd"
-					  color="#000000" backgroundColor="0xFFFFFFFF" 
+					  color="#000000" backgroundColor="0xFF0000" 
 					  focusThickness="0" maxChars="64" displayAsPassword="true"
 					  width="100" keyDown="onInputKeyDown(event)" />
 		<mx:Spacer height="10" />
