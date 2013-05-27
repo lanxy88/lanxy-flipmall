@@ -1587,6 +1587,8 @@
 				
 				landscape.scaleByDragBoxActive = false;
 				
+				checkBookArrowsVisible();
+				
 //				var z:Number = zoomBox.scale;
 //				if(RunTime.zoomMode=="scalable"){
 //					if(Number(z.toFixed(0))==1){
@@ -4084,7 +4086,7 @@
 				if(landscape.selection.length == 1 && landscape.selection[0] == target)
 				{
 					landscape.selection = [];
-					zoomBox.scale = 1;
+					zoomBox.scale = landscape.scale = 1;
 				}
 				else
 				{
@@ -4220,9 +4222,11 @@
 				}
 			}
 			
+			private var selfZoomed:Boolean;
+			
 			public function zoomInBook2(focus:Point = null, limit:Number = 0): void
 			{
-				
+				selfZoomed = true;
 				var leftPage:int = book.getLeftPageNumber()-1;
 				var rightPage:int = book.getRightPageNumber()-1;
 				if(leftPage >=0){
@@ -4314,7 +4318,7 @@
 			{
 				if(!initZoomEnv || pageChanged){
 					if(RunTime.isSingleClickToZoom()){
-						var p:Number = landscape.scale;
+						var p:Number = selfZoomed?landscape.scale:1;
 						zoomInBook2(null,type=="zoomIn"?p+0.2:p-0.2);
 					}else
 						zoomInBook2(null,type=="zoomIn"?1.2:0.8);
@@ -4334,18 +4338,32 @@
 						//
 						z = zoomBox.scale+0.2;
 						if(Number(z.toFixed(1))==1){
+							turnLeftArrow.visible = true;
+							turnRightArrow.visible = true;
 							zoomInBook2(null,1);
-						}else
+							showFlowTurnButton(false);
+						}else{
+							turnLeftArrow.visible = false;
+							turnRightArrow.visible = false;
 							zoomBox.zoom(0.2);
+							showFlowTurnButton(true);
+						}
 //						zoomBox.scale = zoomBox.scale + 0.2;
 						break;
 					case "zoomOut":
 						//
 						z = zoomBox.scale-0.2;
 						if(Number(z.toFixed(1))==1){
+							turnLeftArrow.visible = true;
+							turnRightArrow.visible = true;
 							zoomInBook2(null,1);
-						}else
+							showFlowTurnButton(false);
+						}else{
+							turnLeftArrow.visible = false;
+							turnRightArrow.visible = false;
 							zoomBox.zoom(-0.2);
+							showFlowTurnButton(true);
+						}
 						
 //						zoomBox.scale = zoomBox.scale - 0.2;
 						break;
@@ -4391,6 +4409,19 @@
 				// TODO Auto-generated method stub
 //				bookCanvas.scaleX = zoomBox2.scale;
 //				bookCanvas.scaleY = zoomBox2.scale;
+			}
+			
+			private function checkBookArrowsVisible():void{
+				z = landscape.scale;
+				if(Number(z.toFixed(1))==1){
+					if(book.canTurnBackward())
+						turnLeftArrow.visible = true;
+					if(book.canTurnForward())
+						turnRightArrow.visible= true;
+				}else{
+					turnLeftArrow.visible = false;
+					turnRightArrow.visible= false;
+				}
 			}
 			
 		]]>
@@ -4448,7 +4479,7 @@
 				<Canvas id="bookCanvas" width="100%" height="100%" clipContent="false" 
 						resize="setBookSize();updateHighlights();updateNotes();updateRss(); updateFunButtons();"
 						horizontalScrollPolicy="off" verticalScrollPolicy="off" >
-					<controls:FlexBook
+					<controls:FlexBook backgroundColor="0xff0000" backgroundAlpha="0.5"
 						autoTurnDuration="350"
 						hardbackCovers="{RunTime.hardCover}"
 						id="book" width="1" height="1" doubleClickEnabled="true"
@@ -4456,7 +4487,7 @@
 						click="{autoFlip=false;checkFlip();}" rightToLeft="{RunTime.rightToLeft}"
 						pageActive="{isBookActive(RunTime.zoomedIn,RunTime.MouseState,RunTime.note)}"
 						bookMarks="{RunTime.bookmarkRecords}" bookMarkAdded="{onBookmarkAdded}"
-						backgroundColor="0xFFFFFF" 
+						
 						buttonMode="{RunTime.zoomedIn &amp;&amp; landscape.autoMoveAfterZoom == false}"
 						animateCurrentPageIndex="false" 
 						animatePagesOnTurn="false"
@@ -4531,13 +4562,13 @@
 					
 					<Canvas id="turnLeftArrow" left="{book.x -50}" height="{book.height}" width="32" verticalCenter="0" buttonMode="true" mouseEnabled="true"
 							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnLeftArrow.filters = [new GlowFilter(0x000000,0.6,8,8,2,1,false)]"  
-							click="{if(book.canTurnBackward())book.turnToPage(book.currentPageIndex-1)}" mouseOut="turnLeftArrow.filters = [];">
+							click="{if(book.canTurnBackward())book.turnToPage(book.currentPageIndex-1)}" mouseOut="turnLeftArrow.filters = [];" >
 						<fbc:PolygonIcon scaleX="0.3" scaleY="0.3"  color="#ffffff" points="{getArrowPoints()}" verticalCenter="0"
 										 horizontalCenter="0"/>	
 					</Canvas>
 					<Canvas id="turnRightArrow" left="{book.x+book.width + 18}" height="{book.height}" width="32" verticalCenter="0" buttonMode="true" mouseEnabled="true"
 							mouseChildren="true" backgroundColor="#ff0000" backgroundAlpha="0" mouseOver="turnRightArrow.filters = [new GlowFilter(0x000000,0.6,8,8,2,1,false)]" 
-							click="{if(book.canTurnForward())book.turnToPage(book.currentPageIndex+1)}"  mouseOut="turnRightArrow.filters = [];">
+							click="{if(book.canTurnForward())book.turnToPage(book.currentPageIndex+1)}"  mouseOut="turnRightArrow.filters = [];" >
 						<fbc:PolygonIcon scaleX="0.3" scaleY="0.3"  color="#ffffff" points="{getArrowPoints()}" verticalCenter="0"
 										 horizontalCenter="0" rotation="180"/>	
 					</Canvas>
@@ -4811,17 +4842,18 @@
 								/>
 			<!--new zoom mode -->
 			<HBox verticalAlign="middle" visible="{RunTime.zoomMode=='scalable'?true:false}" 
+				  width="{String(bookConfig.bottommenu.zoom.@visible) == 'true' ? 64 : 0}" horizontalScrollPolicy="off"
 				  includeInLayout="{RunTime.zoomMode=='scalable'?true:false}" paddingRight="10">
 				<fbc:ImageButton id="btnNewZoomIn"  
 								 source="{ RunTime.customButtonZoomEnable }"
-								 click="btnZoomOut_clickHandler('zoomIn')"
+								 click="btnZoomOut_clickHandler('zoomIn');event.stopImmediatePropagation();"
 								 updateComplete="{refMenuBottomRight.updateReflection();}"
 								 toolTip="{l.i.s('ZoomIn','Zoom In')}"
 								 width="27"
 								 />
 				<fbc:ImageButton id="btnNewZoomOut"  
 								 source="{ RunTime.customButtonZoomDisable }"
-								 click="btnZoomOut_clickHandler('zoomOut')"
+								 click="btnZoomOut_clickHandler('zoomOut');event.stopImmediatePropagation();"
 								 updateComplete="{refMenuBottomRight.updateReflection();}"
 								 toolTip="{l.i.s('ZoomOut','Zoom Out')}"
 								 width="27"
@@ -4966,7 +4998,7 @@
 											  showPage="false"
 											  source="{RunTime.prevIssues}" 
 											  showThumNode="{RunTime.showIssueThumb}"/>
-						<Label width="450" id="prevIssuesUrlText" />
+						<Label width="450" id="prevIssuesUrlText"/>
 						
 						<!--
 						<HBox width="100%" paddingRight="5" 

@@ -30,7 +30,7 @@ package common
 	import utils.Helper;
 	import utils.MouseStateHelper;
 	import utils.PageNumHelper;
-
+	
 	public class StageMouseListener
 	{
 		private var mainPage:main;
@@ -76,12 +76,12 @@ package common
 				var pageId:int = p.x >= mid.x ? book.getRightPageNumber() : book.getLeftPageNumber();
 				
 				if(pageId == -1) return;
-
+				
 				pageId = utils.PageNumHelper.convertInnerPageToRealPage(pageId);
 				var rootX:Number = p.x >= mid.x ? mid.x : (new Point(0,0)).x;
-			
+				
 				if(p.y > (new Point(0,0)).y
-						&& p.y < (new Point(0,book.height-1)).y - 20
+					&& p.y < (new Point(0,book.height-1)).y - 20
 				)
 				{
 					if(pageId > -1)
@@ -92,7 +92,7 @@ package common
 							(p.x - rootX) / (book.width * 0.5),
 							(p.y - mid.y) / book.height
 							,true);
-
+						
 						note.save();
 						RunTime.noteRecords = RunTime.noteRecords.concat(note);
 						mainPage.updateNotes();
@@ -212,7 +212,7 @@ package common
 		
 		private function onMouseMove(event:MouseEvent):void
 		{
-						
+			
 			//trace("RunTime.MouseState=" + RunTime.MouseState);
 			var p:Point = new Point(event.stageX,event.stageY);
 			switch(RunTime.MouseState)
@@ -245,7 +245,7 @@ package common
 						r.xPos = (d.x - rootX) / (mainPage.book.width * 0.5);
 						r.yPos = (d.y - mid.y) / mainPage.book.height;
 					}
-
+					
 					break;
 				}
 				case RunTime.MOUSE_STATE_NOTE_DETAIL_MOVING:
@@ -425,7 +425,7 @@ package common
 		
 		private function drawMask(p:Point):void
 		{
-
+			
 			if(showMask == false)
 			{
 				mask.visible = false;
@@ -452,18 +452,18 @@ package common
 		
 		private function releaseMask(p:Point = null):void
 		{
-						
+			
 			flexBook.setStyle("showCornerTease",true);
 			showMask = false;
 			if(mask.visible == true)
 			{
-
+				
 				var from:Point = mask.data as Point;
 				var to:Point = this.fitPoint(p);
 				var w:Number = Math.abs(from.x - to.x);
 				var h:Number = Math.abs(from.y - to.y);
 				mask.visible = false;
-							
+				
 				flexBook.zoomActive = true;
 				
 				if(w > 10 && h > 10)
@@ -473,14 +473,16 @@ package common
 					var scale:Number = Math.min(wScale,hScale);
 					scale = Math.min(5,scale);
 					mainPage.zoomInBook(new Point((from.x + to.x)/2,(from.y + to.y)/2), scale);
-
+					
 				}
 				else
 				{
 					if(RunTime.isSingleClickToZoom() == true )
 					{
-						if(RunTime.zoomMode=="scalable")
-							mainPage.zoomInBook2(new Point((from.x + to.x)/2,(from.y + to.y)/2));
+						if(RunTime.zoomMode=="scalable"){
+							if(!isStagePointInBookArea(p))
+								mainPage.zoomInBook2(new Point((from.x + to.x)/2,(from.y + to.y)/2));
+						}
 						else
 							mainPage.zoomInBook(new Point((from.x + to.x)/2,(from.y + to.y)/2));
 					}
