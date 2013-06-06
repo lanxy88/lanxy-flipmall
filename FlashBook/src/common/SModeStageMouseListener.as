@@ -478,10 +478,19 @@ package common
 				}
 				else
 				{
-					if(RunTime.isSingleClickToZoom() == true)
+					if(RunTime.isSingleClickToZoom() == true )
+					{
+						if(RunTime.zoomMode=="scalable"){
+							if(isStagePointInBookArea(p))
+								mainPage.zoomInBook2(new Point((from.x + to.x)/2,(from.y + to.y)/2));
+						}
+						else
+							mainPage.zoomInBook(new Point((from.x + to.x)/2,(from.y + to.y)/2));
+					}
+					/*if(RunTime.isSingleClickToZoom() == true)
 					{
 						mainPage.zoomInBook(new Point((from.x + to.x)/2,(from.y + to.y)/2));
-					}
+					}*/
 				}
 			}
 		}

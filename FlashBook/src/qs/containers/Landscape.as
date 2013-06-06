@@ -104,7 +104,7 @@ package qs.containers
 		
 		public function wheel(delta:int):void
 		{
-			if(isZoomedIn)
+			if(isZoomedIn || RunTime.zoomMode=="scalable")
 			{
 				var m:Matrix = this.contentPane.transform.matrix.clone(); 
 				m.ty += delta * scale * 20;
@@ -374,7 +374,7 @@ package qs.containers
 		{
 			if(mouseListener == null) return;
 				
-			if(isZoomedIn)
+			if(isZoomedIn || RunTime.zoomMode=="scalable")
 			{
 				mouseListener.removeEventListener( MouseEvent.MOUSE_MOVE, onMouseMove );
 				mouseListener.addEventListener( MouseEvent.MOUSE_MOVE, onMouseMove);
@@ -442,7 +442,7 @@ package qs.containers
 		private function onMouseMove(event: MouseEvent):void
 		{
 			
-			if(isZoomedIn && RunTime.MouseState != RunTime.MOUSE_STATE_HIGHLIGHT_ON)
+			if((isZoomedIn || RunTime.zoomMode=="scalable") && RunTime.MouseState != RunTime.MOUSE_STATE_HIGHLIGHT_ON)
 			{
 				if(event.buttonDown == true && this.autoMoveAfterZoom == false)
 				{

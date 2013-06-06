@@ -1290,6 +1290,7 @@ package qs.controls
 			if(this.height > 10)
 			{
 				scale = this.height / 800;
+				trace("fb--h:"+this.height+" fb--s:"+scale);
 			}
 			
 			switchLeftBookMarks(leftPages,scale);

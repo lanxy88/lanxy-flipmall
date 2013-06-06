@@ -255,7 +255,7 @@
 						//postObj[obj.name] =RadioButtonGroup(obj.value).numRadioButtons;
 					}
 					
-					trace(postObj[obj.name]);
+//					trace(postObj[obj.name]);
 					submitByService(postObj,submitCallback);
 				}
 			}
