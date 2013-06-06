@@ -84,7 +84,7 @@
 				}
 				RunTime.logAudioView(url);
 				sound.addEventListener(IOErrorEvent.IO_ERROR,function(e:Event):void{
-						trace(e.toString());
+//						trace(e.toString());
 					});
 				sound.addEventListener(Event.COMPLETE,
 					function(e:Event):void

@@ -76,7 +76,7 @@ global: mK6go5Js -->
  bookmarkHeight="150" 
  bookmarkFontSize="10" 
  defaultZoomScale="2" 
- clickToZoom="singleclick" 
+ clickToZoom="doubleclick" 
  rightToLeft="false" 
  autoFlip="false" 
  fitScreenAfterZoom="false" 

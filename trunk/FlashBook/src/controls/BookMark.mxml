@@ -10,10 +10,11 @@
 		   >
 	<mx:Script>
 		<![CDATA[
-			import utils.Helper;
 			import mx.controls.Image;
 			
 			import qs.controls.FlexBook;
+			
+			import utils.Helper;
 			
 			public var page:int = 0;
 			
@@ -61,7 +62,9 @@
 			{
 				if(this.book == null) return;
 				
-				var s:Number = book.getRealScale();
+//				var s:Number = book.getRealScale();
+				var s:Number = book.scaleX;
+//				trace(s);
 				var root:Point = book.localToGlobal(new Point(this.rawX,this.rawY));
 				var ww:Number = this.rawWidth * s;
 				var hh:Number = this.rawHeight * s;
