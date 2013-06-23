@@ -1299,7 +1299,7 @@ package qs.controls
 		
 		public function getRealScale():Number
 		{
-			return this.localToGlobal(new Point(1,0)).x - this.localToGlobal(new Point()).x;
+			return this.localToGlobal(new Point(1,0)).x - this.localToGlobal(new Point(0,0)).x;
 		}
 		
 		public var bookMarkAdded :Function;

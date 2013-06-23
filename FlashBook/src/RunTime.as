@@ -169,6 +169,14 @@ package
 		 */
 		public static var unlockPage:Boolean = false;
 		
+		/**
+		 * 是否手工触发缩放 
+		 */		
+		public static var firstZoomed:Boolean = false;
+		
+		[Bindable]
+		public static var flipArrow:Boolean = false;
+		
 		[Bindable]
 		public static var bookPages:Array = [];
 		

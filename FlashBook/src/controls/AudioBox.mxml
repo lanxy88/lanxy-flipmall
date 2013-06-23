@@ -67,7 +67,7 @@
 			{
 				//if(this.visible == false) return;
 				
-				sound = new Sound();
+//				sound = new Sound();
 				if(playlist != null && playlist.length > 0){
 					var soundWrap:SoundWrap = playlist.nextSoundWrap();
 					if(soundWrap != null){
@@ -76,13 +76,18 @@
 						this.visible = soundWrap.showControlBar;
 						this.parent.visible = this.visible;
 					}
+					else
+						url = "";
 				}
 				if(!url) {
-					this.visible = false;
+					if(playlist.length>1){
+					}else
+						this.visible = false;
 					//this.parent.visible = this.visible;
 					return;
 				}
 				RunTime.logAudioView(url);
+				sound = new Sound();
 				sound.addEventListener(IOErrorEvent.IO_ERROR,function(e:Event):void{
 //						trace(e.toString());
 					});
