@@ -208,6 +208,8 @@
 				
 				if(this.defaultPage < 1) this.defaultPage = 1;
 				
+				
+				
 				//Alert.show("new");
 				
 				//trace("RunTime.hideBottomMenu=" + RunTime.hideBottomMenu);
@@ -566,6 +568,9 @@
 				try{
 					if(bookConfig.attribute("flipArrow")){
 						flipArrow = Boolean(String(bookConfig.@flipArrow)=="true");
+						if(flipArrow){
+							updatePageArrow();
+						}
 					}
 				}catch(ex:Error){
 					
@@ -640,6 +645,8 @@
 				{
 					parseConfig2();
 				}
+				//
+//				updatePageArrow();
 			}
 			
 			private function parseConfig2():void
@@ -1021,6 +1028,13 @@
 							newList.addItem(bookContentPages[i]);
 						}
 						bookContentPages = newList;
+						//
+						if(flipArrow){
+							if(RunTime.rightToLeft)
+								turnLeftArrow.visible = true;
+							else								
+								turnRightArrow.visible = true;
+						}
 					}
 				}
 				
@@ -1029,6 +1043,7 @@
 				book.addEventListener(FlexBookEvent.TURN_END, onPageTurnEnd);
 
 				book.currentPageIndex = utils.PageNumHelper.getPageIndex(this.defaultPage);
+//				updatePageArrow();
 				
 				RunTime.history.pushMomento(book.currentPageIndex);
 				
@@ -1081,7 +1096,11 @@
 				}
 				
 				if(soundConfig.click){
-					audio.clickSound = new Sound(new URLRequest(RunTime.getAbsPath(String(soundConfig.click.@url))));
+					try{
+						audio.clickSound = new Sound(new URLRequest(RunTime.getAbsPath(String(soundConfig.click.@url))));
+					}catch(err:Error){
+						
+					}
 				}
 				
 				if(soundConfig.click.@enable)
@@ -1303,6 +1322,7 @@
 					
 					showBookCore();
 				}
+				txtPage.visible = true;
 			}
 			
 			private function showTrace(val:String):void
@@ -1478,7 +1498,7 @@
 			
 			private function zoomOut(event: MouseEvent = null): void
 			{
-			
+				RunTime.firstZoomed = true;
 				if(landscape.atMoveState() == false)
 				{
 					if(MouseStateHelper.isZoomActive(event.target) == false)
@@ -1496,6 +1516,7 @@
 					RunTime.showLeftMenu(true);
 					RunTime.showBottomMenu(true);
 					showFlowTurnButton(false);
+					updateBookMarks();
 				}
 			}
 			
@@ -2971,6 +2992,7 @@
 			
 			private function zoom(focus:Point = null):void
 			{
+				RunTime.firstZoomed = true;
 //				if(method=="in"){
 					(RunTime.zoomedIn == false) ? zoomInBook(focus):zoomOutBook();
 					autoFlip=false;
@@ -4208,6 +4230,7 @@
 				}
 			}
 			
+			
 			private var selfZoomed:Boolean;
 			
 			public function zoomInBook2(focus:Point = null, limit:Number = 0): void
@@ -4303,6 +4326,7 @@
 			
 			protected function btnZoomOut_clickHandler(type:String = 'zoomIn'):void
 			{
+				RunTime.firstZoomed = true;
 				if(!initZoomEnv || pageChanged){
 					if(RunTime.isSingleClickToZoom()){
 						var p:Number = selfZoomed?landscape.scale:1;
@@ -4373,6 +4397,10 @@
 					turnLeftArrow.visible = turnRightArrow.visible = false;
 					return;
 				}
+				if(!RunTime.firstZoomed) {
+					turnLeftArrow.visible = turnRightArrow.visible = true;
+					return;
+				}				
 				z = landscape.scale;
 				if(Number(z.toFixed(1))==1){
 					if(book.canTurnBackward())
@@ -4739,7 +4767,7 @@
 						   txtPage.text=pageInfo(book.currentPageIndex, RunTime.bookPages);
 						   btnGotoPage.visible=false;
 						   autoFlip=false;checkFlip();refMenuBottomMiddle.updateReflection();
-						   }" 
+						   }" visible="false"
 						   keyDown="onPageInputKeyDown(event);refMenuBottomMiddle.updateReflection();"
 						   textAlign="center"/>
 				<fbc:ImageButton visible = "false"

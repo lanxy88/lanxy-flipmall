@@ -40,7 +40,7 @@ package common
 		
 		private function onMouseWheel(event:MouseEvent):void
 		{
-			if(RunTime.mouseWheelZoom){
+			if(RunTime.mouseWheelZoom && RunTime.zoomedIn){
 				//阻止滚轮默认行为
 				event.preventDefault();
 				event.stopPropagation();

@@ -209,20 +209,23 @@ package common
 					p0 = mainPage.book.localToGlobal(p0);
 					p1 = mainPage.book.localToGlobal(p1);
 					
-					if(p.x < p0.x)
-					{
-						if(mainPage.book.canTurnBackward() == true)
+					if(!RunTime.flipArrow){
+						if(p.x < p0.x)
 						{
-							mainPage.flipLeft();
+							if(mainPage.book.canTurnBackward() == true)
+							{
+								mainPage.flipLeft();
+							}
+						}
+						else if(p.x > p1.x)
+						{
+							if(mainPage.book.canTurnForward() == true)
+							{
+								mainPage.flipRight();
+							}
 						}
 					}
-					else if(p.x > p1.x)
-					{
-						if(mainPage.book.canTurnForward() == true)
-						{
-							mainPage.flipRight();
-						}
-					}
+					
 				}
 			}
 		}
@@ -355,6 +358,7 @@ package common
 							if(p.x < p0.x)
 							{
 								//if(mainPage.book.canTurnBackward() == true)
+								if(!RunTime.flipArrow)
 								{
 									CursorManager.setCursor(SModeRunTime.iconPrev);
 								}
@@ -362,6 +366,7 @@ package common
 							else if(p.x > p1.x)
 							{
 								//if(mainPage.book.canTurnForward() == true)
+								if(!RunTime.flipArrow)
 								{
 									CursorManager.setCursor(SModeRunTime.iconNext);
 								}

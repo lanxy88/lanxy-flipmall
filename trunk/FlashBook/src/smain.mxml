@@ -30,6 +30,7 @@
 			import mx.utils.StringUtil;
 			import mx.validators.ValidationResult;
 			
+			import utils.ContentHelper;
 			import utils.FluentTimer;
 			import utils.Helper;
 			import utils.MouseStateHelper;
@@ -509,7 +510,9 @@
 				}
 				try{
 					if(bookConfig.attribute("flipArrow")){
-						flipArrow = Boolean(String(bookConfig.@flipArrow));
+						flipArrow = Boolean(String(bookConfig.@flipArrow)=="true");
+						if(flipArrow) updatePageArrow();
+						RunTime.flipArrow = flipArrow;
 					}
 				}catch(ex:Error){
 					
@@ -1157,6 +1160,7 @@
 			
 			private function zoomOut(event: MouseEvent = null): void
 			{
+				RunTime.firstZoomed = true;
 				if(landscape.atMoveState() == false)
 				{
 					if(MouseStateHelper.isZoomActive(event.target) == false)
@@ -1166,7 +1170,10 @@
 					
 					if(event.currentTarget.enabled)
 					{
-						zoomOutBook();
+						if(RunTime.zoomMode=="scalable"){
+							zoomInBook2(null,1);
+						}else
+							zoomOutBook();
 					}
 					
 					RunTime.showLeftMenu(true);
@@ -1212,6 +1219,8 @@
 					book.mouseChildren = true;
 				}
 				landscape.scaleByDragBoxActive = false;
+				
+				checkBookArrowsVisible();
 			}
 			
 			[Bindable]
@@ -1804,19 +1813,22 @@
 			
 			private function playPageBgSound():void
 			{
-				this.audio.stopTempSound();
+				ContentHelper.clearBgAudioBox(RunTime.mainPage.getBgAudioLayer());
+//				this.audio.stopTempSound();
 				var sounds:SoundContainer = new SoundContainer(); 
 				for each(var item:BookPage in RunTime.bookPages)
 				{
 					if((item.pageId == book.currentPage) && item.sound != null)
 					{
-						sounds.push(item.sound);
+//						sounds.push(item.sound);
+						sounds.push(new SoundWrap(item.sound,item.soundRepeat,item.soundControl,item.bgSoundUrl));
 					}
 				}
 				
 				if(sounds.length > 0)
 				{
-					this.audio.playTempSound(sounds);
+//					this.audio.playTempSound(sounds);
+					ContentHelper.showBgAudioBox(this.audio,sounds);
 				}
 			}
 			
@@ -3100,6 +3112,7 @@
 			
 			public function zoomInBook2(focus:Point = null, limit:Number = 0): void
 			{
+				RunTime.firstZoomed = true;
 				selfZoomed = true;
 				var page:int = book.currentPage-1;
 				if(page >=0){
@@ -3137,7 +3150,7 @@
 //						focusOn2( target, -1,-1,controller);
 					}
 					
-					RunTime.zoomedIn = true;
+//					RunTime.zoomedIn = true;
 					
 					closeNoteDetails();
 					
@@ -3280,7 +3293,28 @@
 				
 				autoFlip=false;
 				checkFlip();
-				
+				Mouse
+			}
+			
+			private function checkBookArrowsVisible():void{
+				if(!flipArrow){
+					turnLeftArrow.visible = turnRightArrow.visible = false;
+					return;
+				}
+				if(!RunTime.firstZoomed) {
+					turnLeftArrow.visible = turnRightArrow.visible = true;
+					return;
+				}				
+				z = landscape.scale;
+				if(Number(z.toFixed(1))==1){
+					if(book.canTurnBackward())
+						turnLeftArrow.visible = true;
+					if(book.canTurnForward())
+						turnRightArrow.visible= true;
+				}else{
+					turnLeftArrow.visible = false;
+					turnRightArrow.visible= false;
+				}
 			}
 			
 		]]>

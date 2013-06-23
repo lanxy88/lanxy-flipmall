@@ -1,8 +1,12 @@
 <videos>
-	<!-- 
-	<video showControl="true" autoRepeat="true" autoPlay="true" youtubeId="2WuctGWfuPg" 
-		height="342" width="497" y="762" x="655" pagewidth="1240" page="1" />
-		 -->
+
+<!-- 	<video showControl="true" autoRepeat="true" autoPlay="true" youtubeId="2WuctGWfuPg"  -->
+<!-- 		height="342" width="497" y="762" x="655" pagewidth="1240" page="1" /> -->
+		
+<!-- 		<video page="1" x="80" y="100" width="1000" height="800"  -->
+<!-- 		 autoPlay="false" showControl="true" stopWhenFlip="false" -->
+<!-- 		 autoRepeat="false" url="content/videos/test.swf" -->
+<!-- 		/> -->
 
 	<!-- <video page="1" x="80" y="100" width="1000" height="800" 
 		 autoPlay="false" showControl="true" stopWhenFlip="false"

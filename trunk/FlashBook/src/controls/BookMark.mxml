@@ -12,6 +12,7 @@
 		<![CDATA[
 			import mx.controls.Image;
 			
+			import qs.containers.Landscape;
 			import qs.controls.FlexBook;
 			
 			import utils.Helper;
@@ -53,7 +54,16 @@
 			
 			public function update():void
 			{
-				var size:Number = fontSize * book.getRealScale();
+				var size:Number = fontSize;
+				if(RunTime.zoomMode=="scalable" && !RunTime.singlePageMode && RunTime.firstZoomed){
+					try{
+						var s:Number = (book.parent.parent.parent.parent as Landscape).scale;
+						size = fontSize * (s?s:1);
+					}catch(e:Error){System.gc();}
+				}
+				else
+					size = fontSize * book.getRealScale();
+//				var size:Number = fontSize * book.scaleX;
 				updateImage(size);
 				this.invalidateDisplayList();
 			}
@@ -61,9 +71,17 @@
 			public function adjust():void
 			{
 				if(this.book == null) return;
-				
+//				
+				var s:Number=1;
+				if(RunTime.zoomMode=="scalable" && !RunTime.singlePageMode && RunTime.firstZoomed){
+					try{
+						s = (book.parent.parent.parent.parent as Landscape).scale;
+					}catch(e:Error){System.gc();}
+				}
+				else
+					s =  book.getRealScale();
 //				var s:Number = book.getRealScale();
-				var s:Number = book.scaleX;
+//				var s:Number = book.scaleX;
 //				trace(s);
 				var root:Point = book.localToGlobal(new Point(this.rawX,this.rawY));
 				var ww:Number = this.rawWidth * s;

@@ -75,8 +75,8 @@ global: mK6go5Js -->
  bookmarkWidth="18" 
  bookmarkHeight="150" 
  bookmarkFontSize="10" 
- defaultZoomScale="2" 
- clickToZoom="doubleclick" 
+ defaultZoomScale="3" 
+ clickToZoom="singleclick" 
  rightToLeft="false" 
  autoFlip="false" 
  fitScreenAfterZoom="false" 
@@ -99,7 +99,7 @@ global: mK6go5Js -->
  analyticsUA=""
  bookSize="10"
  bgPosition="fill"
- flipArrow="true"
+ flipArrow="false"
  >
  	<tooltip bgColor="#ff00ff" fgColor="#000000" showZoomTip="true" showFlipTip="true" />
 	<bottomthumb bgAlpha="0.59" bgColor="0x000000"  visible="true" />
@@ -187,8 +187,8 @@ global: mK6go5Js -->
   	   -->
 	</rightAd>
 	 
-	 <!-- dockPos --halfpage/halfscreen -->
-	 <!-- layout --center stretch fill fit-->
+	 <!-- dockPos halfpage/halfscreen -->
+	 <!-- layout  center stretch fill fit-->
 <!-- 	<mainAd url="content/images/27.jpg" href="http://www.flipmall.net" dockPos="halfpage" layout="fill"/> -->
 	
 <!-- 	<mainAd href="page:4" hideWhenOpened="false" height="200" width="300" layout="stretch" dockPos="halfpage"> -->

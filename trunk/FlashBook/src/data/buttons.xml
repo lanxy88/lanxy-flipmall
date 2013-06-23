@@ -50,6 +50,6 @@
 		image="content/images/imageLink.png" type="none"  />
 	<button page="8" x="200" y="800" width="128" height="128" 
 		image="content/images/imageLink.png" type="image-hover" destination="content/images/imageLink.png" />
-	<button page="9" x="600" y="400" width="128" height="128" 
+	<button page="1" x="600" y="400" width="128" height="128" 
 		image="content/images/imageLink.png" type="image" destination="content/videos/myalbum665.swf" />		
 </buttons>

@@ -2916,6 +2916,7 @@ RunTime.sendEmailByForm = function() {
 	b.submit();
 }
 RunTime.loadPageInfo = function() {
+	debugger;
 	if(RunTime.pageInfo == null) return;
 	var root = RunTime.pageInfo.firstElement();
 	var val = root.get("preload");

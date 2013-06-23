@@ -1110,7 +1110,7 @@ class RunTime
 	
 	private static function loadPageInfo():Void
 	{
-		
+		Lib.debug();
 		if (pageInfo == null) return;
 		var root:Xml = pageInfo.firstElement();
 		var val:String = root.get("preload");
@@ -1159,6 +1159,7 @@ class RunTime
 		RunTime.flipBook.setPageCount(RunTime.book.pages.length);
 	
 		RunTime.flipBook.setCurrentPage(RunTime.defaultPageNum + 1);
+		//RunTime.flipBook.setCurrentPage(RunTime.defaultPageNum);
 		RunTime.flipBook.loadPage(RunTime.defaultPageNum);
 	
 	}
