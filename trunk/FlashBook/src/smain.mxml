@@ -1472,12 +1472,14 @@
 				if(pageIndex != book.currentPageIndex)
 				{
 					book.turnToPage(pageIndex);
+					bottomThumb.gotoThumb(pageIndex);
 					book.searchResult();
 				}
 				else
 				{
 					stage.focus = this;
 					book.invalidateDisplayList();
+//					book.searchResult();
 				}
 			}
 			
@@ -3712,7 +3714,7 @@
 					</HBox>
 					<HBox width="100%" horizontalAlign="right" paddingLeft="30" paddingRight="20"
 						  paddingTop="20">
-						<Button width="80" label="{l.i.s('Send')}" click="sendEmail()"/>
+						<Button width="100" label="{l.i.s('Send')}" click="sendEmail()"/>
 					</HBox>
 					<HBox height="100%" paddingBottom="20" paddingLeft="30" verticalAlign="bottom">
 						<Label id="tbEmailInfo" mouseChildren="false"/>

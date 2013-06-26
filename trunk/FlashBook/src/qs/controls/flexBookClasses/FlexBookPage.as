@@ -310,7 +310,6 @@ package qs.controls.flexBookClasses
 						&& ComboLinkPage(ImagePage(render).imgPage.content).cnt is MovieClip){
 						var _content:MovieClip =  MovieClip(ComboLinkPage(ImagePage(render).imgPage.content).cnt );
 						
-						
 						if(_content is MovieClip){
 							var snapText:TextSnapshot = MovieClip(_content).textSnapshot;
 							var textPos:int = snapText.findText(0,RunTime.searchString,false);

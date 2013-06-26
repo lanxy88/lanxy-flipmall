@@ -1,18 +1,28 @@
 <pages preload="true">
+
+<page id="1" shadow="false" source="content/vector/page1.swf" thumb="content/thumbs/thumb1.jpg"/>
+<page id="2" shadow="false" source="content/vector/page2.swf" thumb="content/thumbs/thumb2.jpg"/>
+<page id="3" shadow="false" source="content/vector/page3.swf" thumb="content/thumbs/thumb3.jpg"/>
+<page id="4" shadow="false" source="content/vector/page4.swf" thumb="content/thumbs/thumb4.jpg"/>
+<page id="5" shadow="false" source="content/vector/page2.swf" thumb="content/thumbs/thumb2.jpg"/>
+<page id="6" shadow="false" source="content/vector/page3.swf" thumb="content/thumbs/thumb3.jpg"/>
+<page id="7" shadow="false" source="content/vector/page2.swf" thumb="content/thumbs/thumb2.jpg"/>
+<page id="8" shadow="false" source="content/vector/page3.swf" thumb="content/thumbs/thumb3.jpg"/>
+
 <!-- 
 <page id="1" source="test/case01/page1.png" shadow="false" thumb="content/thumbs/thumb1.jpg"/>
 <page id="2" source="test/case01/page1.png" shadow="false" thumb="content/thumbs/thumb2.jpg"/>
 <page id="3" source="test/case01/page2.png" shadow="false" thumb="content/thumbs/thumb2.jpg"/>
 -->
-<page id="1" source="content/pages/page1.jpg" shadow="true" thumb="content/thumbs/thumb2_.jpg" canZoom="true"/>
+<!-- <page id="1" source="content/pages/page1.jpg" shadow="true" thumb="content/thumbs/thumb2_.jpg" canZoom="true"/> -->
 
 
-<page id="2" source="content/pages/page2.jpg" shadow="false" thumb="content/thumbs/thumb2.jpg" canZoom="false"/>
-<page id="3" source="content/pages/page3.jpg" shadow="true" thumb="content/thumbs/thumb3.jpg"/>
+<!-- <page id="2" source="content/pages/page2.jpg" shadow="false" thumb="content/thumbs/thumb2.jpg" canZoom="false"/> -->
+<!-- <page id="3" source="content/pages/page3.jpg" shadow="true" thumb="content/thumbs/thumb3.jpg"/> -->
 
 
-<page id="4" source="content/pages/page4.jpg" shadow="true"  thumb="content/thumbs/thumb4.jpg"/>
-<page id="5" source="content/pages/page5.jpg" shadow="true" thumb="content/thumbs/thumb5.jpg"/>
+<!-- <page id="4" source="content/pages/page4.jpg" shadow="true"  thumb="content/thumbs/thumb4.jpg"/> -->
+<!-- <page id="5" source="content/pages/page5.jpg" shadow="true" thumb="content/thumbs/thumb5.jpg"/> -->
 <!-- <page id="6" source="content/pages/page6.jpg" thumb="content/thumbs/thumb6.jpg"/> -->
 <!-- <page id="7" source="content/pages/page7.jpg" thumb="content/thumbs/thumb7.jpg"/> -->
 <!-- <page id="8" source="content/pages/page8.jpg" thumb="content/thumbs/thumb8.jpg"/> -->
