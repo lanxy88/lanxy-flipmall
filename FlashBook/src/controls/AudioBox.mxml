@@ -80,7 +80,7 @@
 						url = "";
 				}
 				if(!url) {
-					if(playlist.length>1){
+					if(playlist && playlist.length>1){
 					}else
 						this.visible = false;
 					//this.parent.visible = this.visible;

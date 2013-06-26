@@ -307,6 +307,46 @@
 			public function searchResult():void
 			{
 				if(render == null || RunTime.searchString.length == 0) return;
+//				focusManager.setFocus(render);
+//				render.setFocus();
+				if(this.snapText == null){
+					if(render.imgPage !=null && render.imgPage.content != null && RunTime.searchString !=""){
+						if (render.imgPage.content is ComboLinkPage 
+							&& 
+							ComboLinkPage(render.imgPage.content).cnt is MovieClip){
+							var _content:MovieClip =  MovieClip(ComboLinkPage(render.imgPage.content).cnt );
+						
+							
+							if(_content is MovieClip){
+								var snapText:TextSnapshot = MovieClip(_content).textSnapshot;
+								var textPos:int = snapText.findText(0,RunTime.searchString,false);
+								snapText.setSelected(0,snapText.charCount-1,false);
+								
+								 if(textPos != -1){
+									do{
+										snapText.setSelectColor(0xffff00);
+										snapText.setSelected(textPos, textPos+RunTime.searchString.length,true);
+										textPos = snapText.findText(textPos + RunTime.searchString.length,RunTime.searchString,false);
+									}while(textPos != -1)
+								} 
+								
+								/* while(textPos>-1){
+									snapText.setSelectColor(0xffff00);
+									snapText.setSelected(textPos, textPos+RunTime.searchString.length,true);
+									textPos = snapText.findText(textPos + RunTime.searchString.length,RunTime.searchString,false);
+								} */
+								this.snapText = snapText;
+							}
+						}
+					}
+					
+				}
+				
+			}
+			
+			public function searchResult2():void
+			{
+				if(render == null || RunTime.searchString.length == 0) return;
 				if(this.snapText == null){
 					if(render.imgPage !=null && render.imgPage.content != null && RunTime.searchString !=""){
 						if (render.imgPage.content is ComboLinkPage 
@@ -320,14 +360,11 @@
 								var textPos:int = snapText.findText(0,RunTime.searchString,false);
 								snapText.setSelected(0,snapText.charCount-1,false);
 								
-								if(textPos != -1){
-									do{
-										snapText.setSelectColor(0xffff00);
-										snapText.setSelected(textPos, textPos+RunTime.searchString.length,true);
-										textPos = snapText.findText(textPos + RunTime.searchString.length,RunTime.searchString,false);
-									}while(textPos != -1)
-								}
-								
+								while(textPos>-1){
+									snapText.setSelectColor(0xffff00);
+									snapText.setSelected(textPos, textPos+RunTime.searchString.length,true);
+									textPos = snapText.findText(textPos + RunTime.searchString.length,RunTime.searchString,false);
+								} 
 								this.snapText = snapText;
 								
 							}
@@ -335,8 +372,6 @@
 					}
 					
 				}
-
-				
 				
 			}
 			
@@ -441,7 +476,7 @@
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-				searchResult();
+//				searchResult();
 				//linkPage();
 			}
 			
